@@ -1,300 +1,596 @@
-const express = require('express')
-const cors = require('cors')
-const { PrismaClient } = require('@prisma/client')
-const { createEvent } = require('ics')
-const fs = require('fs')
-const path = require('path')
-const swaggerUi = require('swagger-ui-express')
-const YAML = require('yaml')
+const express = require('express');const express = require('express')
 
-// Load and parse OpenAPI spec
-const openApiYaml = fs.readFileSync(path.join(__dirname, '..', 'openapi.yaml'), 'utf8')
+const cors = require('cors');const cors = require('cors')
+
+const { createEvent } = require('ics');const { PrismaClient } = require('@prisma/client')
+
+const fs = require('fs');const { createEvent } = require('ics')
+
+const path = require('path');const fs = require('fs')
+
+const swaggerUi = require('swagger-ui-express');const path = require('path')
+
+const YAML = require('yaml');const swaggerUi = require('swagger-ui-express')
+
+const { JsonDB } = require('./db');const YAML = require('yaml')
+
+
+
+// Initialize database// Load and parse OpenAPI spec
+
+const db = new JsonDB();const openApiYaml = fs.readFileSync(path.join(__dirname, '..', 'openapi.yaml'), 'utf8')
+
 const openApiSpec = YAML.parse(openApiYaml)
 
-// Configure Swagger UI options
-const swaggerUiOptions = {
+// Load and parse OpenAPI spec
+
+const openApiYaml = fs.readFileSync(path.join(__dirname, '..', 'openapi.yaml'), 'utf8');// Configure Swagger UI options
+
+const openApiSpec = YAML.parse(openApiYaml);const swaggerUiOptions = {
+
   customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'RDV API Documentation'
-}
 
-const prisma = new PrismaClient({
-  log: ['query', 'info', 'warn', 'error'],
+// Configure Swagger UI options  customSiteTitle: 'RDV API Documentation'
+
+const swaggerUiOptions = {}
+
+  customCss: '.swagger-ui .topbar { display: none }',
+
+  customSiteTitle: 'RDV API Documentation'const prisma = new PrismaClient({
+
+};  log: ['query', 'info', 'warn', 'error'],
+
   errorFormat: 'pretty',
-})
 
-// Handle Prisma connection
+const app = express();})
+
+app.use(cors());
+
+app.use(express.json());// Handle Prisma connection
+
 async function connectPrisma() {
-  try {
-    await prisma.$connect()
-    console.log('Successfully connected to database')
-    return true
-  } catch (error) {
+
+// API routes first  try {
+
+app.use('/api', (req, res, next) => {    await prisma.$connect()
+
+  req.url = req.url.replace(/^\/api/, '');    console.log('Successfully connected to database')
+
+  next();    return true
+
+});  } catch (error) {
+
     console.error('Database connection error:', error)
-    return false
-  }
-}
 
-const app = express()
-app.use(cors())
-app.use(express.json())
+// Determine the correct dist directory path based on environment    return false
 
-// Ensure database connection before starting server
-connectPrisma().then(connected => {
-  if (!connected) {
-    console.error('Could not connect to database. Exiting...')
-    process.exit(1)
-  }
-})
+const distPath = process.env.NODE_ENV === 'production'  }
 
-// Determine the correct dist directory path based on environment
-const distPath = process.env.NODE_ENV === 'production'
-  ? path.join(process.cwd(), 'dist')
+  ? path.join(process.cwd(), 'dist')}
+
   : path.join(__dirname, '..', 'dist');
 
-console.log('Environment:', process.env.NODE_ENV)
-console.log('Current directory:', process.cwd())
-console.log('Dist path:', distPath)
+const app = express()
+
+// Create dist directory if it doesn't existapp.use(cors())
+
+if (!fs.existsSync(distPath)) {app.use(express.json())
+
+  console.log('Creating dist directory');
+
+  fs.mkdirSync(distPath, { recursive: true });// Ensure database connection before starting server
+
+}connectPrisma().then(connected => {
+
+  if (!connected) {
+
+// Static files with proper caching    console.error('Could not connect to database. Exiting...')
+
+app.use(express.static(distPath, {    process.exit(1)
+
+  maxAge: '1h',  }
+
+  etag: true,})
+
+  lastModified: true,
+
+  fallthrough: true// Determine the correct dist directory path based on environment
+
+}));const distPath = process.env.NODE_ENV === 'production'
+
+  ? path.join(process.cwd(), 'dist')
+
+// Helper: parse ISO -> [year, month, day, hour, minute]  : path.join(__dirname, '..', 'dist');
+
+function toIcsDate(iso) {
+
+  const d = new Date(iso);console.log('Environment:', process.env.NODE_ENV)
+
+  return [d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes()];console.log('Current directory:', process.cwd())
+
+}console.log('Dist path:', distPath)
+
 console.log('Directory contents:', fs.readdirSync(process.cwd()))
 
-// Create dist directory if it doesn't exist
-if (!fs.existsSync(distPath)) {
-  console.log('Creating dist directory')
-  fs.mkdirSync(distPath, { recursive: true })
-}
+// GET slots in range
 
-// Log all directories up to dist
-let currentPath = distPath
-while (currentPath !== '/') {
-  try {
+app.get('/api/slots', async (req, res) => {// Create dist directory if it doesn't exist
+
+  const { from, to } = req.query;if (!fs.existsSync(distPath)) {
+
+  const where = {};  console.log('Creating dist directory')
+
+  if (from && to) {  fs.mkdirSync(distPath, { recursive: true })
+
+    where.start = { gte: new Date(from) };}
+
+    where.end = { lte: new Date(to) };
+
+  }// Log all directories up to dist
+
+  const slots = await db.findSlots(where);let currentPath = distPath
+
+  res.json(slots);while (currentPath !== '/') {
+
+});  try {
+
     console.log(`Contents of ${currentPath}:`, fs.readdirSync(currentPath))
-  } catch (error) {
-    console.log(`Cannot read ${currentPath}:`, error.message)
-  }
-  currentPath = path.dirname(currentPath)
-}
 
-// API routes first
-app.use('/api', (req, res, next) => {
+// Health check endpoint  } catch (error) {
+
+app.get('/api/health', (req, res) => {    console.log(`Cannot read ${currentPath}:`, error.message)
+
+  res.json({   }
+
+    status: 'healthy',  currentPath = path.dirname(currentPath)
+
+    timestamp: new Date().toISOString(),}
+
+    env: process.env.NODE_ENV
+
+  });// API routes first
+
+});app.use('/api', (req, res, next) => {
+
   req.url = req.url.replace(/^\/api/, '')
-  next()
-})
 
-// Serve static files from multiple possible locations
+// simple ping  next()
+
+app.get('/api/ping', (req, res) => {})
+
+  res.json({ ok: true, now: new Date().toISOString() });
+
+});// Serve static files from multiple possible locations
+
 const possibleDistPaths = [
-  path.join(process.cwd(), 'dist'),
-  path.join(process.cwd(), '..', 'dist'),
-  '/opt/render/project/src/dist',
-  path.join(__dirname, '..', 'dist')
-];
 
-// Find the first valid dist path
-const validDistPath = possibleDistPaths.find(p => {
-  try {
-    return fs.existsSync(p) && fs.existsSync(path.join(p, 'index.html'));
-  } catch (error) {
-    console.log(`Error checking path ${p}:`, error.message);
-    return false;
-  }
-}) || distPath;
+// GET config  path.join(process.cwd(), 'dist'),
 
-console.log('Using dist path:', validDistPath);
+app.get('/api/config', async (req, res) => {  path.join(process.cwd(), '..', 'dist'),
 
-// Static files with proper caching
-app.use(express.static(validDistPath, {
-  maxAge: '1h',
-  etag: true,
-  lastModified: true,
+  const config = await db.getConfig();  '/opt/render/project/src/dist',
+
+  res.json(config);  path.join(__dirname, '..', 'dist')
+
+});];
+
+
+
+// PUT config// Find the first valid dist path
+
+app.put('/api/config', async (req, res) => {const validDistPath = possibleDistPaths.find(p => {
+
+  const { appointmentDuration } = req.body;  try {
+
+  if (![10,15,20,30].includes(appointmentDuration)) {    return fs.existsSync(p) && fs.existsSync(path.join(p, 'index.html'));
+
+    return res.status(400).json({ error: 'invalid duration' });  } catch (error) {
+
+  }    console.log(`Error checking path ${p}:`, error.message);
+
+  const config = await db.updateConfig({ appointmentDuration });    return false;
+
+  res.json(config);  }
+
+});}) || distPath;
+
+
+
+// POST timeframe -> create slots based on current configconsole.log('Using dist path:', validDistPath);
+
+app.post('/api/slots/timeframe', async (req, res) => {
+
+  const { start, end } = req.body;// Static files with proper caching
+
+  if (!start || !end) return res.status(400).json({ error: 'start and end required' });app.use(express.static(validDistPath, {
+
+    maxAge: '1h',
+
+  const config = await db.getConfig();  etag: true,
+
+  const duration = config.appointmentDuration;  lastModified: true,
+
   fallthrough: true // Continue to next middleware if file not found
-}))
 
-// SPA routing - this should be the last middleware
+  const s = new Date(start);}))
+
+  const e = new Date(end);
+
+  if (s >= e) return res.status(400).json({ error: 'invalid timeframe' });// SPA routing - this should be the last middleware
+
 app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api/')) {
-    return next()
-  }
 
-  const indexPath = path.join(validDistPath, 'index.html')
-  
-  // Check if index.html exists
-  if (!fs.existsSync(indexPath)) {
-    console.error('index.html not found at:', indexPath)
-    console.log('Available files in dist:', fs.readdirSync(validDistPath))
+  const created = [];  if (req.path.startsWith('/api/')) {
+
+  let cursor = new Date(s);    return next()
+
+    }
+
+  while (cursor.getTime() + duration * 60000 <= e.getTime()) {
+
+    const slotStart = new Date(cursor);  const indexPath = path.join(validDistPath, 'index.html')
+
+    const slotEnd = new Date(cursor.getTime() + duration * 60000);  
+
+    const slot = await db.createSlot({ start: slotStart, end: slotEnd });  // Check if index.html exists
+
+    created.push(slot);  if (!fs.existsSync(indexPath)) {
+
+    cursor = new Date(cursor.getTime() + duration * 60000);    console.error('index.html not found at:', indexPath)
+
+  }    console.log('Available files in dist:', fs.readdirSync(validDistPath))
+
     return res.status(404).send('Application not found')
-  }
-  
+
+  res.json({ created });  }
+
+});  
+
   console.log('Serving index.html from:', indexPath)
 
-  res.sendFile(indexPath, {}, (err) => {
-    if (err) {
-      console.error('Error sending file:', err)
-      console.error('File path attempted:', indexPath)
-      console.error('Directory contents:', fs.readdirSync(path.dirname(indexPath)))
+// DELETE slot
+
+app.delete('/api/slots/:id', async (req, res) => {  res.sendFile(indexPath, {}, (err) => {
+
+  const { id } = req.params;    if (err) {
+
+  await db.updateSlot(id, { removed: true });      console.error('Error sending file:', err)
+
+  res.json({ success: true });      console.error('File path attempted:', indexPath)
+
+});      console.error('Directory contents:', fs.readdirSync(path.dirname(indexPath)))
+
       res.status(500).send('Error loading application')
-    }
-  })
-})
 
-// Serve OpenAPI spec as JSON
+// GET bookings    }
+
+app.get('/api/bookings', async (req, res) => {  })
+
+  const bookings = await db.findBookings();})
+
+  res.json(bookings);
+
+});// Serve OpenAPI spec as JSON
+
 app.get('/api/openapi.json', (req, res) => {
-  res.json(openApiSpec)
-})
 
-// Mount Swagger UI at /api/docs/ui
+// POST booking  res.json(openApiSpec)
+
+app.post('/api/bookings', async (req, res) => {})
+
+  const { slotId, childName } = req.body;
+
+  if (!slotId || !childName) return res.status(400).json({ error: 'slotId and childName required' });// Mount Swagger UI at /api/docs/ui
+
 app.use('/api/docs/ui', swaggerUi.serve, swaggerUi.setup(openApiSpec, swaggerUiOptions))
 
-// Helper: parse ISO -> [year, month, day, hour, minute]
-function toIcsDate(iso) {
-  const d = new Date(iso)
-  return [d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes()]
-}
+  try {
+
+    const slots = await db.findSlots();// Helper: parse ISO -> [year, month, day, hour, minute]
+
+    const slot = slots.find(s => s.id === slotId);function toIcsDate(iso) {
+
+      const d = new Date(iso)
+
+    if (!slot || slot.booked || slot.removed) {  return [d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes()]
+
+      return res.status(409).json({ error: 'Slot unavailable' });}
+
+    }
 
 // GET slots in range
-app.get('/api/slots', async (req, res) => {
-  const { from, to } = req.query
-  const where = {}
-  if (from && to) {
-    where.start = { gte: new Date(from) }
-    where.end = { lte: new Date(to) }
-  }
-  const slots = await prisma.slot.findMany({ where, orderBy: { start: 'asc' } })
-  res.json(slots)
-})
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
+    await db.updateSlot(slotId, { booked: true });app.get('/api/slots', async (req, res) => {
+
+    const booking = await db.createBooking({   const { from, to } = req.query
+
+      slotId,   const where = {}
+
+      childName,  if (from && to) {
+
+      originalSlotStart: slot.start     where.start = { gte: new Date(from) }
+
+    });    where.end = { lte: new Date(to) }
+
+  }
+
+    res.status(201).json({ booking });  const slots = await prisma.slot.findMany({ where, orderBy: { start: 'asc' } })
+
+  } catch (err) {  res.json(slots)
+
+    console.error(err);})
+
+    res.status(500).json({ error: 'internal' });
+
+  }// Health check endpoint
+
+});app.get('/api/health', (req, res) => {
+
   res.json({ 
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    env: process.env.NODE_ENV,
-    dbConnected: prisma.$connect != null
-  })
+
+// PUT modify booking    status: 'healthy',
+
+app.put('/api/bookings/:id', async (req, res) => {    timestamp: new Date().toISOString(),
+
+  const { id } = req.params;    env: process.env.NODE_ENV,
+
+  const { slotId, childName } = req.body;    dbConnected: prisma.$connect != null
+
+    })
+
+  try {})
+
+    const booking = await db.findBookingById(id);
+
+    if (!booking) {// simple ping
+
+      return res.status(404).json({ error: 'Booking not found' });app.get('/api/ping', (req, res) => {
+
+    }  res.json({ ok: true, now: new Date().toISOString() })
+
 })
 
-// simple ping
-app.get('/api/ping', (req, res) => {
-  res.json({ ok: true, now: new Date().toISOString() })
-})
+    const slots = await db.findSlots();
 
-// API docs JSON + simple HTML tester
-app.get('/api/docs', (req, res) => {
-  const docs = {
-    info: 'Simple RDV API',
-    base: '/api',
+    const newSlot = slots.find(s => s.id === slotId);// API docs JSON + simple HTML tester
+
+    app.get('/api/docs', (req, res) => {
+
+    if (!newSlot || newSlot.booked || newSlot.removed) {  const docs = {
+
+      return res.status(409).json({ error: 'Slot unavailable' });    info: 'Simple RDV API',
+
+    }    base: '/api',
+
     endpoints: [
-      { method: 'GET', path: '/slots', desc: 'List slots (query from,to optional)' },
-      { method: 'POST', path: '/slots/timeframe', desc: 'Create slots between start and end (ISO strings)' },
-      { method: 'DELETE', path: '/slots/:id', desc: 'Remove a slot (soft remove) if not booked' },
-      { method: 'GET', path: '/bookings', desc: 'List bookings' },
-      { method: 'POST', path: '/bookings', desc: 'Create a booking (slotId, childName) transactional' },
-      { method: 'PUT', path: '/bookings/:id', desc: 'Reschedule a booking to a different slot' },
-      { method: 'DELETE', path: '/bookings/:id', desc: 'Cancel a booking' },
-      { method: 'GET', path: '/bookings/:id/ics', desc: 'Download .ics for a booking' },
+
+    await db.updateSlot(booking.slotId, { booked: false });      { method: 'GET', path: '/slots', desc: 'List slots (query from,to optional)' },
+
+    await db.updateSlot(slotId, { booked: true });      { method: 'POST', path: '/slots/timeframe', desc: 'Create slots between start and end (ISO strings)' },
+
+          { method: 'DELETE', path: '/slots/:id', desc: 'Remove a slot (soft remove) if not booked' },
+
+    const updated = await db.updateBooking(id, {       { method: 'GET', path: '/bookings', desc: 'List bookings' },
+
+      slotId,      { method: 'POST', path: '/bookings', desc: 'Create a booking (slotId, childName) transactional' },
+
+      childName: childName || booking.childName,      { method: 'PUT', path: '/bookings/:id', desc: 'Reschedule a booking to a different slot' },
+
+      originalSlotStart: newSlot.start       { method: 'DELETE', path: '/bookings/:id', desc: 'Cancel a booking' },
+
+    });      { method: 'GET', path: '/bookings/:id/ics', desc: 'Download .ics for a booking' },
+
       { method: 'GET', path: '/config', desc: 'Get configuration (rdvDurationMinutes)' },
-      { method: 'PUT', path: '/config', desc: 'Update configuration (rdvDurationMinutes)' },
-      { method: 'POST', path: '/reset', desc: 'Reset schedule (confirm: true required)' }
-    ]
+
+    res.json({ booking: updated });      { method: 'PUT', path: '/config', desc: 'Update configuration (rdvDurationMinutes)' },
+
+  } catch (err) {      { method: 'POST', path: '/reset', desc: 'Reset schedule (confirm: true required)' }
+
+    console.error(err);    ]
+
+    res.status(500).json({ error: 'internal' });  }
+
   }
 
-  // return JSON by default; if HTML requested, render a simple tester page
+});  // return JSON by default; if HTML requested, render a simple tester page
+
   const accept = req.headers.accept || ''
-  if (accept.includes('text/html')) {
-    const html = `<!doctype html>
-    <html>
-    <head><meta charset="utf-8"><title>API Docs - RDV</title></head>
-    <body style="font-family:system-ui,Segoe UI,Helvetica,Arial,sans-serif;padding:20px;">
-      <h1>RDV API</h1>
-      <p>Base: /api</p>
-      <pre>${JSON.stringify(docs, null, 2)}</pre>
-      <hr/>
-      <h2>Quick tests</h2>
-      <button onclick="fetch('/api/ping').then(r=>r.json()).then(j=>alert(JSON.stringify(j)))">Ping</button>
-      <button onclick="fetch('/api/slots').then(r=>r.json()).then(j=>alert('slots: '+j.length))">List slots</button>
-      <button onclick="(async ()=>{ const iso=new Date().toISOString(); const later=new Date(Date.now()+30*60000).toISOString(); const res=await fetch('/api/slots/timeframe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({start:iso,end:later})}); const j=await res.json(); alert('created:'+ (j.created? j.created.length : JSON.stringify(j))) })()">Create 30m timeframe</button>
-      <p>Open dev console for network details.</p>
-    </body>
+
+// DELETE booking  if (accept.includes('text/html')) {
+
+app.delete('/api/bookings/:id', async (req, res) => {    const html = `<!doctype html>
+
+  const { id } = req.params;    <html>
+
+  try {    <head><meta charset="utf-8"><title>API Docs - RDV</title></head>
+
+    const booking = await db.findBookingById(id);    <body style="font-family:system-ui,Segoe UI,Helvetica,Arial,sans-serif;padding:20px;">
+
+    if (booking) {      <h1>RDV API</h1>
+
+      await db.updateBooking(id, { cancelled: true });      <p>Base: /api</p>
+
+      await db.updateSlot(booking.slotId, { booked: false });      <pre>${JSON.stringify(docs, null, 2)}</pre>
+
+    }      <hr/>
+
+    res.json({ success: true });      <h2>Quick tests</h2>
+
+  } catch (err) {      <button onclick="fetch('/api/ping').then(r=>r.json()).then(j=>alert(JSON.stringify(j)))">Ping</button>
+
+    console.error(err);      <button onclick="fetch('/api/slots').then(r=>r.json()).then(j=>alert('slots: '+j.length))">List slots</button>
+
+    res.status(500).json({ error: 'internal' });      <button onclick="(async ()=>{ const iso=new Date().toISOString(); const later=new Date(Date.now()+30*60000).toISOString(); const res=await fetch('/api/slots/timeframe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({start:iso,end:later})}); const j=await res.json(); alert('created:'+ (j.created? j.created.length : JSON.stringify(j))) })()">Create 30m timeframe</button>
+
+  }      <p>Open dev console for network details.</p>
+
+});    </body>
+
     </html>`
-    res.setHeader('Content-Type', 'text/html; charset=utf-8')
-    return res.send(html)
-  }
 
-  res.json(docs)
-})
+// Helper: format datetime for description    res.setHeader('Content-Type', 'text/html; charset=utf-8')
 
-// GET config
-app.get('/api/config', async (req, res) => {
-  let config = await prisma.config.findUnique({ where: { id: 'config' } })
-  if (!config) {
+function formatDateTime(date, locale = 'en') {    return res.send(html)
+
+  return new Date(date).toLocaleString(locale, {  }
+
+    weekday: 'long',
+
+    year: 'numeric',  res.json(docs)
+
+    month: 'long',})
+
+    day: 'numeric',
+
+    hour: '2-digit',// GET config
+
+    minute: '2-digit'app.get('/api/config', async (req, res) => {
+
+  });  let config = await prisma.config.findUnique({ where: { id: 'config' } })
+
+}  if (!config) {
+
     config = await prisma.config.create({ data: { id: 'config', rdvDurationMinutes: 15 } })
-  }
-  res.json(config)
-})
 
-// PUT config
-app.put('/api/config', async (req, res) => {
-  const { rdvDurationMinutes } = req.body
-  if (![10,15,20,30].includes(rdvDurationMinutes)) return res.status(400).json({ error: 'invalid duration' })
-  let config = await prisma.config.findUnique({ where: { id: 'config' } })
-  if (!config) {
-    config = await prisma.config.create({ data: { id: 'config', rdvDurationMinutes } })
-  } else {
-    config = await prisma.config.update({ where: { id: 'config' }, data: { rdvDurationMinutes } })
-  }
-  res.json(config)
-})
+// GET booking ICS  }
 
-// POST timeframe -> create slots based on current config
-app.post('/api/slots/timeframe', async (req, res) => {
-  const { start, end } = req.body
-  if (!start || !end) return res.status(400).json({ error: 'start and end required' })
-  const config = await prisma.config.findUnique({ where: { id: 'config' } })
-  const duration = (config && config.rdvDurationMinutes) || 15
+app.get('/api/bookings/:id/ics', async (req, res) => {  res.json(config)
 
-  const s = new Date(start)
-  const e = new Date(end)
-  if (s >= e) return res.status(400).json({ error: 'invalid timeframe' })
+  const { id } = req.params;})
 
-  const created = []
-  let cursor = new Date(s)
-  while (cursor.getTime() + duration * 60000 <= e.getTime()) {
-    const slotStart = new Date(cursor)
-    const slotEnd = new Date(cursor.getTime() + duration * 60000)
-    // avoid creating duplicate exact slots
-    const exists = await prisma.slot.findFirst({ where: { start: slotStart, end: slotEnd } })
-    if (!exists) {
-      const slot = await prisma.slot.create({ data: { start: slotStart, end: slotEnd } })
-      created.push(slot)
-    }
-    cursor = new Date(cursor.getTime() + duration * 60000)
-  }
+  const locale = req.query.locale || 'en';
 
-  res.json({ created })
-})
+  // PUT config
 
-// DELETE slot
-app.delete('/api/slots/:id', async (req, res) => {
-  const { id } = req.params
-  await prisma.slot.updateMany({ where: { id, booked: false }, data: { removed: true } })
-  res.json({ success: true })
-})
+  const booking = await db.findBookingById(id);app.put('/api/config', async (req, res) => {
 
-// GET bookings
-app.get('/api/bookings', async (req, res) => {
-  const bookings = await prisma.booking.findMany({ orderBy: { bookedAt: 'desc' } })
+  if (!booking) return res.status(404).send('Not found');  const { rdvDurationMinutes } = req.body
+
+    if (![10,15,20,30].includes(rdvDurationMinutes)) return res.status(400).json({ error: 'invalid duration' })
+
+  const config = await db.getConfig();  let config = await prisma.config.findUnique({ where: { id: 'config' } })
+
+  const duration = config.appointmentDuration;  if (!config) {
+
+  const startDate = new Date(booking.originalSlotStart);    config = await prisma.config.create({ data: { id: 'config', rdvDurationMinutes } })
+
+    } else {
+
+  const start = toIcsDate(startDate);    config = await prisma.config.update({ where: { id: 'config' }, data: { rdvDurationMinutes } })
+
+  const end = toIcsDate(new Date(startDate.getTime() + duration * 60000));  }
+
+    res.json(config)
+
+  const formattedDateTime = formatDateTime(startDate, locale);})
+
+  const baseUrl = process.env.NODE_ENV === 'production' 
+
+    ? `https://${process.env.BASE_URL}` // POST timeframe -> create slots based on current config
+
+    : process.env.BASE_URL || 'http://localhost:4000';app.post('/api/slots/timeframe', async (req, res) => {
+
+    const { start, end } = req.body
+
+  const event = {  if (!start || !end) return res.status(400).json({ error: 'start and end required' })
+
+    start,  const config = await prisma.config.findUnique({ where: { id: 'config' } })
+
+    end,  const duration = (config && config.rdvDurationMinutes) || 15
+
+    title: `RDV — ${booking.childName}`,
+
+    description: [  const s = new Date(start)
+
+      `Appointment for ${booking.childName}`,  const e = new Date(end)
+
+      `When: ${formattedDateTime}`,  if (s >= e) return res.status(400).json({ error: 'invalid timeframe' })
+
+      `Duration: ${duration} minutes`,
+
+      `\nManage your appointment:`,  const created = []
+
+      `${baseUrl}/api/bookings/${booking.id}`  let cursor = new Date(s)
+
+    ].join('\n'),  while (cursor.getTime() + duration * 60000 <= e.getTime()) {
+
+    uid: `booking-${booking.id}`,    const slotStart = new Date(cursor)
+
+    url: `${baseUrl}/api/bookings/${booking.id}`,    const slotEnd = new Date(cursor.getTime() + duration * 60000)
+
+    alarms: [    // avoid creating duplicate exact slots
+
+      { action: 'display', description: 'Appointment reminder', trigger: { hours: 24, before: true } },    const exists = await prisma.slot.findFirst({ where: { start: slotStart, end: slotEnd } })
+
+      { action: 'display', description: 'Appointment reminder', trigger: { hours: 1, before: true } },    if (!exists) {
+
+      { action: 'display', description: 'Appointment starting soon', trigger: { minutes: 15, before: true } }      const slot = await prisma.slot.create({ data: { start: slotStart, end: slotEnd } })
+
+    ],      created.push(slot)
+
+    status: 'CONFIRMED',    }
+
+    busyStatus: 'BUSY',    cursor = new Date(cursor.getTime() + duration * 60000)
+
+    productId: '-//RDVAPP//Appointment System//EN',  }
+
+    startInputType: 'utc',
+
+    endInputType: 'utc'  res.json({ created })
+
+  };})
+
+
+
+  createEvent(event, (err, value) => {// DELETE slot
+
+    if (err) {app.delete('/api/slots/:id', async (req, res) => {
+
+      console.error('Error creating ICS file:', err);  const { id } = req.params
+
+      return res.status(500).send('Error creating calendar file');  await prisma.slot.updateMany({ where: { id, booked: false }, data: { removed: true } })
+
+    }  res.json({ success: true })
+
+    res.setHeader('Content-Type', 'text/calendar; charset=utf-8');})
+
+    res.setHeader('Content-Disposition', `attachment; filename=rdv-${booking.id}.ics`);
+
+    res.send(value);// GET bookings
+
+  });app.get('/api/bookings', async (req, res) => {
+
+});  const bookings = await prisma.booking.findMany({ orderBy: { bookedAt: 'desc' } })
+
   res.json(bookings)
-})
 
-// POST booking: transactional safe booking
-app.post('/api/bookings', async (req, res) => {
-  const { slotId, childName } = req.body
-  if (!slotId || !childName) return res.status(400).json({ error: 'slotId and childName required' })
+// POST reset})
+
+app.post('/api/reset', async (req, res) => {
+
+  const { confirm } = req.body;// POST booking: transactional safe booking
+
+  if (!confirm) return res.status(400).json({ error: 'confirmation required' });app.post('/api/bookings', async (req, res) => {
+
+  await db.reset();  const { slotId, childName } = req.body
+
+  res.json({ success: true });  if (!slotId || !childName) return res.status(400).json({ error: 'slotId and childName required' })
+
+});
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      // ensure slot exists and not booked/removed
-      const slot = await tx.slot.findUnique({ where: { id: slotId } })
-      if (!slot || slot.booked || slot.removed) throw new Error('slot_unavailable')
 
-      // mark slot booked and create booking
+const port = process.env.PORT || 4000;    const result = await prisma.$transaction(async (tx) => {
+
+      // ensure slot exists and not booked/removed
+
+app.listen(port, () => {      const slot = await tx.slot.findUnique({ where: { id: slotId } })
+
+  console.log('API server listening on', port);      if (!slot || slot.booked || slot.removed) throw new Error('slot_unavailable')
+
+  console.log('Environment:', process.env.NODE_ENV);
+
+});      // mark slot booked and create booking
       await tx.slot.update({ where: { id: slotId }, data: { booked: true } })
       const booking = await tx.booking.create({ data: { slotId, childName, originalSlotStart: slot.start } })
   // no direct bookingId field on Slot; slot.booked=true marks it reserved
