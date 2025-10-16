@@ -6,6 +6,7 @@ services:
     region: frankfurt
     branch: main
     buildCommand: |
+      export NODE_OPTIONS="--experimental-json-modules"
       npm ci --include=dev
       # Use production schema for deployment
       cp prisma/schema.production.prisma prisma/schema.prisma

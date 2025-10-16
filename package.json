@@ -2,13 +2,14 @@
   "name": "rdvapp",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "prisma": "prisma",
-    "start:server": "node server/index.js"
+    "start:server": "node --experimental-json-modules server/index.js"
   },
   "dependencies": {
     "@prisma/client": "^5.1.0",
@@ -25,6 +26,7 @@
     "yaml": "^2.8.1"
   },
   "devDependencies": {
+    "@types/node": "^24.8.0",
     "@types/react": "18.2.14",
     "@types/react-datepicker": "^6.2.0",
     "@types/react-dom": "18.2.7",
