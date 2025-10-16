@@ -129,23 +129,32 @@ function toIcsDate(iso) {
 
 // GET slots in range
 app.get('/api/slots', async (req, res) => {
-  const { from, to } = req.query
-  const where = {}
-  if (from && to) {
-    where.start = { gte: from }
-    where.end = { lte: to }
+  try {
+    const { from, to } = req.query
+    const where = {}
+    if (from && to) {
+      where.start = { gte: from }
+      where.end = { lte: to }
+    }
+    const slots = await db.getSlots(where)
+    console.log('Retrieved slots:', slots)
+    res.json(slots)
+  } catch (error) {
+    console.error('Error getting slots:', error)
+    res.status(500).json({ error: 'Failed to get slots' })
   }
-  const slots = await db.getSlots(where)
-  res.json(slots)
 })
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+  const config = await db.getConfig()
+  console.log('Health check - Current config:', config)
   res.json({ 
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    env: process.env.NODE_ENV,
-    dbConnected: true
+    env: process.env.NODE_ENV || 'development',
+    dbConnected: true,
+    config
   })
 })
 
@@ -215,10 +224,14 @@ app.put('/api/config', async (req, res) => {
 
 // POST timeframe -> create slots based on current config
 app.post('/api/slots/timeframe', async (req, res) => {
-  const { start, end } = req.body
-  if (!start || !end) return res.status(400).json({ error: 'start and end required' })
-  const config = await db.getConfig()
-  const duration = (config && config.rdvDurationMinutes) || 15
+  try {
+    const { start, end } = req.body
+    if (!start || !end) return res.status(400).json({ error: 'start and end required' })
+    
+    console.log('Creating timeframe with:', { start, end })
+    const config = await db.getConfig()
+    console.log('Current config:', config)
+    const duration = (config && config.rdvDurationMinutes) || 15
 
   const s = new Date(start)
   const e = new Date(end)
@@ -247,7 +260,12 @@ app.post('/api/slots/timeframe', async (req, res) => {
     cursor = new Date(cursor.getTime() + duration * 60000)
   }
 
-  res.json({ created })
+    console.log('Created slots:', created)
+    res.json({ created })
+  } catch (error) {
+    console.error('Error creating timeframe:', error)
+    res.status(500).json({ error: 'Failed to create timeframe' })
+  }
 })
 
 // DELETE slot
@@ -360,9 +378,13 @@ app.get('/api/bookings/:id/ics', async (req, res) => {
   const locale = req.query.locale || 'en'  // Get locale from query parameter
   
   // Get booking with slot and config information
-  const [booking, slot, config] = await Promise.all([
-    db.findBooking(id),
-    db.findSlot(booking?.slotId),
+  const booking = await db.findBooking(id)
+  if (!booking) {
+    return res.status(404).send('Booking not found')
+  }
+
+  const [slot, config] = await Promise.all([
+    db.findSlot(booking.slotId),
     db.getConfig()
   ])
   
@@ -429,8 +451,12 @@ app.post('/api/reset', async (req, res) => {
 
 const port = process.env.PORT || 4000
 
+// Initialize data files
+await db.resetDatabase().catch(console.error)
+
 // Start server
 app.listen(port, () => {
   console.log('API server listening on', port)
-  console.log('Environment:', process.env.NODE_ENV)
+  console.log('Environment:', process.env.NODE_ENV || 'development')
+  console.log('Data directory:', path.join(__dirname, '..', 'data'))
 })

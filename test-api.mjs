@@ -10,6 +10,10 @@ async function testEndpoint(name, fn) {
         return result;
     } catch (error) {
         console.error(`❌ Failed ${name}:`, error.message);
+        if (error.response) {
+            const text = await error.response.text();
+            console.error('Response:', text);
+        }
         throw error;
     }
 }
@@ -19,7 +23,10 @@ async function runTests() {
         // 1. Test ping
         await testEndpoint('GET /ping', async () => {
             const res = await fetch(`${API_BASE}/ping`);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`HTTP ${res.status}: ${text}`);
+            }
             return res.json();
         });
 
