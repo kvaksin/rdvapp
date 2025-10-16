@@ -7,10 +7,16 @@ services:
     branch: main
     buildCommand: |
       npm ci
-      npm run build
+      # Switch to PostgreSQL before any Prisma commands
+      cp prisma/schema.prisma prisma/schema.prisma.bak
       sed -i 's/provider = "sqlite"/provider = "postgresql"/' prisma/schema.prisma
       npx prisma generate
-    startCommand: node server/index.js
+      npm run build
+      # Restore original schema for any post-build steps
+      mv prisma/schema.prisma.bak prisma/schema.prisma
+    startCommand: |
+      sed -i 's/provider = "sqlite"/provider = "postgresql"/' prisma/schema.prisma
+      node server/index.js
     envVars:
       - key: NODE_VERSION
         value: 18
@@ -20,9 +26,11 @@ services:
         value: 4000
       - key: VITE_API_URL
         value: /api
-      - key: DATABASE_PROVIDER
-        value: postgresql
       - key: DATABASE_URL
+        fromDatabase:
+          name: rdvapp-db
+          property: connectionString
+      - key: DIRECT_URL
         fromDatabase:
           name: rdvapp-db
           property: connectionString
