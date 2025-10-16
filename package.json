@@ -1,0 +1,38 @@
+{
+  "name": "rdvapp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "prisma": "prisma",
+    "start:server": "node server/index.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.1.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "i18next": "^25.6.0",
+    "ics": "^2.44.0",
+    "react": "18.2.0",
+    "react-datepicker": "^4.16.0",
+    "react-dom": "18.2.0",
+    "react-i18next": "^16.0.1",
+    "react-intl": "^7.1.14",
+    "swagger-ui-express": "^5.0.1",
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/react": "18.2.14",
+    "@types/react-dom": "18.2.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "autoprefixer": "^10.4.14",
+    "node-fetch": "^3.3.2",
+    "postcss": "^8.4.24",
+    "prisma": "^5.1.0",
+    "tailwindcss": "^3.4.10",
+    "typescript": "^5.4.2",
+    "vite": "^7.1.10"
+  }
+}

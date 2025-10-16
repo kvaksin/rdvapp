@@ -1,0 +1,265 @@
+openapi: 3.0.0
+info:
+  title: RDV API
+  description: Teacher Meeting Scheduler API
+  version: 1.0.0
+servers:
+  - url: http://localhost:4000/api
+    description: Development server
+paths:
+  /ping:
+    get:
+      summary: Health check endpoint
+      responses:
+        '200':
+          description: Server is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: 
+                    type: boolean
+                  now:
+                    type: string
+                    format: date-time
+  /slots:
+    get:
+      summary: List available slots
+      parameters:
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: List of slots
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Slot'
+  /slots/timeframe:
+    post:
+      summary: Create slots in a timeframe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [start, end]
+              properties:
+                start:
+                  type: string
+                  format: date-time
+                end:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: Created slots
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  created:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Slot'
+  /slots/{id}:
+    delete:
+      summary: Remove a slot
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Slot removed
+  /bookings:
+    get:
+      summary: List all bookings
+      responses:
+        '200':
+          description: List of bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Booking'
+    post:
+      summary: Create a booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [slotId, childName]
+              properties:
+                slotId:
+                  type: string
+                childName:
+                  type: string
+      responses:
+        '201':
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  booking:
+                    $ref: '#/components/schemas/Booking'
+        '409':
+          description: Slot unavailable
+  /bookings/{id}:
+    put:
+      summary: Modify booking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [slotId]
+              properties:
+                slotId:
+                  type: string
+                childName:
+                  type: string
+      responses:
+        '200':
+          description: Booking updated
+    delete:
+      summary: Cancel booking
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Booking cancelled
+  /bookings/{id}/ics:
+    get:
+      summary: Get booking ICS file
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ICS file
+          content:
+            text/calendar:
+              schema:
+                type: string
+  /config:
+    get:
+      summary: Get configuration
+      responses:
+        '200':
+          description: Current configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Config'
+    put:
+      summary: Update configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rdvDurationMinutes]
+              properties:
+                rdvDurationMinutes:
+                  type: integer
+                  enum: [10, 15, 20, 30]
+      responses:
+        '200':
+          description: Updated configuration
+  /reset:
+    post:
+      summary: Reset schedule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confirm]
+              properties:
+                confirm:
+                  type: boolean
+      responses:
+        '200':
+          description: Schedule reset
+components:
+  schemas:
+    Slot:
+      type: object
+      properties:
+        id:
+          type: string
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        removed:
+          type: boolean
+        booked:
+          type: boolean
+    Booking:
+      type: object
+      properties:
+        id:
+          type: string
+        slotId:
+          type: string
+        childName:
+          type: string
+        bookedAt:
+          type: string
+          format: date-time
+        cancelled:
+          type: boolean
+        originalSlotStart:
+          type: string
+          format: date-time
+    Config:
+      type: object
+      properties:
+        id:
+          type: string
+        rdvDurationMinutes:
+          type: integer
+          enum: [10, 15, 20, 30]
