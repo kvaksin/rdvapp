@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { FormattedMessage } from 'react-intl'
 import LeftNav from './components/LeftNav'
 import Feed from './components/Feed'

@@ -1,4 +1,4 @@
-import React from 'react'
+
 
 export default function StreamCard({ title, viewer }: { title: string; viewer: number }) {
   return (
