@@ -131,6 +131,153 @@ Required environment variables:
 - `PORT`: Backend server port (default: 4000)
 - `BASE_URL`: Application base URL for ICS files
 
+## Deployment
+
+The application can be deployed in several ways depending on your needs:
+
+### Option 1: Platform as a Service (Recommended for quick setup)
+
+#### Deploying to Railway
+1. Create a new project on [Railway](https://railway.app)
+2. Connect your GitHub repository
+3. Configure environment variables:
+   ```
+   DATABASE_URL=postgresql://... (Railway will provide this)
+   PORT=4000
+   BASE_URL=https://your-app-url
+   ```
+4. Deploy will automatically trigger on push to main
+
+#### Deploying to Heroku
+1. Install Heroku CLI: `brew install heroku`
+2. Login: `heroku login`
+3. Create app: `heroku create rdvapp-production`
+4. Add PostgreSQL: `heroku addons:create heroku-postgresql:hobby-dev`
+5. Configure environment:
+   ```bash
+   heroku config:set NODE_ENV=production
+   heroku config:set BASE_URL=$(heroku info -s | grep web_url | cut -d= -f2)
+   ```
+6. Deploy: `git push heroku main`
+
+### Option 2: Docker Deployment
+
+1. Build the Docker image:
+   ```bash
+   docker build -t rdvapp .
+   ```
+
+2. Run with Docker Compose:
+   ```yaml
+   # docker-compose.yml
+   version: '3.8'
+   services:
+     app:
+       build: .
+       ports:
+         - "4000:4000"
+       environment:
+         - DATABASE_URL=postgresql://db:5432/rdvapp
+         - BASE_URL=http://localhost:4000
+       depends_on:
+         - db
+     db:
+       image: postgres:14
+       environment:
+         - POSTGRES_DB=rdvapp
+         - POSTGRES_PASSWORD=yourpassword
+   ```
+
+3. Start services:
+   ```bash
+   docker-compose up -d
+   ```
+
+### Option 3: Traditional VPS Deployment
+
+1. Prepare the server:
+   ```bash
+   # Install Node.js and PM2
+   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+   sudo apt-get install -y nodejs
+   sudo npm install -g pm2
+   ```
+
+2. Clone and setup:
+   ```bash
+   git clone https://github.com/kvaksin/rdvapp.git
+   cd rdvapp
+   npm install
+   npm run build
+   ```
+
+3. Configure PM2:
+   ```bash
+   # ecosystem.config.js
+   module.exports = {
+     apps: [{
+       name: 'rdvapp',
+       script: 'server/index.js',
+       env: {
+         NODE_ENV: 'production',
+         DATABASE_URL: 'file:../prisma/production.db',
+         PORT: 4000,
+         BASE_URL: 'https://your-domain.com'
+       }
+     }]
+   }
+   ```
+
+4. Start the application:
+   ```bash
+   pm2 start ecosystem.config.js
+   pm2 save
+   pm2 startup
+   ```
+
+5. Setup Nginx reverse proxy:
+   ```nginx
+   server {
+     listen 80;
+     server_name your-domain.com;
+
+     location / {
+       proxy_pass http://localhost:4000;
+       proxy_set_header Host $host;
+       proxy_set_header X-Real-IP $remote_addr;
+     }
+   }
+   ```
+
+### Production Considerations
+
+1. **Database:**
+   - For production, consider using PostgreSQL instead of SQLite
+   - Set up regular database backups
+   - Configure connection pooling
+
+2. **Security:**
+   - Enable HTTPS (Let's Encrypt with Certbot)
+   - Set up CORS properly
+   - Configure rate limiting
+   - Use security headers
+
+3. **Performance:**
+   - Enable Gzip compression
+   - Configure caching headers
+   - Use a CDN for static assets
+   - Enable HTTP/2
+
+4. **Monitoring:**
+   - Set up application monitoring (e.g., Sentry)
+   - Configure server monitoring (e.g., Datadog, New Relic)
+   - Set up uptime monitoring
+
+5. **CI/CD:**
+   - Use GitHub Actions for automated deployments
+   - Run database migrations automatically
+   - Implement zero-downtime deployments
+
 ## Contributing
 
 1. Fork the repository
