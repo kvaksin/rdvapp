@@ -23,10 +23,6 @@ services:
           property: host
     healthCheckPath: /api/health
     autoDeploy: true
-    disk:
-      name: rdvapp-uploads
-      mountPath: /uploads
-      sizeGB: 1
     domains:
       - rdvapp.example.com
 
