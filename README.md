@@ -249,34 +249,169 @@ The application can be deployed in several ways depending on your needs:
    }
    ```
 
-### Production Considerations
+### Production Setup
 
-1. **Database:**
-   - For production, consider using PostgreSQL instead of SQLite
-   - Set up regular database backups
-   - Configure connection pooling
+1. **Environment Configuration**
+   ```bash
+   # Create production environment file
+   cp .env.example .env.production
+   
+   # Configure production values
+   nano .env.production
+   ```
 
-2. **Security:**
-   - Enable HTTPS (Let's Encrypt with Certbot)
-   - Set up CORS properly
-   - Configure rate limiting
-   - Use security headers
+2. **Database Setup**
+   ```bash
+   # Initialize PostgreSQL
+   docker run -d --name rdvapp-db \
+     -e POSTGRES_DB=rdvapp \
+     -e POSTGRES_USER=rdvapp \
+     -e POSTGRES_PASSWORD=your-password \
+     -v pgdata:/var/lib/postgresql/data \
+     postgres:14
+   
+   # Run migrations
+   DATABASE_URL=postgresql://rdvapp:your-password@localhost:5432/rdvapp \
+   npx prisma migrate deploy
+   ```
 
-3. **Performance:**
-   - Enable Gzip compression
-   - Configure caching headers
-   - Use a CDN for static assets
-   - Enable HTTP/2
+3. **SSL Certificate**
+   ```bash
+   # Install Certbot
+   sudo apt install certbot python3-certbot-nginx
+   
+   # Generate certificate
+   sudo certbot --nginx -d your-domain.com
+   ```
 
-4. **Monitoring:**
-   - Set up application monitoring (e.g., Sentry)
-   - Configure server monitoring (e.g., Datadog, New Relic)
-   - Set up uptime monitoring
+4. **Application Deployment**
 
-5. **CI/CD:**
-   - Use GitHub Actions for automated deployments
-   - Run database migrations automatically
-   - Implement zero-downtime deployments
+   a. Using Render.com (Recommended):
+   ```bash
+   # Deploy to Render.com
+   git push origin main
+   ```
+   The application will automatically deploy when changes are pushed to the main branch.
+   You can also deploy manually from the Render dashboard.
+
+   b. Using Docker:
+   ```bash
+   # Deploy with Docker
+   ./scripts/deploy-docker.sh
+   ```
+
+   c. Using PM2:
+   ```bash
+   # Deploy with PM2
+   ./scripts/deploy.sh
+   ```
+
+### Monitoring Setup
+
+1. **Logging Configuration**
+   ```bash
+   # Create logs directory
+   mkdir -p logs
+   
+   # Set permissions
+   chmod 755 logs
+   ```
+
+2. **Prometheus Setup**
+   ```bash
+   # Install Prometheus
+   wget https://github.com/prometheus/prometheus/releases/download/v2.45.0/prometheus-2.45.0.linux-amd64.tar.gz
+   tar xvf prometheus-2.45.0.linux-amd64.tar.gz
+   
+   # Copy configuration
+   sudo cp monitoring/prometheus.yml /etc/prometheus/
+   
+   # Start Prometheus
+   sudo systemctl start prometheus
+   ```
+
+3. **Grafana Setup**
+   ```bash
+   # Install Grafana
+   sudo apt-get install -y apt-transport-https
+   sudo apt-get install -y software-properties-common wget
+   wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+   echo "deb https://packages.grafana.com/oss/deb stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list
+   sudo apt-get update
+   sudo apt-get install grafana
+   
+   # Import dashboard
+   curl -X POST -H "Content-Type: application/json" -d @monitoring/grafana-dashboard.json \
+     http://admin:admin@localhost:3000/api/dashboards/db
+   ```
+
+4. **Metrics and Alerts**
+   - Access metrics: `http://your-domain.com/metrics`
+   - Grafana dashboard: `http://your-domain.com:3000`
+   - Prometheus: `http://your-domain.com:9090`
+
+### Health Monitoring
+
+1. **Application Health**
+   - Endpoint: `/api/health`
+   - Metrics: `/metrics`
+   - Logs: `logs/application-*.log`
+
+2. **Key Metrics**
+   - Active bookings
+   - API response times
+   - Database query latency
+   - Error rates
+   - Resource usage
+
+3. **Alert Configuration**
+   - High error rate: > 5% of requests
+   - API latency: > 500ms
+   - Database latency: > 200ms
+   - CPU usage: > 80%
+   - Memory usage: > 90%
+
+### Backup Strategy
+
+1. **Database Backups**
+   ```bash
+   # Daily backup script
+   ./scripts/backup-db.sh
+   
+   # Configure cron job
+   0 0 * * * /path/to/rdvapp/scripts/backup-db.sh
+   ```
+
+2. **Log Rotation**
+   - Logs are automatically rotated daily
+   - Kept for 14 days
+   - Compressed after rotation
+
+### Security Measures
+
+1. **Application Security**
+   - Rate limiting: 100 requests/min per IP
+   - CORS: Configured for specific domains
+   - HTTPS: Enforced with HSTS
+   - Security headers: CSP, XSS protection
+
+2. **Infrastructure Security**
+   - Firewall rules
+   - Regular security updates
+   - Access logging
+   - Fail2ban configuration
+
+### Performance Optimization
+
+1. **Caching Strategy**
+   - Static assets: 30 days
+   - API responses: Varies by endpoint
+   - Database queries: Redis cache
+
+2. **CDN Configuration**
+   - Static assets served via CDN
+   - Cache invalidation on deploy
+   - Geographic distribution
 
 ## Contributing
 

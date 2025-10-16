@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: rdvapp
+    env: node
+    plan: starter
+    buildCommand: npm ci && npm run build && npx prisma generate
+    startCommand: npm run start:server
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: rdvapp-db
+          property: connectionString
+      - key: BASE_URL
+        fromService:
+          type: web
+          name: rdvapp
+          property: host
+    healthCheckPath: /api/health
+    autoDeploy: true
+    disk:
+      name: rdvapp-uploads
+      mountPath: /uploads
+      sizeGB: 1
+    domains:
+      - rdvapp.example.com
+
+  - type: redis
+    name: rdvapp-cache
+    plan: starter
+    maxmemoryPolicy: noeviction
+    ipAllowList: [] # Only allow internal connections
+
+databases:
+  - name: rdvapp-db
+    plan: starter
+    postgresMajorVersion: 14
