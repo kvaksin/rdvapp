@@ -27,7 +27,7 @@ services:
         fromService:
           type: web
           name: rdvapp
-          property: url
+          property: host
     healthCheckPath: /api/health
     autoDeploy: true
     domains:

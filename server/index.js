@@ -299,7 +299,10 @@ app.get('/api/bookings/:id/ics', async (req, res) => {
   
   // Format date/time for description
   const formattedDateTime = formatDateTime(startDate, locale)
-  const baseUrl = process.env.BASE_URL || 'http://localhost:4000'
+  // Construct base URL with https:// for production, http:// for local
+const baseUrl = process.env.NODE_ENV === 'production' 
+  ? `https://${process.env.BASE_URL}` 
+  : process.env.BASE_URL || 'http://localhost:4000'
   
   const event = {
     start,
