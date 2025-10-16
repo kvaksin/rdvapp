@@ -22,15 +22,31 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-// Serve static files from the dist directory
-app.use(express.static(path.join(__dirname, '..', 'dist')))
+// Serve static files from the dist directory with caching
+app.use(express.static(path.join(__dirname, '..', 'dist'), {
+  maxAge: '1h',
+  etag: true,
+  lastModified: true
+}))
+
+// API routes
+app.use('/api', (req, res, next) => {
+  // Remove /api prefix for route handling
+  req.url = req.url.replace(/^\/api/, '')
+  next()
+})
 
 // Handle SPA routing - return index.html for all non-API routes
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/')) {
     return next()
   }
-  res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'))
+  res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'), {}, (err) => {
+    if (err) {
+      console.error('Error sending file:', err)
+      res.status(500).send('Error loading application')
+    }
+  })
 })
 
 // Serve OpenAPI spec as JSON

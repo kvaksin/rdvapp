@@ -1,6 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:4000'
+const API_BASE = import.meta.env.VITE_API_URL || ''  // Empty string for same-origin requests
 
 export async function fetchSlots(from?: any, to?: any) {
   const url = new URL(`${API_BASE}/api/slots`)

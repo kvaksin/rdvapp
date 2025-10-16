@@ -7,8 +7,13 @@ services:
     branch: main
     buildCommand: |
       npm ci --include=dev
-      VITE_API_URL=$BASE_URL/api npm run build
+      npm run build
       npx prisma generate
+    env:
+      - key: NODE_VERSION
+        value: 18
+      - key: VITE_API_URL
+        value: /api
     startCommand: npm run start:server
     envVars:
       - key: NODE_ENV
