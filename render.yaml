@@ -3,23 +3,22 @@ services:
     name: rdvapp
     env: node
     plan: free
-    region: frankfurt  # You can change this to your preferred region
+    region: frankfurt
     branch: main
     buildCommand: |
       npm ci --include=dev
       npm run build
       npx prisma generate
-    env:
-      - key: NODE_VERSION
-        value: 18
-      - key: VITE_API_URL
-        value: /api
     startCommand: npm run start:server
     envVars:
+      - key: NODE_VERSION
+        value: 18
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 4000
+      - key: VITE_API_URL
+        value: /api
       - key: DATABASE_URL
         fromDatabase:
           name: rdvapp-db
@@ -28,7 +27,7 @@ services:
         fromService:
           type: web
           name: rdvapp
-          property: host
+          property: url
     healthCheckPath: /api/health
     autoDeploy: true
     domains:
