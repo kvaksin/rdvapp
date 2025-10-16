@@ -48,19 +48,29 @@ connectPrisma().then(connected => {
 
 // Determine the correct dist directory path based on environment
 const distPath = process.env.NODE_ENV === 'production'
-  ? '/opt/render/project/src/dist'
-  : path.join(__dirname, '..', 'dist')
+  ? path.join(process.cwd(), 'dist')
+  : path.join(__dirname, '..', 'dist');
 
 console.log('Environment:', process.env.NODE_ENV)
 console.log('Current directory:', process.cwd())
 console.log('Dist path:', distPath)
+console.log('Directory contents:', fs.readdirSync(process.cwd()))
 
-// Verify dist directory exists
+// Create dist directory if it doesn't exist
 if (!fs.existsSync(distPath)) {
-  console.error('Dist directory not found at:', distPath)
-  console.log('Directory contents:', fs.readdirSync(process.cwd()))
-} else {
-  console.log('Dist directory contents:', fs.readdirSync(distPath))
+  console.log('Creating dist directory')
+  fs.mkdirSync(distPath, { recursive: true })
+}
+
+// Log all directories up to dist
+let currentPath = distPath
+while (currentPath !== '/') {
+  try {
+    console.log(`Contents of ${currentPath}:`, fs.readdirSync(currentPath))
+  } catch (error) {
+    console.log(`Cannot read ${currentPath}:`, error.message)
+  }
+  currentPath = path.dirname(currentPath)
 }
 
 // API routes first
@@ -69,8 +79,28 @@ app.use('/api', (req, res, next) => {
   next()
 })
 
+// Serve static files from multiple possible locations
+const possibleDistPaths = [
+  path.join(process.cwd(), 'dist'),
+  path.join(process.cwd(), '..', 'dist'),
+  '/opt/render/project/src/dist',
+  path.join(__dirname, '..', 'dist')
+];
+
+// Find the first valid dist path
+const validDistPath = possibleDistPaths.find(p => {
+  try {
+    return fs.existsSync(p) && fs.existsSync(path.join(p, 'index.html'));
+  } catch (error) {
+    console.log(`Error checking path ${p}:`, error.message);
+    return false;
+  }
+}) || distPath;
+
+console.log('Using dist path:', validDistPath);
+
 // Static files with proper caching
-app.use(express.static(distPath, {
+app.use(express.static(validDistPath, {
   maxAge: '1h',
   etag: true,
   lastModified: true,
@@ -83,13 +113,16 @@ app.get('*', (req, res, next) => {
     return next()
   }
 
-  const indexPath = path.join(distPath, 'index.html')
+  const indexPath = path.join(validDistPath, 'index.html')
   
   // Check if index.html exists
   if (!fs.existsSync(indexPath)) {
     console.error('index.html not found at:', indexPath)
+    console.log('Available files in dist:', fs.readdirSync(validDistPath))
     return res.status(404).send('Application not found')
   }
+  
+  console.log('Serving index.html from:', indexPath)
 
   res.sendFile(indexPath, {}, (err) => {
     if (err) {
