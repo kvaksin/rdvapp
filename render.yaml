@@ -12,6 +12,7 @@ services:
       echo "Generating Prisma Client..."
       npx prisma generate
       echo "Type checking..."
+      npx tsc --noEmit --project tsconfig.node.json
       npx tsc --noEmit
       echo "Building application..."
       NODE_ENV=development npm run build
