@@ -139,6 +139,29 @@ Required environment variables:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+### Branch Protection Rules
+
+The `main` branch is protected with the following rules:
+
+- **Pull Request Required**
+  - At least 1 reviewer approval needed
+  - Stale approvals are dismissed when new commits are pushed
+
+- **Status Checks**
+  - All status checks must pass before merging:
+    - Build verification
+    - Test suite completion
+    - Deployment checks
+    - Database migration validation
+  - Branches must be up-to-date with main
+
+- **Additional Protection**
+  - All conversations must be resolved
+  - Direct pushes to `main` are restricted
+  - Rules apply to administrators
+
+These rules ensure code quality and maintain a stable main branch. Please ensure your pull requests meet these requirements before requesting a review.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
