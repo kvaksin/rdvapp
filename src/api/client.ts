@@ -9,8 +9,24 @@ export async function fetchSlots(from?: any, to?: any) {
 }
 
 export async function createTimeframe(start: any, end: any) {
-  const res = await fetch(`${API_BASE}/api/slots/timeframe`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ start, end }) })
-  return res.json()
+  try {
+    console.log('Creating timeframe:', { start, end, API_BASE })
+    const res = await fetch(`${API_BASE}/api/slots/timeframe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ start, end })
+    })
+    if (!res.ok) {
+      const error = await res.text()
+      throw new Error(`Failed to create timeframe: ${error}`)
+    }
+    const data = await res.json()
+    console.log('Timeframe created:', data)
+    return data
+  } catch (error) {
+    console.error('Error creating timeframe:', error)
+    throw error
+  }
 }
 
 export async function fetchBookings() {
