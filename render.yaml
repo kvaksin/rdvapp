@@ -10,7 +10,10 @@ services:
       # Switch to PostgreSQL before any Prisma commands
       cp prisma/schema.prisma prisma/schema.prisma.bak
       sed -i 's/provider = "sqlite"/provider = "postgresql"/' prisma/schema.prisma
+      echo "Waiting for database to be ready..."
+      sleep 10
       npx prisma generate
+      npx prisma migrate deploy
       npm run build
       # Restore original schema for any post-build steps
       mv prisma/schema.prisma.bak prisma/schema.prisma
@@ -30,10 +33,16 @@ services:
         fromDatabase:
           name: rdvapp-db
           property: connectionString
-      - key: DIRECT_URL
+          envVarKey: POSTGRES_PRISMA_URL
+      - key: POSTGRES_PRISMA_URL
         fromDatabase:
           name: rdvapp-db
           property: connectionString
+      - key: POSTGRES_URL_NON_POOLING
+        fromDatabase:
+          name: rdvapp-db
+          property: connectionString
+          envVarKey: INTERNAL_DATABASE_URL
     healthCheckPath: /api/health
     autoDeploy: true
 
@@ -41,4 +50,6 @@ databases:
   - name: rdvapp-db
     plan: free
     postgresMajorVersion: 15
-    ipAllowList: [] # Only allow internal connections
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: Everywhere
