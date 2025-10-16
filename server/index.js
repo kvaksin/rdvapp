@@ -75,7 +75,17 @@ app.get('/api/slots', async (req, res) => {
   res.json(slots)
 })
 
-// simple health/ping
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV,
+    dbConnected: prisma.$connect != null
+  })
+})
+
+// simple ping
 app.get('/api/ping', (req, res) => {
   res.json({ ok: true, now: new Date().toISOString() })
 })

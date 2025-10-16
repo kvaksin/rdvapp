@@ -9,7 +9,11 @@ services:
       npm ci --include=dev
       npm run build
       npx prisma generate
-    startCommand: npm run start:server
+    startCommand: |
+      chmod +x ./scripts/wait-for-db.sh
+      ./scripts/wait-for-db.sh
+      npx prisma migrate deploy
+      npm run start:server
     envVars:
       - key: NODE_VERSION
         value: 18
