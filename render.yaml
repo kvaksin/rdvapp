@@ -5,7 +5,10 @@ services:
     plan: free
     region: frankfurt  # You can change this to your preferred region
     branch: main
-    buildCommand: npm ci && npm run build && npx prisma generate
+    buildCommand: |
+      npm ci --include=dev
+      npm run build
+      npx prisma generate
     startCommand: npm run start:server
     envVars:
       - key: NODE_ENV
