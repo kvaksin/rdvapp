@@ -67,7 +67,7 @@ A modern appointment booking application built with Vite, React, TypeScript, and
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/rdvapp.git
+   git clone https://github.com/kvaksin/rdvapp.git
    cd rdvapp
    ```
 
