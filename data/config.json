@@ -1,1 +1,6 @@
-{"config": {"appointmentDuration": 30}}
+{
+  "id": "config",
+  "rdvDurationMinutes": 15,
+  "createdAt": "2025-10-16T12:00:00.000Z",
+  "updatedAt": "2025-10-16T12:00:00.000Z"
+}

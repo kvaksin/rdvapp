@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Configuration singleton
+model Config {
+  id                 String   @id @default("config")
+  rdvDurationMinutes Int      @default(15)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Slot {
+  id        String   @id @default(uuid())
+  start     DateTime
+  end       DateTime
+  createdAt DateTime @default(now())
+  removed   Boolean  @default(false)
+  booked    Boolean  @default(false)
+
+  Booking   Booking?
+
+  @@index([start])
+  @@index([end])
+}
+
+model Booking {
+  id               String   @id @default(uuid())
+  slotId           String   @unique
+  childName        String
+  bookedAt         DateTime @default(now())
+  cancelled        Boolean  @default(false)
+  originalSlotStart DateTime
+
+  Slot Slot @relation(fields: [slotId], references: [id])
+
+  @@index([bookedAt])
+}

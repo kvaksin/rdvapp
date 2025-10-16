@@ -12,8 +12,7 @@
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
-    "prisma": "prisma",
-    "start:server": "node --experimental-json-modules server/index.js"
+    "start:server": "node server/index.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -26,6 +25,7 @@
     "react-i18next": "^16.0.1",
     "react-intl": "^7.1.14",
     "swagger-ui-express": "^5.0.1",
+    "uuid": "^9.0.1",
     "yaml": "^2.8.1"
   },
   "devDependencies": {
