@@ -9,18 +9,15 @@ services:
       npm ci
       # Use production schema for deployment
       cp prisma/schema.production.prisma prisma/schema.prisma
-      echo "Installing PostgreSQL client..."
-      apt-get update && apt-get install -y postgresql-client
-      echo "Waiting for database to be ready..."
-      until pg_isready -h $POSTGRES_HOST -p 5432; do
-        echo "Database is not ready - waiting..."
-        sleep 2
-      done
-      echo "Database is ready!"
+      echo "Generating Prisma Client..."
       npx prisma generate
-      npx prisma migrate deploy
+      echo "Building application..."
       npm run build
-    startCommand: node server/index.js
+    startCommand: |
+      echo "Running database migrations..."
+      npx prisma migrate deploy
+      echo "Starting server..."
+      node server/index.js
     envVars:
       - key: NODE_VERSION
         value: 18
@@ -30,14 +27,16 @@ services:
         value: 4000
       - key: VITE_API_URL
         value: /api
+      # Main connection URL with connection pooling
       - key: DATABASE_URL
         fromDatabase:
           name: rdvapp-db
           property: connectionString
-      - key: POSTGRES_HOST
+      # Direct connection for migrations
+      - key: DIRECT_URL
         fromDatabase:
           name: rdvapp-db
-          property: host
+          property: connectionString
     healthCheckPath: /api/health
     autoDeploy: true
 
@@ -46,3 +45,5 @@ databases:
     plan: free
     postgresMajorVersion: 15
     ipAllowList: [] # Only allow internal connections
+    databaseName: rdvapp
+    user: rdvapp_user
