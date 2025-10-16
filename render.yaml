@@ -7,19 +7,20 @@ services:
     branch: main
     buildCommand: |
       npm ci
-      # Switch to PostgreSQL before any Prisma commands
-      cp prisma/schema.prisma prisma/schema.prisma.bak
-      sed -i 's/provider = "sqlite"/provider = "postgresql"/' prisma/schema.prisma
+      # Use production schema for deployment
+      cp prisma/schema.production.prisma prisma/schema.prisma
+      echo "Installing PostgreSQL client..."
+      apt-get update && apt-get install -y postgresql-client
       echo "Waiting for database to be ready..."
-      sleep 10
+      until pg_isready -h $POSTGRES_HOST -p 5432; do
+        echo "Database is not ready - waiting..."
+        sleep 2
+      done
+      echo "Database is ready!"
       npx prisma generate
       npx prisma migrate deploy
       npm run build
-      # Restore original schema for any post-build steps
-      mv prisma/schema.prisma.bak prisma/schema.prisma
-    startCommand: |
-      sed -i 's/provider = "sqlite"/provider = "postgresql"/' prisma/schema.prisma
-      node server/index.js
+    startCommand: node server/index.js
     envVars:
       - key: NODE_VERSION
         value: 18
@@ -33,16 +34,10 @@ services:
         fromDatabase:
           name: rdvapp-db
           property: connectionString
-          envVarKey: POSTGRES_PRISMA_URL
-      - key: POSTGRES_PRISMA_URL
+      - key: POSTGRES_HOST
         fromDatabase:
           name: rdvapp-db
-          property: connectionString
-      - key: POSTGRES_URL_NON_POOLING
-        fromDatabase:
-          name: rdvapp-db
-          property: connectionString
-          envVarKey: INTERNAL_DATABASE_URL
+          property: host
     healthCheckPath: /api/health
     autoDeploy: true
 
@@ -50,6 +45,4 @@ databases:
   - name: rdvapp-db
     plan: free
     postgresMajorVersion: 15
-    ipAllowList:
-      - source: 0.0.0.0/0
-        description: Everywhere
+    ipAllowList: [] # Only allow internal connections
