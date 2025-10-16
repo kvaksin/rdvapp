@@ -2,7 +2,9 @@ services:
   - type: web
     name: rdvapp
     env: node
-    plan: starter
+    plan: free
+    region: frankfurt  # You can change this to your preferred region
+    branch: main
     buildCommand: npm ci && npm run build && npx prisma generate
     startCommand: npm run start:server
     envVars:
@@ -30,11 +32,13 @@ services:
 
   - type: redis
     name: rdvapp-cache
-    plan: starter
+    plan: free
     maxmemoryPolicy: noeviction
+    region: frankfurt  # You can change this to your preferred region
     ipAllowList: [] # Only allow internal connections
 
 databases:
   - name: rdvapp-db
-    plan: starter
-    postgresMajorVersion: 14
+    plan: free
+    postgresMajorVersion: 15
+    ipAllowList: [] # Only allow internal connections
