@@ -5,7 +5,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
-    "noEmit": true
+    "outDir": "dist-config"
   },
   "include": ["vite.config.ts"]
 }

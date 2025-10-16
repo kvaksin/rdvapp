@@ -11,9 +11,8 @@ services:
       cp prisma/schema.production.prisma prisma/schema.prisma
       echo "Generating Prisma Client..."
       npx prisma generate
-      echo "Type checking..."
-      npx tsc --noEmit --project tsconfig.node.json
-      npx tsc --noEmit
+      echo "Building TypeScript..."
+      npx tsc -b tsconfig.json
       echo "Building application..."
       NODE_ENV=development npm run build
       echo "Build completed, checking dist folder..."
