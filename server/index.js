@@ -17,10 +17,34 @@ const swaggerUiOptions = {
   customSiteTitle: 'RDV API Documentation'
 }
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient({
+  log: ['query', 'info', 'warn', 'error'],
+  errorFormat: 'pretty',
+})
+
+// Handle Prisma connection
+async function connectPrisma() {
+  try {
+    await prisma.$connect()
+    console.log('Successfully connected to database')
+    return true
+  } catch (error) {
+    console.error('Database connection error:', error)
+    return false
+  }
+}
+
 const app = express()
 app.use(cors())
 app.use(express.json())
+
+// Ensure database connection before starting server
+connectPrisma().then(connected => {
+  if (!connected) {
+    console.error('Could not connect to database. Exiting...')
+    process.exit(1)
+  }
+})
 
 // Determine the correct dist directory path based on environment
 const distPath = process.env.NODE_ENV === 'production'
@@ -389,4 +413,29 @@ app.post('/api/reset', async (req, res) => {
 })
 
 const port = process.env.PORT || 4000
-app.listen(port, () => console.log('API server listening on', port))
+
+// Initialize database and start server
+async function startServer() {
+  try {
+    // Test database connection
+    await prisma.$connect()
+    console.log('Database connection successful')
+
+    // Run migrations
+    const { execSync } = require('child_process')
+    execSync('npx prisma migrate deploy', { stdio: 'inherit' })
+    console.log('Database migrations completed')
+
+    // Start server
+    app.listen(port, () => {
+      console.log('API server listening on', port)
+      console.log('Environment:', process.env.NODE_ENV)
+      console.log('Database connected:', !!prisma)
+    })
+  } catch (error) {
+    console.error('Failed to start server:', error)
+    process.exit(1)
+  }
+}
+
+startServer().catch(console.error)
