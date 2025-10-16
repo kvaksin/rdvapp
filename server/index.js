@@ -130,6 +130,11 @@ function toIcsDate(iso) {
 // GET slots in range
 app.get('/api/slots', async (req, res) => {
   try {
+    // Disable caching for slots endpoint
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private')
+    res.set('Expires', '-1')
+    res.set('Pragma', 'no-cache')
+    
     const { from, to } = req.query
     const where = {}
     if (from && to) {
@@ -216,17 +221,51 @@ app.get('/api/config', async (req, res) => {
 
 // PUT config
 app.put('/api/config', async (req, res) => {
-  const { rdvDurationMinutes } = req.body
-  if (![10,15,20,30].includes(rdvDurationMinutes)) return res.status(400).json({ error: 'invalid duration' })
-  const config = await db.updateConfig({ rdvDurationMinutes })
-  res.json(config)
+  try {
+    console.log('Updating config, received:', req.body)
+    const { rdvDurationMinutes } = req.body
+    
+    if (typeof rdvDurationMinutes !== 'number') {
+      console.log('Invalid duration type:', typeof rdvDurationMinutes)
+      return res.status(400).json({ error: 'rdvDurationMinutes must be a number' })
+    }
+    
+    if (![10,15,20,30].includes(rdvDurationMinutes)) {
+      console.log('Invalid duration value:', rdvDurationMinutes)
+      return res.status(400).json({ error: 'rdvDurationMinutes must be one of: 10, 15, 20, 30' })
+    }
+    
+    console.log('Updating config with duration:', rdvDurationMinutes)
+    const config = await db.updateConfig({ rdvDurationMinutes })
+    console.log('Config updated:', config)
+    res.json(config)
+  } catch (error) {
+    console.error('Error updating config:', error)
+    res.status(500).json({ error: 'Failed to update configuration' })
+  }
 })
 
 // POST timeframe -> create slots based on current config
 app.post('/api/slots/timeframe', async (req, res) => {
   try {
+    // Disable caching for this endpoint
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private')
+    res.set('Expires', '-1')
+    res.set('Pragma', 'no-cache')
+    
+    console.log('Received timeframe request:', req.body)
     const { start, end } = req.body
-    if (!start || !end) return res.status(400).json({ error: 'start and end required' })
+    
+    if (!start || !end) {
+      console.log('Missing required fields:', { start, end })
+      return res.status(400).json({ error: 'start and end required' })
+    }
+    
+    // Validate date formats
+    if (!Date.parse(start) || !Date.parse(end)) {
+      console.log('Invalid date format:', { start, end })
+      return res.status(400).json({ error: 'start and end must be valid ISO date strings' })
+    }
     
     console.log('Creating timeframe with:', { start, end })
     const config = await db.getConfig()
