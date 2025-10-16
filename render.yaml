@@ -7,7 +7,7 @@ services:
     branch: main
     buildCommand: |
       npm ci --include=dev
-      npm run build
+      VITE_API_URL=$BASE_URL/api npm run build
       npx prisma generate
     startCommand: npm run start:server
     envVars:

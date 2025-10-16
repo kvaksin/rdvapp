@@ -22,6 +22,17 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
+// Serve static files from the dist directory
+app.use(express.static(path.join(__dirname, '..', 'dist')))
+
+// Handle SPA routing - return index.html for all non-API routes
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    return next()
+  }
+  res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'))
+})
+
 // Serve OpenAPI spec as JSON
 app.get('/api/openapi.json', (req, res) => {
   res.json(openApiSpec)
