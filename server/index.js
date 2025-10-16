@@ -1,11 +1,15 @@
-const express = require('express')
-const cors = require('cors')
-const { createEvent } = require('ics')
-const fs = require('fs')
-const path = require('path')
-const swaggerUi = require('swagger-ui-express')
-const YAML = require('yaml')
-const db = require('./db')
+import express from 'express'
+import cors from 'cors'
+import { createEvent } from 'ics'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import swaggerUi from 'swagger-ui-express'
+import YAML from 'yaml'
+import * as db from './db.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 // Load and parse OpenAPI spec
 const openApiYaml = fs.readFileSync(path.join(__dirname, '..', 'openapi.yaml'), 'utf8')

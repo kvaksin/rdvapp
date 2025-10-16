@@ -1,6 +1,10 @@
-const fs = require('fs/promises')
-const path = require('path')
-const { v4: uuidv4 } = require('uuid')
+import fs from 'fs/promises'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import { v4 as uuidv4 } from 'uuid'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const DATA_DIR = path.join(__dirname, '..', 'data')
 
@@ -132,7 +136,7 @@ async function resetDatabase() {
   })
 }
 
-module.exports = {
+export {
   getConfig,
   updateConfig,
   getSlots,
