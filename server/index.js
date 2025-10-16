@@ -22,28 +22,56 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-// Serve static files from the dist directory with caching
-app.use(express.static(path.join(__dirname, '..', 'dist'), {
-  maxAge: '1h',
-  etag: true,
-  lastModified: true
-}))
+// Determine the correct dist directory path based on environment
+const distPath = process.env.NODE_ENV === 'production'
+  ? '/opt/render/project/src/dist'
+  : path.join(__dirname, '..', 'dist')
 
-// API routes
+console.log('Environment:', process.env.NODE_ENV)
+console.log('Current directory:', process.cwd())
+console.log('Dist path:', distPath)
+
+// Verify dist directory exists
+if (!fs.existsSync(distPath)) {
+  console.error('Dist directory not found at:', distPath)
+  console.log('Directory contents:', fs.readdirSync(process.cwd()))
+} else {
+  console.log('Dist directory contents:', fs.readdirSync(distPath))
+}
+
+// API routes first
 app.use('/api', (req, res, next) => {
-  // Remove /api prefix for route handling
   req.url = req.url.replace(/^\/api/, '')
   next()
 })
 
-// Handle SPA routing - return index.html for all non-API routes
+// Static files with proper caching
+app.use(express.static(distPath, {
+  maxAge: '1h',
+  etag: true,
+  lastModified: true,
+  fallthrough: true // Continue to next middleware if file not found
+}))
+
+// SPA routing - this should be the last middleware
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/')) {
     return next()
   }
-  res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'), {}, (err) => {
+
+  const indexPath = path.join(distPath, 'index.html')
+  
+  // Check if index.html exists
+  if (!fs.existsSync(indexPath)) {
+    console.error('index.html not found at:', indexPath)
+    return res.status(404).send('Application not found')
+  }
+
+  res.sendFile(indexPath, {}, (err) => {
     if (err) {
       console.error('Error sending file:', err)
+      console.error('File path attempted:', indexPath)
+      console.error('Directory contents:', fs.readdirSync(path.dirname(indexPath)))
       res.status(500).send('Error loading application')
     }
   })

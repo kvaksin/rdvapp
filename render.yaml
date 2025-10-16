@@ -7,7 +7,9 @@ services:
     branch: main
     buildCommand: |
       npm ci --include=dev
+      mkdir -p dist
       npm run build
+      ls -la dist
       npx prisma generate
     startCommand: |
       chmod +x ./scripts/wait-for-db.sh
