@@ -10,8 +10,14 @@ services:
       npm ci --include=dev
       # Use production schema for deployment
       cp prisma/schema.production.prisma prisma/schema.prisma
+      echo "Installing PostgreSQL client..."
+      apt-get update && apt-get install -y postgresql-client
+      echo "Waiting for database..."
+      timeout 60s bash -c 'until pg_isready -h $POSTGRES_HOST -p 5432; do sleep 2; done'
       echo "Generating Prisma Client..."
       npx prisma generate
+      echo "Running database migrations..."
+      npx prisma migrate deploy
       echo "Building TypeScript..."
       npx tsc -b tsconfig.json
       echo "Building application..."
@@ -19,29 +25,44 @@ services:
       echo "Build completed, checking dist folder..."
       ls -la dist/
     startCommand: |
-      echo "Running database migrations..."
-      npx prisma migrate deploy
+      echo "Waiting for database connection..."
+      timeout 30s bash -c 'until pg_isready -h $POSTGRES_HOST -p 5432; do sleep 2; done'
       echo "Starting server..."
       node server/index.js
     envVars:
       - key: NODE_VERSION
-        value: 18
+        value: 20
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 4000
       - key: VITE_API_URL
         value: /api
-      # Main connection URL with connection pooling
+      # Database configuration
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: rdvapp-db
+          property: host
       - key: DATABASE_URL
         fromDatabase:
           name: rdvapp-db
           property: connectionString
-      # Direct connection for migrations
       - key: DIRECT_URL
         fromDatabase:
           name: rdvapp-db
           property: connectionString
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: rdvapp-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: rdvapp-db
+          property: password
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: rdvapp-db
+          property: database
     healthCheckPath: /api/health
     autoDeploy: true
 
@@ -49,6 +70,8 @@ databases:
   - name: rdvapp-db
     plan: free
     postgresMajorVersion: 15
-    ipAllowList: [] # Only allow internal connections
+    ipAllowList: 
+      - source: 0.0.0.0/0
+        description: Allow connections from anywhere during setup
     databaseName: rdvapp
     user: rdvapp_user
