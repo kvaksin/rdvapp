@@ -151,6 +151,46 @@ async function findSlot(id) {
   return slots.find(slot => slot.id === id)
 }
 
+// Class operations
+async function getClasses() {
+  const classes = await readJsonFile('classes.json') || []
+  return classes.sort((a, b) => a.name.localeCompare(b.name))
+}
+
+async function createClass(data) {
+  const classes = await getClasses()
+  const newClass = {
+    id: uuidv4(),
+    ...data,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+  classes.push(newClass)
+  await writeJsonFile('classes.json', classes)
+  return newClass
+}
+
+async function deleteClass(id) {
+  const classes = await getClasses()
+  const filteredClasses = classes.filter(cls => cls.id !== id)
+  // If no classes were filtered out, the ID didn't exist
+  if (filteredClasses.length === classes.length) {
+    return false
+  }
+  await writeJsonFile('classes.json', filteredClasses)
+  
+  // Update any slots that reference this class
+  const slots = await getSlots()
+  const updatedSlots = slots.map(slot => {
+    if (slot.classId === id) {
+      return { ...slot, classId: null }
+    }
+    return slot
+  })
+  await writeJsonFile('slots.json', updatedSlots)
+  return true
+}
+
 // Booking operations
 async function getBookings() {
   const bookings = await readJsonFile('bookings.json') || []
@@ -198,6 +238,7 @@ async function resetDatabase() {
     await Promise.all([
       writeJsonFile('slots.json', []),
       writeJsonFile('bookings.json', []),
+      writeJsonFile('classes.json', []),
       writeJsonFile('config.json', defaultConfig)
     ])
     console.log('Database reset successful')
@@ -208,6 +249,23 @@ async function resetDatabase() {
   }
 }
 
+// Reset all slots and bookings for a specific class
+async function resetClassSchedule(classId) {
+  await ensureDataDir();
+  // Remove all slots for the class
+  const slots = await getSlots();
+  const remainingSlots = slots.filter(slot => slot.classId !== classId);
+  await writeJsonFile('slots.json', remainingSlots);
+
+  // Remove all bookings for slots that belonged to this class
+  const bookings = await getBookings();
+  const slotIdsToRemove = slots.filter(slot => slot.classId === classId).map(slot => slot.id);
+  const remainingBookings = bookings.filter(booking => !slotIdsToRemove.includes(booking.slotId));
+  await writeJsonFile('bookings.json', remainingBookings);
+
+  return true;
+}
+
 export {
   getConfig,
   updateConfig,
@@ -215,9 +273,13 @@ export {
   createSlot,
   updateSlot,
   findSlot,
+  getClasses,
+  createClass,
+  deleteClass,
   getBookings,
   createBooking,
   updateBooking,
   findBooking,
   resetDatabase
+  ,resetClassSchedule
 }

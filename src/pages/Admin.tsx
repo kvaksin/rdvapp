@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
-import { fetchConfig, updateConfig, fetchSlots, createTimeframe, deleteSlot, resetAll } from '../api/client'
-import type { Slot } from '../types/api'
+import { fetchConfig, updateConfig, fetchSlots, createTimeframe, deleteSlot, resetAll, createClass, deleteClass, fetchClasses, resetClass } from '../api/client'
 import { useIntl } from 'react-intl'
+import type { Class, Slot } from '../types/api'
 
 interface TimeInputProps {
   value: string;
@@ -63,8 +63,12 @@ const Admin = () => {
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
   const [slots, setSlots] = useState<Slot[]>([])
+  const [classes, setClasses] = useState<Class[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [selectedClass, setSelectedClass] = useState<string>('')
+  const [newClassName, setNewClassName] = useState('')
+  const [newClassColor, setNewClassColor] = useState('#6366F1')
 
   // Generate time options for the select dropdowns (every 15 minutes)
   const parseTime = (timeStr: string) => {
@@ -164,13 +168,51 @@ const Admin = () => {
     try {
       setLoading(true)
       setError(null)
-      const c = await fetchConfig()
+      const [c, s, cl] = await Promise.all([
+        fetchConfig(),
+        fetchSlots(undefined, undefined, selectedClass || undefined),
+        fetchClasses()
+      ])
       setConfig(c)
-      const s = await fetchSlots()
       setSlots(s)
+      setClasses(cl)
     } catch (err) {
       console.error('Error loading data:', err)
-      setError('Failed to load data. Please try again.')
+      setError(intl.formatMessage({ id: 'admin.failedLoadData' }))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleCreateClass() {
+    try {
+      setLoading(true)
+      setError(null)
+      await createClass({
+        name: newClassName,
+        color: newClassColor
+      })
+      await load()
+      setNewClassName('')
+      setNewClassColor('#6366F1')
+    } catch (err) {
+      console.error('Error creating class:', err)
+      setError(intl.formatMessage({ id: 'admin.failedCreateClass' }))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleDeleteClass(id: string) {
+    if (!confirm(intl.formatMessage({ id: 'admin.deleteClassConfirm' }))) return
+    try {
+      setLoading(true)
+      setError(null)
+      await deleteClass(id)
+      await load()
+    } catch (err) {
+      console.error('Error deleting class:', err)
+      setError(intl.formatMessage({ id: 'admin.failedDeleteClass' }))
     } finally {
       setLoading(false)
     }
@@ -186,7 +228,7 @@ const Admin = () => {
       await load()
     } catch (err) {
       console.error('Error saving duration:', err)
-      setError('Failed to update duration. Please try again.')
+      setError(intl.formatMessage({ id: 'admin.failedUpdateDuration' }))
     } finally {
       setLoading(false)
     }
@@ -197,7 +239,7 @@ const Admin = () => {
     try {
       // Ensure we have all required fields
       if (!selectedDate || !startTime || !endTime) {
-        throw new Error('Please select date and times')
+        throw new Error(intl.formatMessage({ id: 'admin.errorSelectDateTime' }))
       }
 
       // Create Date objects for start and end times
@@ -212,7 +254,7 @@ const Admin = () => {
 
       // Validate times
       if (endDate <= startDate) {
-        throw new Error('End time must be after start time')
+        throw new Error(intl.formatMessage({ id: 'admin.errorEndTimeAfterStart' }))
       }
 
       console.log('Times validated:', { 
@@ -224,10 +266,11 @@ const Admin = () => {
       setError(null)
 
       // Call API
-      console.log('Calling API with times...')
+      console.log('Calling API with times...', { startDate, endDate, selectedClass })
       const result = await createTimeframe(
         startDate.toISOString(),
-        endDate.toISOString()
+        endDate.toISOString(),
+        selectedClass || undefined
       )
       console.log('API call successful:', result)
 
@@ -259,7 +302,7 @@ const Admin = () => {
       await load()
     } catch (err) {
       console.error('Error removing slot:', err)
-      setError('Failed to remove slot. Please try again.')
+      setError(intl.formatMessage({ id: 'admin.failedRemoveSlot' }))
     } finally {
       setLoading(false)
     }
@@ -293,6 +336,69 @@ const Admin = () => {
       )}
 
       <div className="bg-gray-800 p-6 rounded-lg mb-6 shadow-sm">
+        <h3 className="text-lg font-semibold mb-4">{intl.formatMessage({ id: 'admin.classManagement' })}</h3>
+        <div className="space-y-4">
+          <div className="flex items-center gap-4">
+            <input
+              type="text"
+              value={newClassName}
+              onChange={(e) => setNewClassName(e.target.value)}
+              placeholder={intl.formatMessage({ id: 'admin.className' })}
+              className="flex-1 bg-gray-700 px-4 py-2 rounded-md text-white"
+            />
+            <input
+              type="color"
+              value={newClassColor}
+              onChange={(e) => setNewClassColor(e.target.value)}
+              className="w-12 h-10 rounded-md bg-gray-700 cursor-pointer"
+            />
+            <button
+              onClick={handleCreateClass}
+              disabled={loading || !newClassName}
+              className={`px-4 py-2 rounded-md ${
+                loading || !newClassName
+                  ? 'bg-gray-600 cursor-not-allowed'
+                  : 'bg-green-600 hover:bg-green-700'
+              }`}
+            >
+              {intl.formatMessage({ id: 'admin.addClass' })}
+            </button>
+          </div>
+
+          <div className="mt-4 space-y-2">
+            {classes.map(cls => (
+              <div 
+                key={cls.id}
+                className="flex items-center justify-between p-3 rounded-md"
+                style={{ backgroundColor: cls.color + '20' }}
+              >
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-4 h-4 rounded-full"
+                    style={{ backgroundColor: cls.color }}
+                  />
+                  <span className="text-white">{cls.name}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleDeleteClass(cls.id)}
+                    disabled={loading}
+                    className={`px-3 py-1 rounded-md text-sm ${
+                      loading
+                        ? 'bg-gray-600 cursor-not-allowed'
+                        : 'bg-red-600 hover:bg-red-700'
+                    }`}
+                  >
+                    {intl.formatMessage({ id: 'admin.deleteClass' })}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-gray-800 p-6 rounded-lg mb-6 shadow-sm">
         <h3 className="text-lg font-semibold mb-4">
           {intl.formatMessage({ id: 'admin.appointmentDuration' })}
         </h3>
@@ -322,175 +428,145 @@ const Admin = () => {
       </div>
 
       <div className="bg-gray-800 p-6 rounded-lg mb-6 shadow-sm">
-        <h3 className="text-lg font-semibold mb-4">
+        <h3 className="text-lg font-semibold mb-6 text-purple-300 flex items-center gap-2">
+          <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" /></svg>
           {intl.formatMessage({ id: 'admin.addTimeframe' })}
         </h3>
-        <div className="space-y-6">
-          <div className="flex flex-wrap items-end gap-4">
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                {intl.formatMessage({ id: 'admin.selectDate' })}
-              </label>
-              <DatePicker 
+        <div className="flex flex-col gap-4">
+          {/* Class selection moved to top */}
+          <div className="w-full">
+            <label className="block text-xs font-medium text-gray-400 mb-1">{intl.formatMessage({ id: 'admin.class' })}</label>
+            <select
+              value={selectedClass}
+              onChange={async e => {
+                setSelectedClass(e.target.value)
+                // Reload slots for selected class immediately
+                setLoading(true)
+                try {
+                  const s = await fetchSlots(undefined, undefined, e.target.value || undefined)
+                  setSlots(s)
+                } catch (err) {
+                  console.error('Error loading class slots:', err)
+                } finally {
+                  setLoading(false)
+                }
+              }}
+              disabled={loading}
+              className="w-full bg-gray-700 px-4 py-2 rounded-md text-white"
+            >
+              <option value="">{intl.formatMessage({ id: 'admin.noClass' })}</option>
+              {classes.map(cls => (
+                <option key={cls.id} value={cls.id}>{cls.name}</option>
+              ))}
+            </select>
+            {selectedClass && (
+              <div className="mt-2 text-xs text-purple-300 bg-gray-900 border border-purple-700 rounded p-2">
+                <span className="font-semibold">{intl.formatMessage({ id: 'admin.classScheduleUrl' })}</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <input
+                    type="text"
+                    readOnly
+                    value={(() => {
+                      const token = `${selectedClass}-manual`;
+                      return `${window.location.origin}/class/${selectedClass}/${token}`;
+                    })()}
+                    className="flex-1 bg-gray-800 px-2 py-1 rounded text-xs text-purple-200 border border-gray-700"
+                    style={{ minWidth: 0 }}
+                    onFocus={e => e.target.select()}
+                  />
+                  <button
+                    type="button"
+                    className="px-2 py-1 bg-purple-700 hover:bg-purple-800 rounded text-xs text-white"
+                    onClick={() => {
+                      const token = `${selectedClass}-manual`;
+                      const url = `${window.location.origin}/class/${selectedClass}/${token}`;
+                      navigator.clipboard.writeText(url);
+                    }}
+                  >{intl.formatMessage({ id: 'admin.copy' })}</button>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-4 items-end">
+            <div className="min-w-[200px] flex-1">
+              <label className="block text-xs font-medium text-gray-400 mb-1">{intl.formatMessage({ id: 'admin.date' })}</label>
+              <DatePicker
                 selected={selectedDate}
-                onChange={(date: Date | null) => {
-                  console.log('Date selected:', date);
-                  setSelectedDate(date);
-                }}
+                onChange={setSelectedDate}
                 dateFormat="EEEE, MMMM d, yyyy"
-                placeholderText={intl.formatMessage({ id: 'admin.selectDatePlaceholder' })}
+                placeholderText="Select date"
                 className="bg-gray-700 px-4 py-2 rounded-md text-white w-full"
                 disabled={loading}
                 minDate={new Date()}
               />
             </div>
-            <div className="w-48">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                {intl.formatMessage({ id: 'admin.start' })}
-              </label>
+            <div className="w-40">
+              <label className="block text-xs font-medium text-gray-400 mb-1">{intl.formatMessage({ id: 'admin.startTime' })}</label>
               <div className="flex items-center gap-1">
-                <div className="flex-1 bg-gray-700 rounded-md overflow-hidden">
-                  <input
-                    type="text"
-                    value={startTime}
-                    onChange={(e) => validateAndUpdateTime(e.target.value, true)}
-                    onKeyDown={(e) => handleTimeKeyDown(e, true)}
-                    placeholder="HH:MM"
-                    className="bg-transparent px-3 py-2 w-full text-white text-center"
-                    disabled={loading || !selectedDate}
-                    maxLength={5}
-                  />
+                <input
+                  type="text"
+                  value={startTime}
+                  onChange={e => validateAndUpdateTime(e.target.value, true)}
+                  onKeyDown={e => handleTimeKeyDown(e, true)}
+                  placeholder="HH:MM"
+                  className="bg-gray-700 px-3 py-2 w-full text-white text-center rounded-md"
+                  disabled={loading || !selectedDate}
+                  maxLength={5}
+                />
+                <div className="flex flex-col gap-1">
+                  <button type="button" onClick={() => adjustTime(true, 'hours', true)} disabled={loading || !selectedDate} className="p-1 bg-gray-700 hover:bg-gray-600 rounded-md disabled:opacity-50"><svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg></button>
+                  <button type="button" onClick={() => adjustTime(true, 'hours', false)} disabled={loading || !selectedDate} className="p-1 bg-gray-700 hover:bg-gray-600 rounded-md disabled:opacity-50"><svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></button>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <button
-                    type="button"
-                    onClick={() => adjustTime(true, 'hours', true)}
-                    disabled={loading || !selectedDate}
-                    className="p-1 bg-gray-700 hover:bg-gray-600 rounded-md disabled:opacity-50"
-                  >
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => adjustTime(true, 'hours', false)}
-                    disabled={loading || !selectedDate}
-                    className="p-1 bg-gray-700 hover:bg-gray-600 rounded-md disabled:opacity-50"
-                  >
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <button
-                    type="button"
-                    onClick={() => adjustTime(true, 'minutes', true)}
-                    disabled={loading || !selectedDate}
-                    className="p-1 bg-gray-700 hover:bg-gray-600 rounded-md disabled:opacity-50"
-                  >
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => adjustTime(true, 'minutes', false)}
-                    disabled={loading || !selectedDate}
-                    className="p-1 bg-gray-700 hover:bg-gray-600 rounded-md disabled:opacity-50"
-                  >
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
+                  <button type="button" onClick={() => adjustTime(true, 'minutes', true)} disabled={loading || !selectedDate} className="p-1 bg-gray-700 hover:bg-gray-600 rounded-md disabled:opacity-50"><svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg></button>
+                  <button type="button" onClick={() => adjustTime(true, 'minutes', false)} disabled={loading || !selectedDate} className="p-1 bg-gray-700 hover:bg-gray-600 rounded-md disabled:opacity-50"><svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></button>
                 </div>
               </div>
             </div>
-            <div className="w-48">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                {intl.formatMessage({ id: 'admin.end' })}
-              </label>
+            <div className="w-40">
+              <label className="block text-xs font-medium text-gray-400 mb-1">{intl.formatMessage({ id: 'admin.endTime' })}</label>
               <div className="flex items-center gap-1">
-                <div className="flex-1 bg-gray-700 rounded-md overflow-hidden">
-                  <input
-                    type="text"
-                    value={endTime}
-                    onChange={(e) => validateAndUpdateTime(e.target.value, false)}
-                    onKeyDown={(e) => handleTimeKeyDown(e, false)}
-                    placeholder="HH:MM"
-                    className="bg-transparent px-3 py-2 w-full text-white text-center"
-                    disabled={loading || !selectedDate || !startTime}
-                    maxLength={5}
-                  />
+                <input
+                  type="text"
+                  value={endTime}
+                  onChange={e => validateAndUpdateTime(e.target.value, false)}
+                  onKeyDown={e => handleTimeKeyDown(e, false)}
+                  placeholder="HH:MM"
+                  className="bg-gray-700 px-3 py-2 w-full text-white text-center rounded-md"
+                  disabled={loading || !selectedDate || !startTime}
+                  maxLength={5}
+                />
+                <div className="flex flex-col gap-1">
+                  <button type="button" onClick={() => adjustTime(false, 'hours', true)} disabled={loading || !selectedDate || !startTime} className="p-1 bg-gray-700 hover:bg-gray-600 rounded-md disabled:opacity-50"><svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg></button>
+                  <button type="button" onClick={() => adjustTime(false, 'hours', false)} disabled={loading || !selectedDate || !startTime} className="p-1 bg-gray-700 hover:bg-gray-600 rounded-md disabled:opacity-50"><svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></button>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <button
-                    type="button"
-                    onClick={() => adjustTime(false, 'hours', true)}
-                    disabled={loading || !selectedDate || !startTime}
-                    className="p-1 bg-gray-700 hover:bg-gray-600 rounded-md disabled:opacity-50"
-                  >
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => adjustTime(false, 'hours', false)}
-                    disabled={loading || !selectedDate || !startTime}
-                    className="p-1 bg-gray-700 hover:bg-gray-600 rounded-md disabled:opacity-50"
-                  >
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <button
-                    type="button"
-                    onClick={() => adjustTime(false, 'minutes', true)}
-                    disabled={loading || !selectedDate || !startTime}
-                    className="p-1 bg-gray-700 hover:bg-gray-600 rounded-md disabled:opacity-50"
-                  >
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => adjustTime(false, 'minutes', false)}
-                    disabled={loading || !selectedDate || !startTime}
-                    className="p-1 bg-gray-700 hover:bg-gray-600 rounded-md disabled:opacity-50"
-                  >
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
+                  <button type="button" onClick={() => adjustTime(false, 'minutes', true)} disabled={loading || !selectedDate || !startTime} className="p-1 bg-gray-700 hover:bg-gray-600 rounded-md disabled:opacity-50"><svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg></button>
+                  <button type="button" onClick={() => adjustTime(false, 'minutes', false)} disabled={loading || !selectedDate || !startTime} className="p-1 bg-gray-700 hover:bg-gray-600 rounded-md disabled:opacity-50"><svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></button>
                 </div>
               </div>
             </div>
+            {/* moved class selection to top */}
           </div>
-          <button 
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              console.log('Create slots clicked', { selectedDate, startTime, endTime });
-              if (!loading && selectedDate && startTime && endTime) {
-                void addTimeframe();
-              }
-            }}
-            disabled={loading || !selectedDate || !startTime || !endTime}
-            className={`w-full px-6 py-3 rounded-md text-sm font-medium transition-colors ${
-              loading || !selectedDate || !startTime || !endTime
-                ? 'opacity-50 cursor-not-allowed bg-gray-600' 
-                : 'bg-green-600 hover:bg-green-700 active:bg-green-800'
-            }`}
-          >
-            {loading ? 
-              intl.formatMessage({ id: 'admin.creatingSlots' }) : 
-              intl.formatMessage({ id: 'admin.createSlots' })}
-          </button>
+          <div className="flex justify-end mt-4">
+            <button
+              type="button"
+              onClick={e => {
+                e.preventDefault();
+                if (!loading && selectedDate && startTime && endTime) {
+                  void addTimeframe();
+                }
+              }}
+              disabled={loading || !selectedDate || !startTime || !endTime}
+              className={`px-8 py-3 rounded-md text-base font-semibold transition-colors shadow-sm ${
+                loading || !selectedDate || !startTime || !endTime
+                  ? 'opacity-50 cursor-not-allowed bg-gray-600'
+                  : 'bg-green-600 hover:bg-green-700 active:bg-green-800'
+              }`}
+            >
+              {loading ? intl.formatMessage({ id: 'admin.creatingSlots' }) : intl.formatMessage({ id: 'admin.createSlotsButton' })}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -499,22 +575,45 @@ const Admin = () => {
           {intl.formatMessage({ id: 'admin.availableSlots' })}
         </h3>
         <div className="space-y-3">
-          {slots.filter(s=>!s.removed).length === 0 ? (
+          {slots.filter(s=>!s.removed && (!selectedClass || s.classId === selectedClass)).length === 0 ? (
             <div className="text-gray-400 text-center py-8 bg-gray-900 rounded-md">
               {intl.formatMessage({ id: 'admin.noSlots' })}
             </div>
           ) : (
-            slots.filter(s=>!s.removed).map(s => (
-              <div key={s.id} className="flex items-center justify-between bg-gray-900 p-4 rounded-md">
-                <div className="text-white">
-                  {new Date(s.start).toLocaleDateString(intl.locale, {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
+            slots.filter(s=>!s.removed && (!selectedClass || s.classId === selectedClass)).map(s => (
+              <div 
+                key={s.id} 
+                className="flex items-center justify-between p-4 rounded-md"
+                style={{ 
+                  backgroundColor: s.classId 
+                    ? (classes.find(c => c.id === s.classId)?.color + '20') || '#1F2937'
+                    : '#1F2937'
+                }}
+              >
+                <div className="flex items-center gap-4">
+                  {s.classId && (
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ 
+                        backgroundColor: classes.find(c => c.id === s.classId)?.color 
+                      }}
+                    />
+                  )}
+                  <div className="text-white">
+                    {new Date(s.start).toLocaleDateString(intl.locale, {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                    {s.classId && (
+                      <span className="ml-2 text-gray-400">
+                        ({classes.find(c => c.id === s.classId)?.name})
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <button 
                   onClick={()=>removeSlot(s.id)} 
@@ -537,17 +636,29 @@ const Admin = () => {
 
       <div className="border-t border-gray-700 pt-6">
         <button 
-          onClick={doReset} 
-          disabled={loading}
+          onClick={async () => {
+            if (!selectedClass) return;
+            if (!confirm(intl.formatMessage({ id: 'admin.resetClassConfirm' }))) return;
+            try {
+              setLoading(true)
+              setError(null)
+              await resetClass(selectedClass)
+              await load()
+            } catch (err) {
+              console.error('Error resetting class schedule:', err)
+              setError(intl.formatMessage({ id: 'admin.failedResetClass' }))
+            } finally {
+              setLoading(false)
+            }
+          }} 
+          disabled={loading || !selectedClass}
           className={`px-6 py-3 rounded-md text-sm font-medium transition-colors ${
-            loading 
+            loading || !selectedClass
               ? 'opacity-50 cursor-not-allowed bg-gray-600' 
               : 'bg-red-700 hover:bg-red-800'
           }`}
         >
-          {loading ? 
-            intl.formatMessage({ id: 'admin.resetting' }) : 
-            intl.formatMessage({ id: 'admin.reset' })}
+          {loading ? intl.formatMessage({ id: 'admin.resettingEllipsis' }) : (selectedClass ? intl.formatMessage({ id: 'admin.resetSlotsForClass' }) : intl.formatMessage({ id: 'admin.selectClassToReset' }))}
         </button>
       </div>
     </div>

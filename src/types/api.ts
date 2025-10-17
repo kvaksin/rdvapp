@@ -1,3 +1,12 @@
+export interface Class {
+  id: string
+  name: string
+  description?: string
+  color: string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface Slot {
   id: string
   start: string
@@ -5,6 +14,8 @@ export interface Slot {
   createdAt: string
   removed: boolean
   booked: boolean
+  classId?: string
+  class?: Class
 }
 
 export interface Booking {
