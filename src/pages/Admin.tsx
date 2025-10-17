@@ -335,28 +335,31 @@ const Admin = () => {
         </div>
       )}
 
-      <div className="bg-gray-800 p-6 rounded-lg mb-6 shadow-sm">
+      <div className="bg-gray-800 p-4 sm:p-6 rounded-lg mb-6 shadow-sm">
         <h3 className="text-lg font-semibold mb-4">{intl.formatMessage({ id: 'admin.classManagement' })}</h3>
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="flex flex-col gap-3">
             <input
               type="text"
               value={newClassName}
               onChange={(e) => setNewClassName(e.target.value)}
               placeholder={intl.formatMessage({ id: 'admin.className' })}
-              className="flex-1 bg-gray-700 px-4 py-2 rounded-md text-white"
+              className="w-full bg-gray-700 px-4 py-2 rounded-md text-white"
             />
             <div className="flex items-center gap-3">
-              <input
-                type="color"
-                value={newClassColor}
-                onChange={(e) => setNewClassColor(e.target.value)}
-                className="w-12 h-10 rounded-md bg-gray-700 cursor-pointer flex-shrink-0"
-              />
+              <label className="flex items-center gap-2 text-sm text-gray-300">
+                <span className="whitespace-nowrap">Color:</span>
+                <input
+                  type="color"
+                  value={newClassColor}
+                  onChange={(e) => setNewClassColor(e.target.value)}
+                  className="w-12 h-10 rounded-md bg-gray-700 cursor-pointer flex-shrink-0"
+                />
+              </label>
               <button
                 onClick={handleCreateClass}
                 disabled={loading || !newClassName}
-                className={`flex-1 sm:flex-none px-4 py-2 rounded-md whitespace-nowrap ${
+                className={`flex-1 px-4 py-2 rounded-md font-medium ${
                   loading || !newClassName
                     ? 'bg-gray-600 cursor-not-allowed'
                     : 'bg-green-600 hover:bg-green-700'
@@ -371,29 +374,27 @@ const Admin = () => {
             {classes.map(cls => (
               <div 
                 key={cls.id}
-                className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 rounded-md"
+                className="flex items-center justify-between gap-2 p-3 rounded-md"
                 style={{ backgroundColor: cls.color + '20' }}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
                   <div
                     className="w-4 h-4 rounded-full flex-shrink-0"
                     style={{ backgroundColor: cls.color }}
                   />
-                  <span className="text-white break-words">{cls.name}</span>
+                  <span className="text-white truncate">{cls.name}</span>
                 </div>
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                  <button
-                    onClick={() => handleDeleteClass(cls.id)}
-                    disabled={loading}
-                    className={`flex-1 sm:flex-none px-3 py-1 rounded-md text-sm whitespace-nowrap ${
-                      loading
-                        ? 'bg-gray-600 cursor-not-allowed'
-                        : 'bg-red-600 hover:bg-red-700'
-                    }`}
-                  >
-                    {intl.formatMessage({ id: 'admin.deleteClass' })}
-                  </button>
-                </div>
+                <button
+                  onClick={() => handleDeleteClass(cls.id)}
+                  disabled={loading}
+                  className={`px-3 py-1 rounded-md text-sm whitespace-nowrap flex-shrink-0 ${
+                    loading
+                      ? 'bg-gray-600 cursor-not-allowed'
+                      : 'bg-red-600 hover:bg-red-700'
+                  }`}
+                >
+                  {intl.formatMessage({ id: 'admin.deleteClass' })}
+                </button>
               </div>
             ))}
           </div>
