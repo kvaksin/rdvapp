@@ -43,7 +43,7 @@ export default function Home() {
   return (
     <div className="max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-8 text-center">
-        <FormattedMessage id="welcome.title" defaultMessage="Welcome to RDV Scheduling" />
+        <FormattedMessage id="home.welcome" defaultMessage="Welcome to RDV Scheduling" />
       </h1>
 
       {error && (

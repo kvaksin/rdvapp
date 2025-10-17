@@ -1,5 +1,6 @@
 export default {
   'app.title': 'Afspraken',
+  'home.welcome': 'Welkom bij RDV Scheduling',
   'nav.home': 'Home',
   'nav.book': 'Reserveren',
   'nav.admin': 'Admin',
