@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 import DatePicker from 'react-datepicker';
-import { fetchSlots, fetchClasses, bookSlot, fetchBookings } from '../api/client';
+import { fetchSlots, fetchClasses, bookSlot, fetchBookings, cancelBooking } from '../api/client';
 import type { Slot, Class } from '../types/api';
 
 interface ClassScheduleProps {
@@ -29,6 +29,7 @@ export default function ClassSchedule({ classId }: ClassScheduleProps) {
   const [bookingSlot, setBookingSlot] = useState<Slot | null>(null);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingsBySlot, setBookingsBySlot] = useState<Record<string, { childName: string; bookingId: string }>>({});
+  const [deletingBookingId, setDeletingBookingId] = useState<string | null>(null);
 
   // BookingModal component
   function BookingModal({ slot, open, onClose, onBook, loading }: BookingModalProps) {
@@ -129,6 +130,22 @@ export default function ClassSchedule({ classId }: ClassScheduleProps) {
     }
   }
 
+  async function handleDeleteBooking(bookingId: string) {
+    if (!confirm(intl.formatMessage({ id: 'schedule.deleteBookingConfirm' }))) {
+      return;
+    }
+    try {
+      setDeletingBookingId(bookingId);
+      await cancelBooking(bookingId);
+      await loadData();
+    } catch (err) {
+      console.error('Error deleting booking:', err);
+      setError(intl.formatMessage({ id: 'schedule.failedDeleteBooking' }));
+    } finally {
+      setDeletingBookingId(null);
+    }
+  }
+
   return (
     <div className="max-w-3xl mx-auto">
       <h1 className="text-3xl font-bold text-center text-purple-300 mb-6 mt-8">{classDetails ? classDetails.name : intl.formatMessage({ id: 'schedule.title' })}</h1>
@@ -179,16 +196,34 @@ export default function ClassSchedule({ classId }: ClassScheduleProps) {
                       </div>
                       <div className="flex justify-end gap-2">
                         {slot.booked && bookingsBySlot[slot.id] ? (
-                          <a
-                            href={`/api/bookings/${bookingsBySlot[slot.id].bookingId}/ics`}
-                            download
-                            className="px-3 py-1 rounded bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700 flex items-center gap-1"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            {intl.formatMessage({ id: 'schedule.addToCalendar' })}
-                          </a>
+                          <>
+                            <a
+                              href={`/api/bookings/${bookingsBySlot[slot.id].bookingId}/ics`}
+                              download
+                              className="px-3 py-1 rounded bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700 flex items-center gap-1"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              {intl.formatMessage({ id: 'schedule.addToCalendar' })}
+                            </a>
+                            <button
+                              onClick={() => handleDeleteBooking(bookingsBySlot[slot.id].bookingId)}
+                              disabled={deletingBookingId === bookingsBySlot[slot.id].bookingId}
+                              className={`px-3 py-1 rounded text-white text-sm font-semibold flex items-center gap-1 ${
+                                deletingBookingId === bookingsBySlot[slot.id].bookingId
+                                  ? 'bg-red-400 cursor-not-allowed'
+                                  : 'bg-red-600 hover:bg-red-700'
+                              }`}
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                              {deletingBookingId === bookingsBySlot[slot.id].bookingId
+                                ? intl.formatMessage({ id: 'schedule.deleting' })
+                                : intl.formatMessage({ id: 'schedule.deleteBooking' })}
+                            </button>
+                          </>
                         ) : !slot.booked ? (
                           <button
                             className="px-3 py-1 rounded bg-green-600 text-white text-sm font-semibold hover:bg-green-700"

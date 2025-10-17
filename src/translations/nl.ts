@@ -84,6 +84,10 @@ export default {
   'schedule.addToCalendar': 'Toevoegen aan kalender',
   'schedule.noSlotsForDate': 'Geen beschikbare tijdslots voor deze datum.',
   'schedule.failedBookSlot': 'Tijdslot boeken mislukt. Probeer het opnieuw.',
+  'schedule.deleteBooking': 'Verwijderen',
+  'schedule.deleteBookingConfirm': 'Deze reservering verwijderen?',
+  'schedule.deleting': 'Verwijderen...',
+  'schedule.failedDeleteBooking': 'Reservering verwijderen mislukt. Probeer het opnieuw.',
   
   'bookRdv.title': 'RDV boeken',
   'bookRdv.enterChildName': 'Voer de naam van het kind in',

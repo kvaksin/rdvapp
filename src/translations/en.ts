@@ -84,6 +84,10 @@ export default {
   'schedule.addToCalendar': 'Add to Calendar',
   'schedule.noSlotsForDate': 'No available slots for this date.',
   'schedule.failedBookSlot': 'Failed to book slot. Please try again.',
+  'schedule.deleteBooking': 'Delete',
+  'schedule.deleteBookingConfirm': 'Delete this booking?',
+  'schedule.deleting': 'Deleting...',
+  'schedule.failedDeleteBooking': 'Failed to delete booking. Please try again.',
   
   'bookRdv.title': 'Book RDV',
   'bookRdv.enterChildName': 'Enter child name',
