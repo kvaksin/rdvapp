@@ -15,8 +15,14 @@ services:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 4000
+        value: 10000
       - key: VITE_API_URL
         value: /api
+      - key: BASE_URL
+        generateValue: true
     healthCheckPath: /api/health
     autoDeploy: true
+    disk:
+      name: rdvapp-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
