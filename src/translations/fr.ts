@@ -1,5 +1,6 @@
 export default {
   'app.title': 'Rendez-vous',
+  'home.welcome': 'Bienvenue sur RDV Scheduling',
   'nav.home': 'Accueil',
   'nav.book': 'Réserver',
   'nav.admin': 'Admin',
