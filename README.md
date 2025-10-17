@@ -24,15 +24,18 @@ A modern, multi-class appointment booking application built with Vite, React, Ty
 - **Child Name Tracking**: Each booking records the child's name for easy identification
 - **Booking Status Display**: Visual indicators for available/booked slots with child names
 - **ICS Calendar Export**: Download `.ics` files for booked appointments (Google/Apple/Outlook compatible)
+- **Delete Bookings**: Users can delete/cancel their appointments with confirmation dialog
+- **Automatic Slot Release**: Deleted bookings immediately make slots available again
 - **Duplicate Prevention**: Automatic detection and prevention of overlapping slots per class
 
 ### 🌐 Complete Internationalization (i18n)
 - **Multi-Language Support**: Full UI translation in French (default), English, and Dutch
-- **57 Translation Keys**: All user-facing text is translatable including:
+- **61 Translation Keys**: All user-facing text is translatable including:
   - Admin interface labels and messages
   - Booking modal and forms
   - Error messages and confirmations
   - Status indicators and buttons
+  - Delete confirmation dialogs
 - **Localized Date/Time**: Native date and time formatting for each language
 - **Language Persistence**: Selected language saved in browser storage
 - **Easy Language Switching**: Dropdown selector with native language names
@@ -197,7 +200,7 @@ rdvapp/
 - `GET /api/bookings` - List all bookings
 - `POST /api/bookings` - Create booking (body: `{ slotId, childName }`)
 - `PUT /api/bookings/:id` - Reschedule booking (body: `{ slotId, childName }`)
-- `DELETE /api/bookings/:id` - Cancel booking
+- `DELETE /api/bookings/:id` - Cancel/delete booking (releases slot automatically)
 - `GET /api/bookings/:id/ics` - Download ICS calendar file
 
 ### Configuration
@@ -710,7 +713,13 @@ The application can be deployed in several ways depending on your needs:
      - Microsoft Outlook
      - Any RFC 5545 compliant calendar app
 
-4. **Change Language**:
+4. **Delete a Booking**:
+   - For booked appointments, click the red "Delete" button
+   - Confirm deletion in the dialog
+   - The slot immediately becomes available again
+   - All data is removed and cannot be recovered
+
+5. **Change Language**:
    - Click language selector in navigation
    - Choose from French (🇫🇷), English (🇬🇧), or Dutch (🇳🇱)
    - Language preference is saved in browser
@@ -834,15 +843,18 @@ The `main` branch is protected:
 
 ### Recent Updates
 
-**October 2025**
-- ✨ Added complete i18n support (French, English, Dutch)
+**October 2025 - Latest**
+- ✨ **NEW**: Delete booking functionality with confirmation dialogs
+- ✨ **NEW**: Automatic slot release when bookings are deleted
+- ✨ Added complete i18n support (French, English, Dutch - 61 translation keys)
 - ✨ Implemented class-based appointment system
 - ✨ Added ICS calendar export for bookings
 - ✨ Per-class schedule URLs and management
 - ✨ Child name tracking on bookings
+- ✨ Updated Render.com deployment configuration (persistent storage, port 10000)
 - 🐛 Fixed slot duplication issues
 - 🐛 Improved error handling and user feedback
-- 🎨 Enhanced UI with better visual feedback
+- 🎨 Enhanced UI with better visual feedback and delete buttons
 - 📚 Updated documentation with comprehensive guides
 
 ## License

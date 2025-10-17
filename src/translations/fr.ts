@@ -84,6 +84,10 @@ export default {
   'schedule.addToCalendar': 'Ajouter au calendrier',
   'schedule.noSlotsForDate': 'Aucun créneau disponible pour cette date.',
   'schedule.failedBookSlot': 'Échec de la réservation du créneau. Veuillez réessayer.',
+  'schedule.deleteBooking': 'Supprimer',
+  'schedule.deleteBookingConfirm': 'Supprimer cette réservation ?',
+  'schedule.deleting': 'Suppression...',
+  'schedule.failedDeleteBooking': 'Échec de la suppression de la réservation. Veuillez réessayer.',
   
   'bookRdv.title': 'Réserver RDV',
   'bookRdv.enterChildName': 'Entrez le nom de l\'enfant',
