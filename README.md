@@ -1,8 +1,3 @@
-
-<p align="center">
-   <img src="https://ecoletenbosch.ixelles.be/wp-content/uploads/2019/12/Logo-ecole-24-25.jpg" alt="Ecole Tenbosch Logo" width="180" />
-</p>
-
 # RDV App
 
 [![React](https://img.shields.io/badge/React-18-blue.svg)](https://reactjs.org/)
