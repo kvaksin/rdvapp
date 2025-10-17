@@ -135,18 +135,62 @@ app.get('/api/slots', async (req, res) => {
     res.set('Expires', '-1')
     res.set('Pragma', 'no-cache')
     
-    const { from, to } = req.query
+    const { from, to, classId } = req.query
     const where = {}
     if (from && to) {
       where.start = { gte: from }
       where.end = { lte: to }
     }
-    const slots = await db.getSlots(where)
+    let slots = await db.getSlots(where)
+    // Optional filter by classId if provided
+    if (classId) {
+      slots = slots.filter(s => (s.classId || null) === classId)
+    }
     console.log('Retrieved slots:', slots)
     res.json(slots)
   } catch (error) {
     console.error('Error getting slots:', error)
     res.status(500).json({ error: 'Failed to get slots' })
+  }
+})
+
+// Class management endpoints
+app.get('/api/classes', async (req, res) => {
+  try {
+    const classes = await db.getClasses()
+    res.json(classes)
+  } catch (error) {
+    console.error('Error getting classes:', error)
+    res.status(500).json({ error: 'Failed to get classes' })
+  }
+})
+
+app.post('/api/classes', async (req, res) => {
+  try {
+    const { name, description, color } = req.body
+    if (!name) {
+      return res.status(400).json({ error: 'Class name is required' })
+    }
+    const newClass = await db.createClass({
+      name,
+      description,
+      color: color || '#6366F1' // Default indigo color
+    })
+    res.status(201).json(newClass)
+  } catch (error) {
+    console.error('Error creating class:', error)
+    res.status(500).json({ error: 'Failed to create class' })
+  }
+})
+
+app.delete('/api/classes/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+    await db.deleteClass(id)
+    res.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting class:', error)
+    res.status(500).json({ error: 'Failed to delete class' })
   }
 })
 
@@ -254,7 +298,14 @@ app.post('/api/slots/timeframe', async (req, res) => {
     res.set('Pragma', 'no-cache')
     
     console.log('Received timeframe request:', req.body)
-    const { start, end } = req.body
+    const { start, end, classId } = req.body
+    
+    if (classId) {
+      const classes = await db.getClasses()
+      if (!classes.find(c => c.id === classId)) {
+        return res.status(400).json({ error: 'Invalid class ID' })
+      }
+    }
     
     if (!start || !end) {
       console.log('Missing required fields:', { start, end })
@@ -267,7 +318,7 @@ app.post('/api/slots/timeframe', async (req, res) => {
       return res.status(400).json({ error: 'start and end must be valid ISO date strings' })
     }
     
-    console.log('Creating timeframe with:', { start, end })
+  console.log('Creating timeframe with:', { start, end, classId })
     const config = await db.getConfig()
     console.log('Current config:', config)
     const duration = (config && config.rdvDurationMinutes) || 15
@@ -277,24 +328,28 @@ app.post('/api/slots/timeframe', async (req, res) => {
   if (s >= e) return res.status(400).json({ error: 'invalid timeframe' })
 
   const created = []
+  // Load existing slots once to check duplicates efficiently
+  const existingSlots = await db.getSlots()
   let cursor = new Date(s)
   while (cursor.getTime() + duration * 60000 <= e.getTime()) {
     const slotStart = new Date(cursor)
     const slotEnd = new Date(cursor.getTime() + duration * 60000)
-    
-    // Check for existing slots
-    const slots = await db.getSlots()
-    const exists = slots.some(slot => 
+
+    // Check for existing slots for the same class (or no class) at the same time
+    const exists = existingSlots.some(slot =>
       new Date(slot.start).getTime() === slotStart.getTime() &&
-      new Date(slot.end).getTime() === slotEnd.getTime()
+      new Date(slot.end).getTime() === slotEnd.getTime() &&
+      ((slot.classId || null) === (classId || null))
     )
-    
+
     if (!exists) {
-      const slot = await db.createSlot({ 
-        start: slotStart.toISOString(), 
-        end: slotEnd.toISOString() 
+      const slot = await db.createSlot({
+        start: slotStart.toISOString(),
+        end: slotEnd.toISOString(),
+        classId: classId || null
       })
       created.push(slot)
+      existingSlots.push(slot) // keep local cache in sync
     }
     cursor = new Date(cursor.getTime() + duration * 60000)
   }
@@ -481,6 +536,16 @@ const baseUrl = process.env.NODE_ENV === 'production'
 })
 
 // POST reset
+
+// Reset schedule for a specific class
+app.post('/api/reset-class', async (req, res) => {
+  const { classId, confirm } = req.body;
+  if (!confirm || !classId) return res.status(400).json({ error: 'classId and confirmation required' });
+  await db.resetClassSchedule(classId);
+  res.json({ success: true });
+});
+
+// Reset all data
 app.post('/api/reset', async (req, res) => {
   const { confirm } = req.body
   if (!confirm) return res.status(400).json({ error: 'confirmation required' })

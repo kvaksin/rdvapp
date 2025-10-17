@@ -1,12 +1,13 @@
 // Empty string for same-origin requests (when using Vite proxy)
 const API_BASE = import.meta.env.VITE_API_URL || ''
 
-export async function fetchSlots(from?: any, to?: any) {
+export async function fetchSlots(from?: any, to?: any, classId?: string) {
   try {
     const baseUrl = window.location.origin + (API_BASE || '')
     const url = new URL('/api/slots', baseUrl)
     if (from) url.searchParams.set('from', from)
     if (to) url.searchParams.set('to', to)
+    if (classId) url.searchParams.set('classId', classId)
     const res = await fetch(url.toString(), {
       headers: {
         'Cache-Control': 'no-cache',
@@ -25,11 +26,11 @@ export async function fetchSlots(from?: any, to?: any) {
   }
 }
 
-export async function createTimeframe(start: any, end: any) {
+export async function createTimeframe(start: any, end: any, classId?: string) {
   try {
     const baseUrl = window.location.origin + (API_BASE || '')
     const url = new URL('/api/slots/timeframe', baseUrl)
-    console.log('Creating timeframe:', { start, end, url: url.toString() })
+    console.log('Creating timeframe:', { start, end, classId, url: url.toString() })
     
     const res = await fetch(url.toString(), {
       method: 'POST',
@@ -38,7 +39,7 @@ export async function createTimeframe(start: any, end: any) {
         'Cache-Control': 'no-cache',
         'Pragma': 'no-cache'
       },
-      body: JSON.stringify({ start, end }),
+      body: JSON.stringify({ start, end, classId }),
       cache: 'no-store'
     })
     if (!res.ok) {
@@ -76,7 +77,15 @@ export async function bookSlot(slotId: any, childName: any) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ slotId, childName })
     })
-    if (!res.ok) throw new Error(await res.text())
+    if (!res.ok) {
+      const text = await res.text()
+      try {
+        const data = JSON.parse(text)
+        throw new Error(data.error || data.message || `HTTP ${res.status}`)
+      } catch {
+        throw new Error(text || `HTTP ${res.status}`)
+      }
+    }
     return res.json()
   } catch (error) {
     console.error('Error booking slot:', error)
@@ -153,6 +162,66 @@ export async function resetAll(confirm:boolean) {
     return res.json()
   } catch (error) {
     console.error('Error resetting:', error)
+    throw error
+  }
+}
+
+export async function resetClass(classId: string) {
+  try {
+    const baseUrl = window.location.origin + (API_BASE || '')
+    const url = new URL('/api/reset-class', baseUrl)
+    const res = await fetch(url.toString(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ classId, confirm: true })
+    })
+    if (!res.ok) throw new Error(await res.text())
+    return res.json()
+  } catch (error) {
+    console.error('Error resetting class schedule:', error)
+    throw error
+  }
+}
+
+export async function fetchClasses() {
+  try {
+    const baseUrl = window.location.origin + (API_BASE || '')
+    const url = new URL('/api/classes', baseUrl)
+    const res = await fetch(url.toString())
+    if (!res.ok) throw new Error(await res.text())
+    return res.json()
+  } catch (error) {
+    console.error('Error fetching classes:', error)
+    throw error
+  }
+}
+
+export async function createClass(data: { name: string; description?: string; color: string }) {
+  try {
+    const baseUrl = window.location.origin + (API_BASE || '')
+    const url = new URL('/api/classes', baseUrl)
+    const res = await fetch(url.toString(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+    if (!res.ok) throw new Error(await res.text())
+    return res.json()
+  } catch (error) {
+    console.error('Error creating class:', error)
+    throw error
+  }
+}
+
+export async function deleteClass(id: string) {
+  try {
+    const baseUrl = window.location.origin + (API_BASE || '')
+    const url = new URL(`/api/classes/${id}`, baseUrl)
+    const res = await fetch(url.toString(), { method: 'DELETE' })
+    if (!res.ok) throw new Error(await res.text())
+    return res.json()
+  } catch (error) {
+    console.error('Error deleting class:', error)
     throw error
   }
 }

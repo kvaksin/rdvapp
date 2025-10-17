@@ -6,56 +6,105 @@
 [![Tailwind](https://img.shields.io/badge/Tailwind-3.4-38bdf8.svg)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-A modern appointment booking application built with Vite, React, TypeScript, and Tailwind CSS. Features a responsive design, internationalization support, and calendar integration.
+A modern, multi-class appointment booking application built with Vite, React, TypeScript, and Tailwind CSS. Features class-based scheduling, responsive design, full internationalization support (French, English, Dutch), and calendar integration with ICS export.
 
-![RDV App Screenshot](./public/screenshot.png)
+## ✨ Features Overview
 
-[Live Demo](https://rdvapp.example.com) | [Documentation](https://rdvapp.example.com/docs)
+### 🎓 Class-Based Appointment System
+- **Multiple Class Management**: Create and manage multiple classes with unique colors and names
+- **Per-Class Scheduling**: Each class has its own dedicated schedule and booking URL
+- **Class-Specific URLs**: Shareable URLs for each class schedule (e.g., `/class/{classId}/{token}`)
+- **Visual Class Identification**: Color-coded slots and badges for easy class recognition
+- **Isolated Class Operations**: Reset or manage slots for individual classes without affecting others
 
-## Features
+### 📅 Advanced Appointment Management
+- **Flexible Time Slot Creation**: Create multiple time slots in batch using date/time ranges
+- **Configurable Duration**: Set appointment durations (10, 15, 20, or 30 minutes)
+- **Smart Booking System**: Prevents double-booking with real-time availability checks
+- **Child Name Tracking**: Each booking records the child's name for easy identification
+- **Booking Status Display**: Visual indicators for available/booked slots with child names
+- **ICS Calendar Export**: Download `.ics` files for booked appointments (Google/Apple/Outlook compatible)
+- **Duplicate Prevention**: Automatic detection and prevention of overlapping slots per class
 
-### 🌐 Internationalization
-- Support for multiple languages (French, Dutch, English)
-- Language persistence across sessions
-- Localized date and time formats
-- Native language names and flags in language selector
-- RTL support ready
+### 🌐 Complete Internationalization (i18n)
+- **Multi-Language Support**: Full UI translation in French (default), English, and Dutch
+- **57 Translation Keys**: All user-facing text is translatable including:
+  - Admin interface labels and messages
+  - Booking modal and forms
+  - Error messages and confirmations
+  - Status indicators and buttons
+- **Localized Date/Time**: Native date and time formatting for each language
+- **Language Persistence**: Selected language saved in browser storage
+- **Easy Language Switching**: Dropdown selector with native language names
 
-### 📱 Responsive Design
-- Mobile-first approach
-- Adaptive layout for all screen sizes
-- Touch-friendly interface
-- Optimized navigation for mobile devices
-- Responsive components and typography
+### 🎨 Modern, Responsive UI
+- **Dark Theme**: Elegant dark color scheme optimized for readability
+- **Mobile-First Design**: Fully responsive layout for all screen sizes
+- **Tailwind CSS**: Utility-first styling with custom color palette (purple/gray theme)
+- **Interactive Components**: Smooth hover effects, transitions, and loading states
+- **Accessible Design**: Semantic HTML, ARIA labels, keyboard navigation support
+- **Visual Feedback**: Loading states, confirmation messages, error displays
 
-### 📅 Appointment Management
-- Create and manage time slots
-- Book appointments in available slots
-- Calendar (.ics) file export
-- Multiple reminder options
-- Configurable appointment durations
+### � Admin Dashboard
+- **Class Management**:
+  - Create classes with custom names and colors
+  - Delete classes (slots are unlinked, not deleted)
+  - Visual class list with color indicators
+  - Shareable class schedule URLs with copy-to-clipboard
+- **Slot Creation**:
+  - Batch create slots by date and time range
+  - Assign slots to specific classes or leave unassigned
+  - Visual class selector moved to top for easy access
+  - Date picker with time input controls (with increment/decrement buttons)
+- **Slot Management**:
+  - View all available slots filtered by class
+  - Delete individual slots
+  - Reset entire class schedules (slots + bookings)
+  - Color-coded slot display matching class colors
+- **Configuration**:
+  - Set global appointment duration
+  - Visual duration selector (10/15/20/30 minutes)
+  - Persistent configuration storage
 
-### 🎨 Modern UI
-- Clean, minimalist design
-- Dark theme
-- Smooth transitions and animations
-- Accessible components
-- Touch-friendly interactions
+### 📊 Real-Time Data Management
+- **Automatic Refresh**: Data updates after bookings/changes
+- **Conflict Prevention**: Server-side validation prevents race conditions
+- **Error Recovery**: Graceful error handling with user-friendly messages
+- **State Synchronization**: UI reflects current server state
+- **Optimistic Updates**: Immediate UI feedback with rollback on errors
 
-## Tech Stack
+### 🔗 API Features
+- **RESTful API**: Clean, well-documented endpoints
+- **Swagger Documentation**: Interactive API docs at `/api/docs/ui`
+- **OpenAPI Spec**: Full API specification at `/api/openapi.json`
+- **Health Checks**: `/api/health` and `/api/ping` endpoints
+- **CORS Support**: Configurable cross-origin access
+- **JSON Responses**: Consistent response format with error handling
 
-- **Frontend:**
-  - React 18
-  - TypeScript
-  - Vite
-  - Tailwind CSS
-  - react-intl & i18next for internationalization
+## 🛠️ Tech Stack
 
-- **Backend:**
-  - Express.js
-  - Prisma ORM
-  - SQLite database
-  - ICS calendar integration
+### Frontend
+- **React 18**: Modern hooks-based architecture
+- **TypeScript 5.4**: Full type safety and IntelliSense
+- **Vite 7.1**: Lightning-fast HMR and build times
+- **Tailwind CSS 3.4**: Utility-first styling
+- **react-intl & i18next**: Complete internationalization
+- **React Router**: Client-side routing
+- **react-datepicker**: Date/time selection components
+
+### Backend
+- **Express.js**: Fast, minimalist web framework
+- **Node.js**: Server-side JavaScript runtime
+- **File-based Storage**: JSON file database (server/db.js)
+- **ICS Generation**: RFC 5545 compliant calendar files
+- **Swagger UI**: Interactive API documentation
+- **CORS**: Configurable cross-origin resource sharing
+
+### Database Schema
+- **Classes**: `id`, `name`, `description`, `color`, `createdAt`, `updatedAt`
+- **Slots**: `id`, `start`, `end`, `booked`, `removed`, `classId`, `createdAt`, `updatedAt`
+- **Bookings**: `id`, `slotId`, `childName`, `cancelled`, `originalSlotStart`, `createdAt`, `updatedAt`
+- **Config**: `id`, `rdvDurationMinutes`, `createdAt`, `updatedAt`
 
 ## Getting Started
 
@@ -88,48 +137,247 @@ A modern appointment booking application built with Vite, React, TypeScript, and
 
 The application will be available at `http://localhost:5173`.
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 rdvapp/
-├── src/                    # Frontend source code
-│   ├── components/         # Reusable React components
-│   ├── pages/             # Page components
-│   ├── translations/      # Language files
-│   ├── api/              # API client utilities
-│   └── types/            # TypeScript definitions
-├── server/                # Backend Express.js server
-├── prisma/               # Database schema and migrations
-└── public/              # Static assets
+├── src/                           # Frontend source code
+│   ├── components/                # Reusable React components
+│   │   ├── Feed.tsx              # Main content feed component
+│   │   ├── LeftNav.tsx           # Navigation sidebar
+│   │   ├── RightPanel.tsx        # Right sidebar panel
+│   │   └── StreamCard.tsx        # Stream card component
+│   ├── pages/                     # Page components
+│   │   ├── Admin.tsx             # Admin dashboard (class & slot management)
+│   │   ├── ApiDocs.tsx           # API documentation viewer
+│   │   ├── BookRdv.tsx           # General booking page
+│   │   ├── ClassSchedule.tsx     # Class-specific schedule & booking
+│   │   └── Home.tsx              # Landing page
+│   ├── translations/              # i18n language files
+│   │   ├── fr.ts                 # French translations (default)
+│   │   ├── en.ts                 # English translations
+│   │   └── nl.ts                 # Dutch translations
+│   ├── api/                       # API client utilities
+│   │   └── client.ts             # API methods (fetch, book, create, etc.)
+│   ├── types/                     # TypeScript type definitions
+│   │   └── api.ts                # API response types
+│   ├── i18n.tsx                   # i18n configuration & language hook
+│   ├── App.tsx                    # Main app component with routing
+│   └── main.tsx                   # React app entry point
+├── server/                        # Backend Express.js server
+│   ├── index.js                  # Express app & API endpoints
+│   └── db.js                     # File-based database operations
+├── data/                          # JSON database files
+│   ├── classes.json              # Class data
+│   ├── slots.json                # Time slot data
+│   ├── bookings.json             # Booking data
+│   └── config.json               # App configuration
+├── prisma/                        # Database schema (reference)
+│   └── schema.prisma             # Prisma schema definition
+├── public/                        # Static assets
+├── openapi.yaml                   # OpenAPI/Swagger specification
+├── vite.config.ts                # Vite configuration
+├── tailwind.config.cjs           # Tailwind CSS configuration
+└── package.json                   # Dependencies and scripts
 ```
 
-## Development Workflow
+## 🚀 API Endpoints
+
+### Classes
+- `GET /api/classes` - List all classes
+- `POST /api/classes` - Create new class (body: `{ name, color, description? }`)
+- `DELETE /api/classes/:id` - Delete class (unlinks slots)
+
+### Slots
+- `GET /api/slots` - List slots (query: `from`, `to`, `classId`)
+- `POST /api/slots/timeframe` - Create multiple slots (body: `{ start, end, classId? }`)
+- `DELETE /api/slots/:id` - Delete (soft remove) a slot
+
+### Bookings
+- `GET /api/bookings` - List all bookings
+- `POST /api/bookings` - Create booking (body: `{ slotId, childName }`)
+- `PUT /api/bookings/:id` - Reschedule booking (body: `{ slotId, childName }`)
+- `DELETE /api/bookings/:id` - Cancel booking
+- `GET /api/bookings/:id/ics` - Download ICS calendar file
+
+### Configuration
+- `GET /api/config` - Get current config
+- `PUT /api/config` - Update config (body: `{ rdvDurationMinutes }`)
+
+### Admin
+- `POST /api/reset` - Reset entire database (body: `{ confirm: true }`)
+- `POST /api/reset-class` - Reset class schedule (body: `{ classId, confirm: true }`)
+
+### System
+- `GET /api/health` - Health check endpoint
+- `GET /api/ping` - Ping endpoint
+- `GET /api/docs` - API documentation (JSON)
+- `GET /api/docs/ui` - Swagger UI
+- `GET /api/openapi.json` - OpenAPI specification
+
+## 💻 Development Workflow
 
 ### Available Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run start:server` - Start backend server
+```bash
+# Development
+npm run dev              # Start Vite dev server (frontend) - Port 5174
+npm run start:server     # Start Express backend - Port 4000
+npm run build           # Build for production
+npm run preview         # Preview production build
+
+# Testing
+node test-api.mjs       # Run E2E API tests
+```
+
+### Development Ports
+- **Frontend**: http://localhost:5174 (Vite dev server)
+- **Backend**: http://localhost:4000 (Express API)
+- **API Docs**: http://localhost:4000/api/docs/ui (Swagger UI)
 
 ### Database Management
 
-- Update schema: Edit `prisma/schema.prisma`
-- Create migration: `npx prisma migrate dev --name migration_name`
-- Reset database: `npx prisma migrate reset --force`
+The app uses file-based JSON storage in the `data/` directory:
+
+```bash
+# Files are automatically created on first run
+data/classes.json       # Class definitions
+data/slots.json        # Time slots
+data/bookings.json     # Bookings
+data/config.json       # App configuration
+
+# Reset entire database via API
+curl -X POST http://localhost:4000/api/reset \
+  -H "Content-Type: application/json" \
+  -d '{"confirm": true}'
+
+# Reset specific class schedule
+curl -X POST http://localhost:4000/api/reset-class \
+  -H "Content-Type: application/json" \
+  -d '{"classId": "class-id", "confirm": true}'
+```
 
 ### Adding a New Language
 
-1. Create translation file in `src/translations/`
-2. Add language metadata in `src/i18n.tsx`
-3. Add translations for all keys
+1. **Create translation file** in `src/translations/`:
+   ```typescript
+   // src/translations/es.ts
+   export default {
+     'app.title': 'Citas',
+     'nav.home': 'Inicio',
+     // ... add all 57 translation keys
+   }
+   ```
 
-## Environment Configuration
+2. **Register language** in `src/i18n.tsx`:
+   ```typescript
+   const languages = [
+     { code: 'fr', name: 'Français', flag: '🇫🇷' },
+     { code: 'en', name: 'English', flag: '🇬🇧' },
+     { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
+     { code: 'es', name: 'Español', flag: '🇪🇸' }, // Add here
+   ]
+   ```
 
-Required environment variables:
-- `DATABASE_URL`: SQLite database path
-- `PORT`: Backend server port (default: 4000)
-- `BASE_URL`: Application base URL for ICS files
+3. **Import translations** in `src/i18n.tsx`:
+   ```typescript
+   import esTranslations from './translations/es'
+   // Add to messages object
+   ```
+
+### Common Development Tasks
+
+#### Create a New Class
+```bash
+curl -X POST http://localhost:4000/api/classes \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Yoga Class",
+    "color": "#8B5CF6",
+    "description": "Morning yoga sessions"
+  }'
+```
+
+#### Create Time Slots for a Class
+```bash
+curl -X POST http://localhost:4000/api/slots/timeframe \
+  -H "Content-Type: application/json" \
+  -d '{
+    "start": "2025-10-20T09:00:00Z",
+    "end": "2025-10-20T12:00:00Z",
+    "classId": "class-id-here"
+  }'
+```
+
+#### Book an Appointment
+```bash
+curl -X POST http://localhost:4000/api/bookings \
+  -H "Content-Type: application/json" \
+  -d '{
+    "slotId": "slot-id-here",
+    "childName": "Emma Smith"
+  }'
+```
+
+### Testing the Application
+
+Run the E2E test suite:
+```bash
+node test-api.mjs
+```
+
+This tests:
+- ✅ Server connectivity
+- ✅ Configuration management
+- ✅ Class creation and deletion
+- ✅ Slot creation and deletion
+- ✅ Booking creation and cancellation
+- ✅ ICS file generation
+- ✅ Database reset functionality
+
+## ⚙️ Configuration
+
+### Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+# Server Configuration
+PORT=4000                           # Backend server port
+NODE_ENV=development                # Environment (development/production)
+
+# Database
+DATA_DIR=./data                     # Directory for JSON database files
+
+# Application
+BASE_URL=http://localhost:5174      # Frontend URL (for ICS files)
+VITE_API_URL=                       # API URL (empty for same-origin in dev)
+
+# CORS (optional)
+CORS_ORIGIN=http://localhost:5174   # Allowed CORS origin
+```
+
+### Application Configuration
+
+The appointment duration can be configured via:
+1. **Admin UI**: Select from 10, 15, 20, or 30 minutes
+2. **API**: `PUT /api/config` with `{ rdvDurationMinutes: 15 }`
+3. **Direct Edit**: Modify `data/config.json`
+
+### Vite Configuration
+
+Key settings in `vite.config.ts`:
+- **Dev Server Port**: 5174
+- **API Proxy**: `/api` → `http://localhost:4000`
+- **Build Output**: `dist/`
+- **Public Path**: `/`
+
+### Tailwind Configuration
+
+Custom theme in `tailwind.config.cjs`:
+- **Colors**: Purple/gray dark theme
+- **Fonts**: System font stack
+- **Breakpoints**: Standard responsive breakpoints
 
 ## Deployment
 
@@ -413,36 +661,189 @@ The application can be deployed in several ways depending on your needs:
    - Cache invalidation on deploy
    - Geographic distribution
 
-## Contributing
+## 🎯 Usage Guide
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+### For Administrators
+
+1. **Access Admin Dashboard**: Navigate to `/admin` or click "Admin" in navigation
+
+2. **Create a Class**:
+   - Enter class name (e.g., "Kindergarten A")
+   - Choose a color (click the color picker)
+   - Click "Add Class"
+   - Copy the generated class schedule URL to share with parents
+
+3. **Create Time Slots**:
+   - Select a class from the dropdown at the top
+   - Choose a date using the date picker
+   - Set start and end times (use arrow buttons or type)
+   - Click "Create Slots" - the system creates slots based on configured duration
+
+4. **Manage Slots**:
+   - View all slots for the selected class
+   - Each slot shows date, time, and class name
+   - Delete individual slots if needed
+   - Reset entire class schedule using "Reset Slots for Selected Class" button
+
+5. **Configure Settings**:
+   - Set appointment duration (10, 15, 20, or 30 minutes)
+   - Changes apply to newly created slots
+
+### For Parents/Users
+
+1. **Access Class Schedule**:
+   - Use the class-specific URL provided by admin
+   - Format: `/class/{classId}/{token}`
+
+2. **Book an Appointment**:
+   - View available time slots (shown in green)
+   - Click "Book" on desired slot
+   - Enter child's name in the modal
+   - Click "Book" to confirm
+   - Booked slots show "Booked — [Child Name]"
+
+3. **Download Calendar Event**:
+   - For booked appointments, click "Add to Calendar"
+   - Downloads `.ics` file compatible with:
+     - Google Calendar
+     - Apple Calendar
+     - Microsoft Outlook
+     - Any RFC 5545 compliant calendar app
+
+4. **Change Language**:
+   - Click language selector in navigation
+   - Choose from French (🇫🇷), English (🇬🇧), or Dutch (🇳🇱)
+   - Language preference is saved in browser
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**Problem**: Frontend can't connect to backend
+```bash
+# Solution: Check if backend is running
+npm run start:server
+
+# Verify backend is accessible
+curl http://localhost:4000/api/ping
+```
+
+**Problem**: Slots not showing after creation
+```bash
+# Solution: Check browser console for errors
+# Verify slots were created
+curl http://localhost:4000/api/slots
+
+# Clear browser cache and reload
+```
+
+**Problem**: Double-booking occurring
+```bash
+# Solution: This should not happen due to server-side validation
+# Check data/slots.json and data/bookings.json for inconsistencies
+# Reset if needed: POST /api/reset with {"confirm": true}
+```
+
+**Problem**: ICS file download not working
+```bash
+# Solution: Check backend logs
+# Verify booking exists
+curl http://localhost:4000/api/bookings
+
+# Try accessing ICS URL directly
+curl http://localhost:4000/api/bookings/{booking-id}/ics
+```
+
+**Problem**: Language not persisting
+```bash
+# Solution: Check browser localStorage
+# Open DevTools > Application > Local Storage
+# Look for 'language' key
+
+# Clear if corrupted
+localStorage.removeItem('language')
+```
+
+### Debug Mode
+
+Enable debug logging:
+```bash
+# Start backend with debug output
+DEBUG=express:* npm run start:server
+
+# Or set in .env
+DEBUG=express:*
+```
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how to get started:
+
+1. **Fork the repository**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/rdvapp.git
+   cd rdvapp
+   ```
+
+2. **Create a feature branch**
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+
+3. **Make your changes**
+   - Follow existing code style
+   - Add translations for new UI text
+   - Update types if modifying API
+   - Test thoroughly
+
+4. **Commit your changes**
+   ```bash
+   git commit -m 'Add amazing feature'
+   ```
+
+5. **Push to your fork**
+   ```bash
+   git push origin feature/amazing-feature
+   ```
+
+6. **Open a Pull Request**
+   - Provide clear description of changes
+   - Reference any related issues
+   - Ensure all checks pass
+
+### Development Guidelines
+
+- **Code Style**: Follow existing TypeScript/React patterns
+- **Translations**: Add keys to all language files (fr, en, nl)
+- **Types**: Maintain type safety, update `src/types/api.ts` as needed
+- **API**: Document new endpoints in `openapi.yaml`
+- **Testing**: Run `node test-api.mjs` before submitting PR
 
 ### Branch Protection Rules
 
-The `main` branch is protected with the following rules:
+The `main` branch is protected:
 
-- **Pull Request Required**
-  - At least 1 reviewer approval needed
-  - Stale approvals are dismissed when new commits are pushed
+- ✅ Pull Request required (no direct pushes)
+- ✅ At least 1 reviewer approval needed
+- ✅ All status checks must pass
+- ✅ Branches must be up-to-date
+- ✅ Conversations must be resolved
+- ✅ Rules apply to administrators
 
-- **Status Checks**
-  - All status checks must pass before merging:
-    - Build verification
-    - Test suite completion
-    - Deployment checks
-    - Database migration validation
-  - Branches must be up-to-date with main
+## 📝 Changelog
 
-- **Additional Protection**
-  - All conversations must be resolved
-  - Direct pushes to `main` are restricted
-  - Rules apply to administrators
+### Recent Updates
 
-These rules ensure code quality and maintain a stable main branch. Please ensure your pull requests meet these requirements before requesting a review.
+**October 2025**
+- ✨ Added complete i18n support (French, English, Dutch)
+- ✨ Implemented class-based appointment system
+- ✨ Added ICS calendar export for bookings
+- ✨ Per-class schedule URLs and management
+- ✨ Child name tracking on bookings
+- 🐛 Fixed slot duplication issues
+- 🐛 Improved error handling and user feedback
+- 🎨 Enhanced UI with better visual feedback
+- 📚 Updated documentation with comprehensive guides
 
 ## License
 
