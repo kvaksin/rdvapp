@@ -338,7 +338,7 @@ const Admin = () => {
       <div className="bg-gray-800 p-6 rounded-lg mb-6 shadow-sm">
         <h3 className="text-lg font-semibold mb-4">{intl.formatMessage({ id: 'admin.classManagement' })}</h3>
         <div className="space-y-4">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <input
               type="text"
               value={newClassName}
@@ -346,44 +346,46 @@ const Admin = () => {
               placeholder={intl.formatMessage({ id: 'admin.className' })}
               className="flex-1 bg-gray-700 px-4 py-2 rounded-md text-white"
             />
-            <input
-              type="color"
-              value={newClassColor}
-              onChange={(e) => setNewClassColor(e.target.value)}
-              className="w-12 h-10 rounded-md bg-gray-700 cursor-pointer"
-            />
-            <button
-              onClick={handleCreateClass}
-              disabled={loading || !newClassName}
-              className={`px-4 py-2 rounded-md ${
-                loading || !newClassName
-                  ? 'bg-gray-600 cursor-not-allowed'
-                  : 'bg-green-600 hover:bg-green-700'
-              }`}
-            >
-              {intl.formatMessage({ id: 'admin.addClass' })}
-            </button>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={newClassColor}
+                onChange={(e) => setNewClassColor(e.target.value)}
+                className="w-12 h-10 rounded-md bg-gray-700 cursor-pointer flex-shrink-0"
+              />
+              <button
+                onClick={handleCreateClass}
+                disabled={loading || !newClassName}
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-md whitespace-nowrap ${
+                  loading || !newClassName
+                    ? 'bg-gray-600 cursor-not-allowed'
+                    : 'bg-green-600 hover:bg-green-700'
+                }`}
+              >
+                {intl.formatMessage({ id: 'admin.addClass' })}
+              </button>
+            </div>
           </div>
 
           <div className="mt-4 space-y-2">
             {classes.map(cls => (
               <div 
                 key={cls.id}
-                className="flex items-center justify-between p-3 rounded-md"
+                className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 rounded-md"
                 style={{ backgroundColor: cls.color + '20' }}
               >
                 <div className="flex items-center gap-2">
                   <div
-                    className="w-4 h-4 rounded-full"
+                    className="w-4 h-4 rounded-full flex-shrink-0"
                     style={{ backgroundColor: cls.color }}
                   />
-                  <span className="text-white">{cls.name}</span>
+                  <span className="text-white break-words">{cls.name}</span>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                   <button
                     onClick={() => handleDeleteClass(cls.id)}
                     disabled={loading}
-                    className={`px-3 py-1 rounded-md text-sm ${
+                    className={`flex-1 sm:flex-none px-3 py-1 rounded-md text-sm whitespace-nowrap ${
                       loading
                         ? 'bg-gray-600 cursor-not-allowed'
                         : 'bg-red-600 hover:bg-red-700'
