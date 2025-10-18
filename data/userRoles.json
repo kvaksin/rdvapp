@@ -1,8 +1,26 @@
 [
   {
-    "id": "role-1", 
+    "id": "role-1",
     "userId": "admin-1",
     "role": "administrator",
     "createdAt": "2025-10-17T00:00:00.000Z"
+  },
+  {
+    "id": "1760770647822hdc2gxptn",
+    "userId": "1760770647821dt5co9jou",
+    "role": "parent",
+    "createdAt": "2025-10-18T06:57:27.822Z"
+  },
+  {
+    "id": "1760770780225u0su9kwt8",
+    "userId": "1760770780224qexhm2pe9",
+    "role": "parent",
+    "createdAt": "2025-10-18T06:59:40.225Z"
+  },
+  {
+    "id": "1760773065332izimuwy1k",
+    "userId": "1760773065330af6ru11py",
+    "role": "class_lead",
+    "createdAt": "2025-10-18T07:37:45.332Z"
   }
 ]

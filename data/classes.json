@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "id": "0c18fc69-97de-437c-8ae0-1aee97281785",
+    "name": "Mathematics",
+    "description": "Elementary and advanced mathematics classes",
+    "color": "#3B82F6",
+    "createdAt": "2025-10-18T09:19:19.906Z",
+    "updatedAt": "2025-10-18T09:19:19.906Z"
+  },
+  {
+    "id": "0d2f719a-2c8f-4694-8d5a-8e896ec2aa56",
+    "name": "Science",
+    "description": "Physics, chemistry, and biology classes",
+    "color": "#10B981",
+    "createdAt": "2025-10-18T09:19:19.906Z",
+    "updatedAt": "2025-10-18T09:19:19.906Z"
+  },
+  {
+    "id": "29b05258-e12c-4a97-a1af-8b7aab9d23ed",
+    "name": "Languages",
+    "description": "French, Dutch, and English language classes",
+    "color": "#F59E0B",
+    "createdAt": "2025-10-18T09:19:19.906Z",
+    "updatedAt": "2025-10-18T09:19:19.906Z"
+  }
+]

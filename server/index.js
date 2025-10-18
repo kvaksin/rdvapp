@@ -127,9 +127,12 @@ app.use(express.static(validDistPath, {
   fallthrough: true // Continue to next middleware if file not found
 }))
 
+// Authentication routes - must come before catch-all route
+app.use('/auth', authRoutes)
+
 // SPA routing - this should be the last middleware
 app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api/')) {
+  if (req.path.startsWith('/api/') || req.path.startsWith('/auth')) {
     return next()
   }
 
@@ -161,9 +164,6 @@ app.get('/api/openapi.json', (req, res) => {
 
 // Mount Swagger UI at /api/docs/ui
 app.use('/api/docs/ui', swaggerUi.serve, swaggerUi.setup(openApiSpec, swaggerUiOptions))
-
-// Authentication routes
-app.use('/auth', authRoutes)
 
 // Helper: parse ISO -> [year, month, day, hour, minute]
 function toIcsDate(iso) {
@@ -207,6 +207,17 @@ app.get('/api/slots', auth.authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Error getting slots:', error)
     res.status(500).json({ error: 'Failed to get slots' })
+  }
+})
+
+// Public classes endpoint for registration (no authentication required)
+app.get('/api/classes/public', async (req, res) => {
+  try {
+    const classes = await db.getClasses()
+    res.json(classes)
+  } catch (error) {
+    console.error('Error getting public classes:', error)
+    res.status(500).json({ error: 'Failed to get classes' })
   }
 })
 

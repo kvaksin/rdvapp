@@ -1,9 +1,14 @@
 export default {
   'app.title': 'Rendez-vous',
-  'home.welcome': 'Bienvenue sur RDV Scheduling',
+    // Home page
+  'home.welcome': 'Bienvenue dans la Planification RDV',
+  'home.parentMessage': 'Sélectionnez une classe ci-dessus pour voir et réserver des rendez-vous',
+  'home.loggedInAs': 'Connecté en tant que :',
   'nav.home': 'Accueil',
   'nav.book': 'Réserver',
-  'nav.admin': 'Admin',
+    // Navigation
+  'nav.admin': 'Accès Administrateur',
+  'nav.userApproval': 'Approbation des Utilisateurs',
   
   'bookings.title': 'Rendez-vous',
   'bookings.count': '{count} rendez-vous',
@@ -38,6 +43,7 @@ export default {
   'admin.resetting': 'Réinitialisation...',
   'admin.classManagement': 'Gestion des classes',
   'admin.className': 'Nom de la classe',
+  'admin.classDescription': 'Description de la classe (optionnel)',
   'admin.addClass': 'Ajouter une classe',
   'admin.deleteClass': 'Supprimer',
   'admin.deleteClassConfirm': 'Supprimer cette classe ? Tous les RDVs associés seront dissociés.',
@@ -139,4 +145,34 @@ export default {
   'common.success': 'Succès',
   'language.select': 'Sélectionner la langue',
   'language.current': 'Langue actuelle',
+  
+  // Approval System
+    // User Approval
+  'userApproval.title': 'Gestion des Approbations d\'Utilisateurs',
+  'userApproval.description': 'Examiner et approuver ou rejeter les inscriptions d\'utilisateurs en attente',
+  'userApproval.pendingUsers': 'Utilisateurs en Attente',
+  'userApproval.noPendingDescription': 'Toutes les inscriptions d\'utilisateurs ont été traitées.',
+  'userApproval.rejectionReasonPrompt': 'Raison du rejet (optionnel):',
+  'userApproval.helpText': 'Examinez attentivement les détails de l\'utilisateur avant l\'approbation. Les utilisateurs approuvés recevront une notification par email et pourront immédiatement accéder au système.',
+  'userApproval.classLeadAdminOnly': 'Seuls les administrateurs peuvent approuver les responsables de classe',
+  'userApproval.classLeadAdminOnlyTooltip': 'Seuls les administrateurs peuvent approuver les responsables de classe',
+
+  // User Approval (Admin section keys already exist)
+  'admin.userApproval': 'Approbation des Utilisateurs',
+  'admin.loadingUsers': 'Chargement des utilisateurs en attente...',
+  'admin.noPendingUsers': 'Aucun utilisateur en attente d\'approbation',
+  'admin.phone': 'Téléphone: {phone}',
+  'admin.registeredOn': 'Inscrit le {date}',
+  'admin.classAssignments': 'Assignations de classe:',
+  'admin.approve': 'Approuver',
+  'admin.reject': 'Rejeter',
+  'admin.refreshUsers': 'Actualiser',
+  
+  // Notifications
+  'notifications.title': 'Notifications',
+  'notifications.unread.count': '{count} non lues',
+  'notifications.loading': 'Chargement...',
+  'notifications.empty': 'Aucune notification',
+  'notifications.role': 'Rôle: {role}',
+  'notifications.refresh': 'Actualiser',
 }

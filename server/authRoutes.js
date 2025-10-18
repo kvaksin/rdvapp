@@ -75,7 +75,7 @@ router.post('/register', authLimiter, async (req, res) => {
 
     // Validate class assignments
     if (classAssignments && classAssignments.length > 0) {
-      const classes = db.readClasses()
+      const classes = await db.getClasses()
       const classIds = classes.map(c => c.id)
       
       for (const assignment of classAssignments) {
@@ -263,6 +263,115 @@ router.put('/users/:userId/assignments', auth.authenticateToken, auth.requireRol
   } catch (error) {
     console.error('Error updating user assignments:', error)
     res.status(500).json({ error: 'Failed to update user assignments' })
+  }
+})
+
+// Get pending users (admin and class_lead)
+router.get('/pending-users', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator', 'class_lead']), async (req, res) => {
+  try {
+    const pendingUsers = auth.getPendingUsers()
+    
+    // Add role and class information to each pending user
+    const usersWithDetails = pendingUsers.map(user => {
+      const userRoles = auth.getUserRoles().filter(ur => ur.userId === user.id)
+      const userClasses = auth.getUserClasses().filter(uc => uc.userId === user.id)
+      
+      return {
+        ...user,
+        roles: userRoles.map(ur => ur.role),
+        classAssignments: userClasses
+      }
+    })
+    
+    res.json(usersWithDetails)
+  } catch (error) {
+    console.error('Error fetching pending users:', error)
+    res.status(500).json({ error: 'Failed to fetch pending users' })
+  }
+})
+
+// Approve user (admin and class_lead, but class leads can only be approved by admins)
+router.post('/approve/:userId', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator', 'class_lead']), async (req, res) => {
+  try {
+    const { userId } = req.params
+    const approverId = req.user.id
+    
+    // Check if the user being approved has class_lead role
+    const pendingUser = auth.getUserById(userId)
+    if (!pendingUser) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+    
+    const userRoles = auth.getUserRoles().filter(ur => ur.userId === userId).map(ur => ur.role)
+    const isClassLead = userRoles.includes('class_lead')
+    
+    // If the pending user is a class lead, only administrators can approve them
+    if (isClassLead && !req.user.roles.includes('administrator')) {
+      return res.status(403).json({ 
+        error: 'Only administrators can approve class leads',
+        details: 'Class lead approvals require administrator privileges'
+      })
+    }
+    
+    const approvedUser = await auth.approveUser(userId, approverId)
+    
+    res.json({
+      message: 'User approved successfully',
+      user: approvedUser
+    })
+  } catch (error) {
+    console.error('Error approving user:', error)
+    res.status(400).json({ error: error.message })
+  }
+})
+
+// Reject user (admin and class_lead)
+router.post('/reject/:userId', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator', 'class_lead']), async (req, res) => {
+  try {
+    const { userId } = req.params
+    const { reason } = req.body
+    const rejectorId = req.user.id
+    
+    const rejectedUser = await auth.rejectUser(userId, rejectorId, reason)
+    
+    res.json({
+      message: 'User rejected successfully',
+      user: rejectedUser
+    })
+  } catch (error) {
+    console.error('Error rejecting user:', error)
+    res.status(400).json({ error: error.message })
+  }
+})
+
+// Get user notifications
+router.get('/notifications', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    const userId = req.user.id
+    const notifications = auth.getUserNotifications(userId)
+    
+    res.json(notifications)
+  } catch (error) {
+    console.error('Error fetching notifications:', error)
+    res.status(500).json({ error: 'Failed to fetch notifications' })
+  }
+})
+
+// Mark notification as read
+router.post('/notifications/:notificationId/read', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    const { notificationId } = req.params
+    const userId = req.user.id
+    
+    const notification = auth.markNotificationAsRead(notificationId, userId)
+    
+    res.json({
+      message: 'Notification marked as read',
+      notification
+    })
+  } catch (error) {
+    console.error('Error marking notification as read:', error)
+    res.status(400).json({ error: error.message })
   }
 })
 

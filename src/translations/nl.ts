@@ -1,9 +1,14 @@
 export default {
   'app.title': 'Afspraken',
-  'home.welcome': 'Welkom bij RDV Scheduling',
+    // Home page
+  'home.welcome': 'Welkom bij RDV Planning',
+  'home.parentMessage': 'Selecteer een klas hierboven om afspraken te bekijken en te boeken',
+  'home.loggedInAs': 'Ingelogd als:',
   'nav.home': 'Home',
   'nav.book': 'Reserveren',
-  'nav.admin': 'Admin',
+    // Navigation
+  'nav.admin': 'Beheerder Toegang',
+  'nav.userApproval': 'Gebruiker Goedkeuring',
   
   'bookings.title': 'Afspraken',
   'bookings.count': '{count} afspraken',
@@ -38,6 +43,7 @@ export default {
   'admin.resetting': 'Resetten...',
   'admin.classManagement': 'Klasbeheer',
   'admin.className': 'Klasnaam',
+  'admin.classDescription': 'Klasbeschrijving (optioneel)',
   'admin.addClass': 'Klas toevoegen',
   'admin.deleteClass': 'Verwijderen',
   'admin.deleteClassConfirm': 'Deze klas verwijderen? Alle gekoppelde RDV worden ontkoppeld.',
@@ -139,4 +145,32 @@ export default {
   'common.success': 'Succes',
   'language.select': 'Selecteer taal',
   'language.current': 'Huidige taal',
+  
+  // Approval System
+    // User Approval
+  'userApproval.title': 'Gebruikersgoedkeuring Beheer',
+  'userApproval.description': 'Bekijk en keur gebruikersregistraties goed of wijs ze af',
+  'userApproval.pendingUsers': 'Gebruikers in Afwachting',
+  'userApproval.noPendingDescription': 'Alle gebruikersregistraties zijn verwerkt.',
+  'userApproval.rejectionReasonPrompt': 'Reden voor afwijzing (optioneel):',
+  'userApproval.helpText': 'Bekijk gebruikersdetails zorgvuldig voordat u goedkeurt. Goedgekeurde gebruikers ontvangen een e-mailmelding en kunnen onmiddellijk toegang krijgen tot het systeem.',
+  'userApproval.classLeadAdminOnly': 'Alleen beheerders kunnen klassenleiders goedkeuren',
+  'userApproval.classLeadAdminOnlyTooltip': 'Alleen beheerders kunnen klassenleiders goedkeuren',  // User Approval (Admin section keys already exist)
+  'admin.userApproval': 'Gebruiker Goedkeuring',
+  'admin.loadingUsers': 'Gebruikers in afwachting laden...',
+  'admin.noPendingUsers': 'Geen gebruikers in afwachting van goedkeuring',
+  'admin.phone': 'Telefoon: {phone}',
+  'admin.registeredOn': 'Geregistreerd op {date}',
+  'admin.classAssignments': 'Klassenzoewijzingen:',
+  'admin.approve': 'Goedkeuren',
+  'admin.reject': 'Afwijzen',
+  'admin.refreshUsers': 'Vernieuwen',
+  
+  // Notifications
+  'notifications.title': 'Meldingen',
+  'notifications.unread.count': '{count} ongelezen',
+  'notifications.loading': 'Laden...',
+  'notifications.empty': 'Geen meldingen',
+  'notifications.role': 'Rol: {role}',
+  'notifications.refresh': 'Vernieuwen',
 }

@@ -1,9 +1,14 @@
 export default {
   'app.title': 'Appointments',
+    // Home page
   'home.welcome': 'Welcome to RDV Scheduling',
+  'home.parentMessage': 'Select a class above to view and book appointments',
+  'home.loggedInAs': 'Logged in as:',
   'nav.home': 'Home',
   'nav.book': 'Book',
-  'nav.admin': 'Admin',
+    // Navigation
+  'nav.admin': 'Admin Access',
+  'nav.userApproval': 'User Approval',
   
   'bookings.title': 'Appointments',
   'bookings.count': '{count} appointments',
@@ -38,6 +43,7 @@ export default {
   'admin.resetting': 'Resetting...',
   'admin.classManagement': 'Class Management',
   'admin.className': 'Class Name',
+  'admin.classDescription': 'Class Description (optional)',
   'admin.addClass': 'Add Class',
   'admin.deleteClass': 'Delete',
   'admin.deleteClassConfirm': 'Delete this class? All associated RDV will be unlinked.',
@@ -139,4 +145,34 @@ export default {
   'common.success': 'Success',
   'language.select': 'Select language',
   'language.current': 'Current language',
+  
+  // Approval System
+    // User Approval
+  'userApproval.title': 'User Approval Management',
+  'userApproval.description': 'Review and approve or reject pending user registrations',
+  'userApproval.pendingUsers': 'Pending Users',
+  'userApproval.noPendingDescription': 'All user registrations have been processed.',
+  'userApproval.rejectionReasonPrompt': 'Rejection reason (optional):',
+  'userApproval.helpText': 'Review user details carefully before approval. Approved users will receive email notification and can immediately access the system.',
+  'userApproval.classLeadAdminOnly': 'Only administrators can approve class leads',
+  'userApproval.classLeadAdminOnlyTooltip': 'Only administrators can approve class leads',
+
+  // User Approval (Admin section keys already exist)
+  'admin.userApproval': 'User Approval',
+  'admin.loadingUsers': 'Loading pending users...',
+  'admin.noPendingUsers': 'No pending users to approve',
+  'admin.phone': 'Phone: {phone}',
+  'admin.registeredOn': 'Registered on {date}',
+  'admin.classAssignments': 'Class assignments:',
+  'admin.approve': 'Approve',
+  'admin.reject': 'Reject',
+  'admin.refreshUsers': 'Refresh',
+  
+  // Notifications
+  'notifications.title': 'Notifications',
+  'notifications.unread.count': '{count} unread',
+  'notifications.loading': 'Loading...',
+  'notifications.empty': 'No notifications',
+  'notifications.role': 'Role: {role}',
+  'notifications.refresh': 'Refresh',
 }

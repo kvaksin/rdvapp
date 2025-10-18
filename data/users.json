@@ -5,6 +5,54 @@
     "password": "$2b$12$EY4wGEYTESlIknZfkTX4J.McYyJ37EqMYpoSMPeg.bM6K3Hz7a6Fu",
     "phone": null,
     "createdAt": "2025-10-17T00:00:00.000Z",
-    "isActive": true
+    "isActive": true,
+    "status": "approved",
+    "approvedBy": null,
+    "approvedAt": "2025-10-17T00:00:00.000Z",
+    "rejectedBy": null,
+    "rejectedAt": null,
+    "rejectionReason": null
+  },
+  {
+    "id": "1760770647821dt5co9jou",
+    "email": "test.parent@example.com",
+    "password": "$2b$12$EY4wGEYTESlIknZfkTX4J.McYyJ37EqMYpoSMPeg.bM6K3Hz7a6Fu",
+    "phone": "123-456-7890",
+    "createdAt": "2025-10-18T06:57:27.821Z",
+    "isActive": true,
+    "status": "approved",
+    "approvedBy": "admin-1",
+    "approvedAt": "2025-10-18T06:59:21.447Z",
+    "rejectedBy": null,
+    "rejectedAt": null,
+    "rejectionReason": null
+  },
+  {
+    "id": "1760770780224qexhm2pe9",
+    "email": "test.rejected@example.com",
+    "password": "$2b$12$gHn.pLJpgv4CdkUmN.ozJO8VeJxweCnUX1jhjROgEVNwIMXEpjbDa",
+    "phone": "987-654-3210",
+    "createdAt": "2025-10-18T06:59:40.224Z",
+    "isActive": true,
+    "status": "rejected",
+    "approvedBy": null,
+    "approvedAt": null,
+    "rejectedBy": "admin-1",
+    "rejectedAt": "2025-10-18T06:59:50.543Z",
+    "rejectionReason": "Test rejection reason"
+  },
+  {
+    "id": "1760773065330af6ru11py",
+    "email": "teacher@example.com",
+    "password": "$2b$12$TP9KF7owJgkOm3uesH51DeoYPh3dhcwrxcGq22VJ1ofEmlDjWnWGG",
+    "phone": null,
+    "createdAt": "2025-10-18T07:37:45.330Z",
+    "isActive": true,
+    "status": "approved",
+    "approvedBy": "admin-1",
+    "approvedAt": "2025-10-18T09:18:58.980Z",
+    "rejectedBy": null,
+    "rejectedAt": null,
+    "rejectionReason": null
   }
 ]

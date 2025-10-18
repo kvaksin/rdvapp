@@ -234,11 +234,38 @@ async function resetDatabase() {
     updatedAt: new Date().toISOString()
   }
   
+  const defaultClasses = [
+    {
+      id: uuidv4(),
+      name: 'Mathematics',
+      description: 'Elementary and advanced mathematics classes',
+      color: '#3B82F6',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: uuidv4(),
+      name: 'Science',
+      description: 'Physics, chemistry, and biology classes',
+      color: '#10B981',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: uuidv4(),
+      name: 'Languages',
+      description: 'French, Dutch, and English language classes',
+      color: '#F59E0B',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  ]
+  
   try {
     await Promise.all([
       writeJsonFile('slots.json', []),
       writeJsonFile('bookings.json', []),
-      writeJsonFile('classes.json', []),
+      writeJsonFile('classes.json', defaultClasses),
       writeJsonFile('config.json', defaultConfig)
     ])
     console.log('Database reset successful')

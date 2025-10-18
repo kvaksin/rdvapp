@@ -1,0 +1,85 @@
+[
+  {
+    "id": "1760770647824zyoyxpuxq",
+    "type": "user_approval_request",
+    "recipientId": "admin-1",
+    "senderId": "1760770647821dt5co9jou",
+    "senderEmail": "test.parent@example.com",
+    "userRole": "parent",
+    "classAssignments": [
+      {
+        "classId": "376a3072-1501-4c76-a01a-66a174d19f31",
+        "childName": "Test Child"
+      }
+    ],
+    "message": "New parent registration: test.parent@example.com",
+    "isRead": true,
+    "createdAt": "2025-10-18T06:57:27.824Z",
+    "status": "pending"
+  },
+  {
+    "id": "1760770761447aiqa0av80",
+    "type": "user_approved",
+    "recipientId": "1760770647821dt5co9jou",
+    "senderId": "admin-1",
+    "message": "Your account has been approved. You can now log in.",
+    "isRead": false,
+    "createdAt": "2025-10-18T06:59:21.447Z",
+    "status": "sent"
+  },
+  {
+    "id": "17607707802255jik2u1mx",
+    "type": "user_approval_request",
+    "recipientId": "admin-1",
+    "senderId": "1760770780224qexhm2pe9",
+    "senderEmail": "test.rejected@example.com",
+    "userRole": "parent",
+    "classAssignments": [
+      {
+        "classId": "376a3072-1501-4c76-a01a-66a174d19f31",
+        "childName": "Another Child"
+      }
+    ],
+    "message": "New parent registration: test.rejected@example.com",
+    "isRead": true,
+    "createdAt": "2025-10-18T06:59:40.225Z",
+    "status": "pending"
+  },
+  {
+    "id": "1760770790543qdgm4id53",
+    "type": "user_rejected",
+    "recipientId": "1760770780224qexhm2pe9",
+    "senderId": "admin-1",
+    "message": "Your account has been rejected. Reason: Test rejection reason",
+    "isRead": false,
+    "createdAt": "2025-10-18T06:59:50.543Z",
+    "status": "sent"
+  },
+  {
+    "id": "1760773065336k19goxqv3",
+    "type": "user_approval_request",
+    "recipientId": "admin-1",
+    "senderId": "1760773065330af6ru11py",
+    "senderEmail": "teacher@example.com",
+    "userRole": "class_lead",
+    "classAssignments": [
+      {
+        "classId": "78d90808-d49e-4c71-96cf-1b90afc579aa"
+      }
+    ],
+    "message": "New class_lead registration: teacher@example.com",
+    "isRead": true,
+    "createdAt": "2025-10-18T07:37:45.336Z",
+    "status": "pending"
+  },
+  {
+    "id": "1760779138981gziq08pty",
+    "type": "user_approved",
+    "recipientId": "1760773065330af6ru11py",
+    "senderId": "admin-1",
+    "message": "Your account has been approved. You can now log in.",
+    "isRead": false,
+    "createdAt": "2025-10-18T09:18:58.981Z",
+    "status": "sent"
+  }
+]
