@@ -1,12 +1,21 @@
 import express from 'express'
 import cors from 'cors'
+import dotenv from 'dotenv'
 import { createEvent } from 'ics'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import swaggerUi from 'swagger-ui-express'
 import YAML from 'yaml'
+import session from 'express-session'
+import passport from 'passport'
+import helmet from 'helmet'
 import * as db from './db.js'
+import * as auth from './auth.js'
+import authRoutes from './authRoutes.js'
+
+// Load environment variables
+dotenv.config()
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -22,8 +31,40 @@ const swaggerUiOptions = {
 }
 
 const app = express()
-app.use(cors())
+
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable for development
+  crossOriginEmbedderPolicy: false
+}))
+
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175',
+    'http://localhost:5176'
+  ],
+  credentials: true
+}))
+
 app.use(express.json())
+
+// Session configuration
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-session-secret-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}))
+
+// Passport middleware
+app.use(passport.initialize())
+app.use(passport.session())
 
 // Determine the correct dist directory path based on environment
 const distPath = process.env.NODE_ENV === 'production'
@@ -121,6 +162,9 @@ app.get('/api/openapi.json', (req, res) => {
 // Mount Swagger UI at /api/docs/ui
 app.use('/api/docs/ui', swaggerUi.serve, swaggerUi.setup(openApiSpec, swaggerUiOptions))
 
+// Authentication routes
+app.use('/auth', authRoutes)
+
 // Helper: parse ISO -> [year, month, day, hour, minute]
 function toIcsDate(iso) {
   const d = new Date(iso)
@@ -128,7 +172,7 @@ function toIcsDate(iso) {
 }
 
 // GET slots in range
-app.get('/api/slots', async (req, res) => {
+app.get('/api/slots', auth.authenticateToken, async (req, res) => {
   try {
     // Disable caching for slots endpoint
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private')
@@ -136,12 +180,24 @@ app.get('/api/slots', async (req, res) => {
     res.set('Pragma', 'no-cache')
     
     const { from, to, classId } = req.query
+    
+    // Check user access to classes
+    const userAccessibleClasses = auth.getUserAccessibleClasses(req.user.id)
+    
     const where = {}
     if (from && to) {
       where.start = { gte: from }
       where.end = { lte: to }
     }
     let slots = await db.getSlots(where)
+    
+    // Filter slots by user access to classes
+    if (userAccessibleClasses !== 'all') {
+      slots = slots.filter(slot => 
+        !slot.classId || userAccessibleClasses.includes(slot.classId)
+      )
+    }
+    
     // Optional filter by classId if provided
     if (classId) {
       slots = slots.filter(s => (s.classId || null) === classId)
@@ -155,17 +211,26 @@ app.get('/api/slots', async (req, res) => {
 })
 
 // Class management endpoints
-app.get('/api/classes', async (req, res) => {
+app.get('/api/classes', auth.authenticateToken, async (req, res) => {
   try {
     const classes = await db.getClasses()
-    res.json(classes)
+    
+    // Filter classes by user access
+    const userAccessibleClasses = auth.getUserAccessibleClasses(req.user.id)
+    
+    if (userAccessibleClasses === 'all') {
+      res.json(classes)
+    } else {
+      const filteredClasses = classes.filter(cls => userAccessibleClasses.includes(cls.id))
+      res.json(filteredClasses)
+    }
   } catch (error) {
     console.error('Error getting classes:', error)
     res.status(500).json({ error: 'Failed to get classes' })
   }
 })
 
-app.post('/api/classes', async (req, res) => {
+app.post('/api/classes', auth.authenticateToken, auth.requireRole(['administrator', 'class_lead']), async (req, res) => {
   try {
     const { name, description, color } = req.body
     if (!name) {
@@ -183,7 +248,7 @@ app.post('/api/classes', async (req, res) => {
   }
 })
 
-app.delete('/api/classes/:id', async (req, res) => {
+app.delete('/api/classes/:id', auth.authenticateToken, auth.requireRole(['administrator']), async (req, res) => {
   try {
     const { id } = req.params
     await db.deleteClass(id)
@@ -290,7 +355,7 @@ app.put('/api/config', async (req, res) => {
 })
 
 // POST timeframe -> create slots based on current config
-app.post('/api/slots/timeframe', async (req, res) => {
+app.post('/api/slots/timeframe', auth.authenticateToken, auth.requireRole(['administrator', 'class_lead']), async (req, res) => {
   try {
     // Disable caching for this endpoint
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private')
@@ -299,6 +364,11 @@ app.post('/api/slots/timeframe', async (req, res) => {
     
     console.log('Received timeframe request:', req.body)
     const { start, end, classId } = req.body
+    
+    // Check if user has access to the class (if classId provided)
+    if (classId && !auth.hasAccessToClass(req.user.id, classId)) {
+      return res.status(403).json({ error: 'Access denied to this class' })
+    }
     
     if (classId) {
       const classes = await db.getClasses()
@@ -373,13 +443,30 @@ app.delete('/api/slots/:id', async (req, res) => {
 })
 
 // GET bookings
-app.get('/api/bookings', async (req, res) => {
+app.get('/api/bookings', auth.authenticateToken, async (req, res) => {
   const bookings = await db.getBookings()
-  res.json(bookings)
+  
+  // Filter bookings by user access to classes
+  const userAccessibleClasses = auth.getUserAccessibleClasses(req.user.id)
+  
+  if (userAccessibleClasses === 'all') {
+    res.json(bookings)
+  } else {
+    // Get slots to check class associations
+    const slots = await db.getSlots()
+    const slotClassMap = new Map(slots.map(slot => [slot.id, slot.classId]))
+    
+    const filteredBookings = bookings.filter(booking => {
+      const slotClassId = slotClassMap.get(booking.slotId)
+      return !slotClassId || userAccessibleClasses.includes(slotClassId)
+    })
+    
+    res.json(filteredBookings)
+  }
 })
 
 // POST booking
-app.post('/api/bookings', async (req, res) => {
+app.post('/api/bookings', auth.authenticateToken, async (req, res) => {
   const { slotId, childName } = req.body
   if (!slotId || !childName) return res.status(400).json({ error: 'slotId and childName required' })
 
@@ -390,11 +477,28 @@ app.post('/api/bookings', async (req, res) => {
       return res.status(409).json({ error: 'Slot unavailable' })
     }
 
+    // Check if user has access to the slot's class
+    if (slot.classId && !auth.hasAccessToClass(req.user.id, slot.classId)) {
+      return res.status(403).json({ error: 'Access denied to this class' })
+    }
+
+    // For parents, validate that they have the correct child name for this class
+    if (req.user.roles.includes('parent') && slot.classId) {
+      const userClasses = auth.getUserClasses()
+      const userClassAssignment = userClasses.find(uc => 
+        uc.userId === req.user.id && uc.classId === slot.classId
+      )
+      
+      if (!userClassAssignment || userClassAssignment.childName !== childName) {
+        return res.status(403).json({ error: 'Invalid child name for this class' })
+      }
+    }
+
     // mark slot booked and create booking
     await db.updateSlot(slotId, { booked: true })
     const booking = await db.createBooking({ 
       slotId, 
-      childName, 
+      childName,
       originalSlotStart: slot.start 
     })
 
@@ -406,7 +510,7 @@ app.post('/api/bookings', async (req, res) => {
 })
 
 // PUT modify booking -> move to new slot
-app.put('/api/bookings/:id', async (req, res) => {
+app.put('/api/bookings/:id', auth.authenticateToken, async (req, res) => {
   const { id } = req.params
   const { slotId, childName } = req.body
   try {
@@ -415,12 +519,24 @@ app.put('/api/bookings/:id', async (req, res) => {
       return res.status(404).json({ error: 'Booking not found' })
     }
 
+    // Check access to both old and new slots
+    const oldSlot = await db.findSlot(booking.slotId)
+    const newSlot = await db.findSlot(slotId)
+    
+    if (oldSlot?.classId && !auth.hasAccessToClass(req.user.id, oldSlot.classId)) {
+      return res.status(403).json({ error: 'Access denied to original booking class' })
+    }
+    
+    if (newSlot?.classId && !auth.hasAccessToClass(req.user.id, newSlot.classId)) {
+      return res.status(403).json({ error: 'Access denied to new slot class' })
+    }
+
     // free old slot
     await db.updateSlot(booking.slotId, { booked: false })
 
     // claim new slot (must exist and not booked)
-    const newSlot = await db.findSlot(slotId)
-    if (!newSlot || newSlot.booked || newSlot.removed) {
+    const targetSlot = await db.findSlot(slotId)
+    if (!targetSlot || targetSlot.booked || targetSlot.removed) {
       return res.status(409).json({ error: 'Slot unavailable' })
     }
 
@@ -428,7 +544,7 @@ app.put('/api/bookings/:id', async (req, res) => {
     const updated = await db.updateBooking(id, { 
       slotId, 
       childName: childName || booking.childName, 
-      originalSlotStart: newSlot.start 
+      originalSlotStart: targetSlot.start 
     })
 
     res.json({ booking: updated })
@@ -439,14 +555,22 @@ app.put('/api/bookings/:id', async (req, res) => {
 })
 
 // DELETE booking
-app.delete('/api/bookings/:id', async (req, res) => {
+app.delete('/api/bookings/:id', auth.authenticateToken, async (req, res) => {
   const { id } = req.params
   try {
     const booking = await db.findBooking(id)
-    if (booking) {
-      await db.updateBooking(id, { cancelled: true })
-      await db.updateSlot(booking.slotId, { booked: false })
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' })
     }
+
+    // Check access to booking's slot class
+    const slot = await db.findSlot(booking.slotId)
+    if (slot?.classId && !auth.hasAccessToClass(req.user.id, slot.classId)) {
+      return res.status(403).json({ error: 'Access denied to this booking' })
+    }
+
+    await db.updateBooking(id, { cancelled: true })
+    await db.updateSlot(booking.slotId, { booked: false })
     res.json({ success: true })
   } catch (err) {
     console.error(err)

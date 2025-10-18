@@ -1,0 +1,10 @@
+[
+  {
+    "id": "admin-1",
+    "email": "admin@example.com",
+    "password": "$2b$12$EY4wGEYTESlIknZfkTX4J.McYyJ37EqMYpoSMPeg.bM6K3Hz7a6Fu",
+    "phone": null,
+    "createdAt": "2025-10-17T00:00:00.000Z",
+    "isActive": true
+  }
+]

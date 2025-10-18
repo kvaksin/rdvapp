@@ -1,0 +1,8 @@
+[
+  {
+    "id": "role-1", 
+    "userId": "admin-1",
+    "role": "administrator",
+    "createdAt": "2025-10-17T00:00:00.000Z"
+  }
+]
