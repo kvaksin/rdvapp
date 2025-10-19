@@ -61,7 +61,9 @@ const ParentProfile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false)
   const [editForm, setEditForm] = useState({
     email: '',
-    phone: ''
+    phone: '',
+    firstName: '',
+    lastName: ''
   })
   
   // Class request state
@@ -119,7 +121,9 @@ const ParentProfile: React.FC = () => {
       // Initialize edit form
       setEditForm({
         email: profileData.user.email || '',
-        phone: profileData.user.phone || ''
+        phone: profileData.user.phone || '',
+        firstName: profileData.user.firstName || '',
+        lastName: profileData.user.lastName || ''
       })
       
     } catch (err: any) {

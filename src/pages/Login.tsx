@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { LanguageSelector } from '../i18n'
 
@@ -66,12 +67,12 @@ const Login: React.FC = () => {
               </h2>
               <p className="mt-4 text-center text-sm text-gray-400">
                 <FormattedMessage id="auth.noAccount" defaultMessage="Don't have an account?" />{' '}
-                <a
-                  href="/register"
+                <Link
+                  to="/register"
                   className="font-medium text-blue-400 hover:text-blue-300 focus:outline-none focus:underline transition-colors"
                 >
                   <FormattedMessage id="auth.signUp" defaultMessage="Sign up" />
-                </a>
+                </Link>
               </p>
             </div>
           </div>
