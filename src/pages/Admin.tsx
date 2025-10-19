@@ -7,6 +7,16 @@ import { useAuth } from '../contexts/AuthContext'
 import ClassAssignmentRequests from '../components/ClassAssignmentRequests'
 import type { Class, Slot } from '../types/api'
 
+interface Child {
+  id: string
+  name?: string // Legacy field
+  firstName: string
+  lastName: string
+  parentId?: string
+  classId: string
+  createdAt: string
+}
+
 function Admin() {
   const intl = useIntl()
   const { user: currentUser } = useAuth()
@@ -22,6 +32,10 @@ function Admin() {
   const [newClassName, setNewClassName] = useState('')
   const [newClassDescription, setNewClassDescription] = useState('')
   const [newClassColor, setNewClassColor] = useState('#6366F1')
+  
+  // Children management state
+  const [classChildren, setClassChildren] = useState<Child[]>([])
+  const [loadingChildren, setLoadingChildren] = useState(false)
 
   // Helper functions for user permissions
   const isAdmin = currentUser?.roles?.includes('administrator') || false
@@ -144,6 +158,32 @@ function Admin() {
       setError(intl.formatMessage({ id: 'admin.failedLoadData' }))
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function loadChildren() {
+    try {
+      setLoadingChildren(true)
+      const response = await fetch('/api/children')
+      if (!response.ok) throw new Error('Failed to fetch children')
+      const allChildren: Child[] = await response.json()
+      
+      if (isClassLead) {
+        // Filter children to show only those assigned to class lead's classes
+        const userClassIds = currentUser?.classAssignments?.map((ca: any) => ca.classId) || []
+        const filteredChildren = allChildren.filter((child: Child) => 
+          userClassIds.includes(child.classId)
+        )
+        setClassChildren(filteredChildren)
+      } else {
+        // Admins can see all children
+        setClassChildren(allChildren)
+      }
+    } catch (err) {
+      console.error('Error loading children:', err)
+      setError(intl.formatMessage({ id: 'admin.failedLoadChildren' }))
+    } finally {
+      setLoadingChildren(false)
     }
   }
 
@@ -443,6 +483,84 @@ function Admin() {
               ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Children Management Section - Class Leads and Admins */}
+      {(isAdmin || isClassLead) && (
+        <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-semibold text-white">
+              <FormattedMessage id="admin.childrenManagement" />
+            </h3>
+            <button
+              onClick={loadChildren}
+              disabled={loadingChildren}
+              className={`px-4 py-2 rounded-md ${
+                loadingChildren
+                  ? 'bg-gray-600 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }`}
+            >
+              {loadingChildren ? (
+                <FormattedMessage id="admin.loading" />
+              ) : (
+                <FormattedMessage id="admin.loadChildren" />
+              )}
+            </button>
+          </div>
+
+          {classChildren.length > 0 ? (
+            <div className="space-y-2">
+              {classChildren.map(child => {
+                const childClass = classes.find(cls => cls.id === child.classId)
+                return (
+                  <div key={child.id} className="bg-gray-700 rounded-md p-3">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="text-white font-medium">
+                          {child.firstName && child.lastName ? 
+                            `${child.firstName} ${child.lastName}` : 
+                            child.name || 'No name'
+                          }
+                        </div>
+                        <div className="text-gray-300 text-sm">
+                          {childClass ? (
+                            <span className="flex items-center gap-2">
+                              <div 
+                                className="w-3 h-3 rounded-full" 
+                                style={{ backgroundColor: childClass.color }}
+                              />
+                              {childClass.name}
+                            </span>
+                          ) : (
+                            `Class ID: ${child.classId}`
+                          )}
+                        </div>
+                        <div className="text-gray-400 text-xs">
+                          <FormattedMessage id="admin.registeredAt" />: {new Date(child.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-gray-400 text-sm">
+                          ID: {child.id}
+                        </div>
+                        {child.parentId && (
+                          <div className="text-gray-400 text-xs">
+                            <FormattedMessage id="admin.parentId" />: {child.parentId}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="text-gray-400 text-center py-8">
+              <FormattedMessage id={isClassLead ? "admin.noChildrenAssigned" : "admin.noChildrenRegistered"} />
+            </div>
+          )}
         </div>
       )}
 

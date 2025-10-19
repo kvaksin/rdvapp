@@ -157,6 +157,71 @@ const UserManagement: React.FC = () => {
     }
   }
 
+  const deleteUser = async (userId: string) => {
+    const user = users.find(u => u.id === userId)
+    if (!user) return
+
+    if (!window.confirm(intl.formatMessage(
+      { id: 'userManagement.delete.confirm' },
+      { email: user.email }
+    ))) {
+      return
+    }
+
+    try {
+      setLoading(true)
+      const response = await authenticatedFetch(`/auth/users/${userId}`, {
+        method: 'DELETE'
+      })
+      
+      if (response.ok) {
+        await fetchUsers()
+        alert(intl.formatMessage({ id: 'userManagement.delete.success' }))
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete user')
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      setError(error instanceof Error ? error.message : 'Failed to delete user')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const removeUserFromClass = async (userId: string, classId: string) => {
+    const user = users.find(u => u.id === userId)
+    const classInfo = getClassInfo(classId)
+    if (!user || !classInfo) return
+
+    if (!window.confirm(intl.formatMessage(
+      { id: 'userManagement.removeFromClass.confirm' },
+      { email: user.email, className: classInfo.name }
+    ))) {
+      return
+    }
+
+    try {
+      setLoading(true)
+      const response = await authenticatedFetch(`/auth/users/${userId}/remove-from-class/${classId}`, {
+        method: 'DELETE'
+      })
+      
+      if (response.ok) {
+        await fetchUsers()
+        alert(intl.formatMessage({ id: 'userManagement.removeFromClass.success' }))
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to remove user from class')
+      }
+    } catch (error) {
+      console.error('Error removing user from class:', error)
+      setError(error instanceof Error ? error.message : 'Failed to remove user from class')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const reactivateUser = async (userId: string) => {
     try {
       const response = await authenticatedFetch(`/auth/users/${userId}/reactivate`, {
@@ -207,6 +272,45 @@ const UserManagement: React.FC = () => {
     } catch (error) {
       console.error('Error deactivating users:', error)
       setError(error instanceof Error ? error.message : 'Failed to deactivate users')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const bulkDeleteUsers = async () => {
+    const userIds = Array.from(selectedUsers)
+    if (userIds.length === 0) return
+
+    if (!window.confirm(intl.formatMessage(
+      { id: 'userManagement.bulkDelete.confirm' },
+      { count: userIds.length }
+    ))) {
+      return
+    }
+
+    try {
+      setLoading(true)
+      const response = await authenticatedFetch('/auth/users/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds })
+      })
+
+      if (response.ok) {
+        setSelectedUsers(new Set())
+        await fetchUsers()
+        const data = await response.json()
+        alert(intl.formatMessage(
+          { id: 'userManagement.bulkDelete.success' },
+          { count: data.deleted }
+        ))
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete users')
+      }
+    } catch (error) {
+      console.error('Error deleting users:', error)
+      setError(error instanceof Error ? error.message : 'Failed to delete users')
     } finally {
       setLoading(false)
     }
@@ -397,7 +501,7 @@ const UserManagement: React.FC = () => {
               <button
                 onClick={bulkDeactivateUsers}
                 disabled={loading}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md text-sm font-medium transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded-md text-sm font-medium transition-colors disabled:opacity-50"
               >
                 <FormattedMessage 
                   id="userManagement.bulkDeactivate" 
@@ -405,6 +509,19 @@ const UserManagement: React.FC = () => {
                   values={{ count: selectedUsers.size }}
                 />
               </button>
+              {isAdmin && (
+                <button
+                  onClick={bulkDeleteUsers}
+                  disabled={loading}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md text-sm font-medium transition-colors disabled:opacity-50"
+                >
+                  <FormattedMessage 
+                    id="userManagement.bulkDelete" 
+                    defaultMessage="Delete Selected ({count})"
+                    values={{ count: selectedUsers.size }}
+                  />
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -531,7 +648,7 @@ const UserManagement: React.FC = () => {
                       />
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         {canManageUser(user) && (
                           <>
                             <button
@@ -543,7 +660,7 @@ const UserManagement: React.FC = () => {
                             {user.isActive ? (
                               <button
                                 onClick={() => deactivateUser(user.id)}
-                                className="text-red-400 hover:text-red-300 text-sm"
+                                className="text-yellow-400 hover:text-yellow-300 text-sm"
                               >
                                 <FormattedMessage id="userManagement.deactivate" defaultMessage="Deactivate" />
                               </button>
@@ -553,6 +670,39 @@ const UserManagement: React.FC = () => {
                                 className="text-green-400 hover:text-green-300 text-sm"
                               >
                                 <FormattedMessage id="userManagement.reactivate" defaultMessage="Reactivate" />
+                              </button>
+                            )}
+                            
+                            {/* Class removal for class leads */}
+                            {isClassLead && !isAdmin && user.classAssignments?.map((assignment) => {
+                              const userClassIds = currentUser?.classAssignments?.map(ca => ca.classId) || []
+                              if (userClassIds.includes(assignment.classId)) {
+                                const classInfo = getClassInfo(assignment.classId)
+                                return (
+                                  <button
+                                    key={assignment.id}
+                                    onClick={() => removeUserFromClass(user.id, assignment.classId)}
+                                    className="text-orange-400 hover:text-orange-300 text-sm"
+                                    title={`Remove from ${classInfo?.name || 'class'}`}
+                                  >
+                                    <FormattedMessage 
+                                      id="userManagement.removeFromClass" 
+                                      defaultMessage="Remove from {className}"
+                                      values={{ className: classInfo?.name || 'class' }}
+                                    />
+                                  </button>
+                                )
+                              }
+                              return null
+                            })}
+                            
+                            {/* Complete deletion for admins */}
+                            {isAdmin && (
+                              <button
+                                onClick={() => deleteUser(user.id)}
+                                className="text-red-400 hover:text-red-300 text-sm"
+                              >
+                                <FormattedMessage id="userManagement.delete" defaultMessage="Delete" />
                               </button>
                             )}
                           </>

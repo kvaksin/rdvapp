@@ -513,7 +513,14 @@ app.post('/api/bookings', auth.authenticateToken, async (req, res) => {
       if (childId) {
         selectedChild = parentChildren.find(child => child.id === childId)
       } else if (childName) {
-        selectedChild = parentChildren.find(child => child.name === childName)
+        selectedChild = parentChildren.find(child => {
+          // Try to match using full name (firstName + lastName) first
+          if (child.firstName && child.lastName) {
+            return `${child.firstName} ${child.lastName}` === childName
+          }
+          // Fall back to legacy name field
+          return child.name === childName
+        })
       }
 
       if (!selectedChild) {
@@ -525,7 +532,27 @@ app.post('/api/bookings', auth.authenticateToken, async (req, res) => {
         return res.status(403).json({ error: 'Child is not enrolled in this class' })
       }
 
-      finalChildName = selectedChild.name
+      // Check if this child already has a booking for any slot
+      const existingBookings = db.getBookings()
+      const childHasBooking = existingBookings.find(booking => 
+        booking.childId === selectedChild.id && !booking.cancelled
+      )
+      
+      if (childHasBooking) {
+        return res.status(409).json({ 
+          error: 'This child already has an active booking. Only one appointment per child is allowed.',
+          existingBooking: {
+            id: childHasBooking.id,
+            childName: childHasBooking.childName,
+            bookedAt: childHasBooking.bookedAt
+          }
+        })
+      }
+
+      // Generate proper display name from child data
+      finalChildName = selectedChild.firstName && selectedChild.lastName 
+        ? `${selectedChild.firstName} ${selectedChild.lastName}` 
+        : selectedChild.name
       finalChildId = selectedChild.id
     } else {
       // For class leads and admins, childName or childId is still required
@@ -546,7 +573,27 @@ app.post('/api/bookings', auth.authenticateToken, async (req, res) => {
           return res.status(403).json({ error: 'Access denied to this child\'s class' })
         }
 
-        finalChildName = child.name
+        // Check if this child already has a booking for any slot
+        const existingBookings = db.getBookings()
+        const childHasBooking = existingBookings.find(booking => 
+          booking.childId === child.id && !booking.cancelled
+        )
+        
+        if (childHasBooking) {
+          return res.status(409).json({ 
+            error: 'This child already has an active booking. Only one appointment per child is allowed.',
+            existingBooking: {
+              id: childHasBooking.id,
+              childName: childHasBooking.childName,
+              bookedAt: childHasBooking.bookedAt
+            }
+          })
+        }
+
+        // Generate proper display name from child data
+        finalChildName = child.firstName && child.lastName 
+          ? `${child.firstName} ${child.lastName}` 
+          : child.name
         finalChildId = child.id
       }
     }
@@ -601,7 +648,14 @@ app.put('/api/bookings/:id', auth.authenticateToken, async (req, res) => {
       if (childId) {
         selectedChild = parentChildren.find(child => child.id === childId)
       } else if (childName) {
-        selectedChild = parentChildren.find(child => child.name === childName)
+        selectedChild = parentChildren.find(child => {
+          // Try to match using full name (firstName + lastName) first
+          if (child.firstName && child.lastName) {
+            return `${child.firstName} ${child.lastName}` === childName
+          }
+          // Fall back to legacy name field
+          return child.name === childName
+        })
       } else if (booking.childId) {
         selectedChild = parentChildren.find(child => child.id === booking.childId)
       }
@@ -615,7 +669,10 @@ app.put('/api/bookings/:id', auth.authenticateToken, async (req, res) => {
         return res.status(403).json({ error: 'Child is not enrolled in the new slot\'s class' })
       }
 
-      finalChildName = selectedChild.name
+      // Generate proper display name from child data
+      finalChildName = selectedChild.firstName && selectedChild.lastName 
+        ? `${selectedChild.firstName} ${selectedChild.lastName}` 
+        : selectedChild.name
       finalChildId = selectedChild.id
     } else {
       // For class leads and admins, validate childId if provided
@@ -631,7 +688,10 @@ app.put('/api/bookings/:id', auth.authenticateToken, async (req, res) => {
           return res.status(403).json({ error: 'Access denied to this child\'s class' })
         }
 
-        finalChildName = child.name
+        // Generate proper display name from child data
+        finalChildName = child.firstName && child.lastName 
+          ? `${child.firstName} ${child.lastName}` 
+          : child.name
         finalChildId = child.id
       }
     }
@@ -722,6 +782,19 @@ app.get('/api/bookings/:id/ics', async (req, res) => {
   
   // Format date/time for description
   const formattedDateTime = formatDateTime(startDate, locale)
+  
+  // Get full child name if childId is available
+  let childDisplayName = booking.childName;
+  if (booking.childId) {
+    const children = auth.getChildren();
+    const child = children.find(c => c.id === booking.childId);
+    if (child && child.firstName && child.lastName) {
+      childDisplayName = `${child.firstName} ${child.lastName}`;
+    } else if (child && child.name) {
+      childDisplayName = child.name;
+    }
+  }
+  
   // Construct base URL with https:// for production, http:// for local
 const baseUrl = process.env.NODE_ENV === 'production' 
   ? `https://${process.env.BASE_URL}` 
@@ -730,9 +803,9 @@ const baseUrl = process.env.NODE_ENV === 'production'
   const event = {
     start,
     end,
-    title: `RDV — ${booking.childName}`,
+    title: `RDV — ${childDisplayName}`,
     description: [
-      `Appointment for ${booking.childName}`,
+      `Appointment for ${childDisplayName}`,
       `When: ${formattedDateTime}`,
       `Duration: ${duration} minutes`,
       `\nManage your appointment:`,
@@ -793,4 +866,7 @@ app.listen(port, () => {
   console.log('API server listening on', port)
   console.log('Environment:', process.env.NODE_ENV || 'development')
   console.log('Data directory:', path.join(__dirname, '..', 'data'))
+  
+  // Initialize notification cleanup scheduler
+  auth.scheduleNotificationCleanup()
 })

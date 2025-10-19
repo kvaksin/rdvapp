@@ -11,6 +11,55 @@ A **secure, comprehensive class-based appointment booking application** with adv
 
 ## 🚨 **Recent Enhancements**
 
+### ✅ **Enhanced Child Selection & Booking Policy (v2.5.0)**
+**New Features**: Advanced child selection system with modal interface, comprehensive booking restrictions, and enhanced user identification for streamlined registration and professional presentation.
+
+**Child Selection Enhancements**:
+- ✅ **Smart Child Selection Modal**: Interactive popup with existing children display and creation options
+- ✅ **Existing Child Integration**: Shows all available children per class with selection checkboxes
+- ✅ **Create New Children**: Inline child creation with instant feedback
+- ✅ **Mixed Selection Support**: Combine existing child selection with new child creation
+- ✅ **Visual Selection Preview**: Clear display of selected children with existing/new indicators
+- ✅ **Multi-Language Support**: Full translation support for all child selection interfaces
+
+**Booking Policy Enhancements**:
+- ✅ **One Booking Per Child**: Each child can only have one active appointment at a time
+- ✅ **Multi-Parent Protection**: Prevents multiple parents of the same child from creating duplicate bookings
+- ✅ **Clear Error Messages**: Informative feedback when booking restrictions apply
+- ✅ **Existing Booking Details**: Shows information about current booking when restriction is triggered
+
+**Registration Enhancements**:
+- ✅ **Required Name Fields**: First Name and Last Name are now mandatory during registration
+- ✅ **Enhanced User Display**: User approval interface shows "FirstName LastName" with email below
+- ✅ **Professional Notifications**: System notifications include full names for better identification
+- ✅ **Avatar Improvements**: User avatars use first letter of first name instead of email
+- ✅ **Backward Compatibility**: Gracefully handles existing users without name data
+
+**Benefits**:
+- **Booking Integrity**: Prevents scheduling conflicts and duplicate appointments per child
+- **Fair Access**: Ensures equal opportunity for all families to book appointments
+- **Professional Presentation**: Clear identification with proper names instead of email-only
+- **Improved User Experience**: More intuitive user recognition in admin interfaces
+- **Enhanced Notifications**: Administrators receive notifications with meaningful user identification
+- **Better Organization**: Approval workflows display users in a more professional manner
+
+### ✅ **Automatic Notification Cleanup (v2.3.0)**
+**New Feature**: Intelligent notification management system with automatic cleanup to maintain optimal performance and storage efficiency.
+
+**Cleanup Features**:
+- ✅ **30-Day Retention Policy**: Notifications older than 30 days are automatically removed
+- ✅ **Daily Automated Cleanup**: Scheduled cleanup runs every day at 2:00 AM
+- ✅ **Startup Maintenance**: Cleanup executes immediately when server starts
+- ✅ **Manual Admin Control**: Administrators can trigger on-demand cleanup via API
+- ✅ **Performance Optimization**: Prevents notification table growth, maintains query speed
+- ✅ **Audit Logging**: All cleanup activities logged with statistics (removed/remaining counts)
+
+**Benefits**:
+- **Database Performance**: Maintains optimal notification table size for faster queries
+- **Storage Management**: Prevents indefinite data accumulation
+- **Zero Maintenance**: Fully automated with no administrator intervention required
+- **Admin Oversight**: Manual cleanup option available when needed
+
 ### ✅ **Smart Notification Navigation (v2.2.0)**
 **New Feature**: Enhanced notification system with intelligent click-to-action navigation for improved workflow efficiency.
 
@@ -133,6 +182,13 @@ A **secure, comprehensive class-based appointment booking application** with adv
   - Mark as read functionality with automatic status updates
   - Notification history and audit trail
   - Real-time updates without page refresh
+- **🧹 Automatic Cleanup System**: 
+  - **30-Day Retention**: Notifications older than 30 days are automatically removed
+  - **Daily Cleanup Schedule**: Automatic cleanup runs daily at 2:00 AM
+  - **Startup Cleanup**: Cleanup runs immediately when server starts
+  - **Manual Cleanup**: Administrators can trigger cleanup via API endpoint
+  - **Performance Optimization**: Prevents notification table from growing indefinitely
+  - **Storage Management**: Maintains optimal database size and query performance
 - **Workflow Optimization**: Streamlined user experience from notification alert to task completion
 
 #### **👥 Advanced User Management System**
@@ -263,28 +319,45 @@ A **secure, comprehensive class-based appointment booking application** with adv
 
 #### **Step 1: User Registration Process**
 1. **Registration Form Completion**:
+   - **First Name & Last Name**: Required personal identification fields
    - Valid email address (serves as unique identifier)
    - Secure password (minimum requirements enforced)
    - Phone number (optional contact information)
    - Role selection (Parent, Class Lead, or Administrator)
 
-2. **Class Assignment Selection**:
+2. **Enhanced Child Selection (Parents)**:
    - Choose from available classes in dropdown
-   - Provide child's name (required for parent role)
-   - System validates class availability and capacity
+   - **Smart Child Selection Modal**: Interactive popup for child management per class
+   - **Existing Children Display**: Shows all available children in selected class with checkboxes
+   - **Create New Children**: Inline creation with instant preview
+   - **Mixed Selection**: Combine existing child selection with new child creation
+   - **Visual Indicators**: Clear display showing existing vs. new children
+   - System validates class availability and child enrollment requirements
 
-3. **Account Creation**:
+3. **Child Selection Modal Workflow (Parents)**:
+   - Click "Select Children" button for each chosen class
+   - **Modal Features**:
+     - View all existing children in the class with creation dates
+     - Select multiple existing children via checkboxes
+     - Create new children with inline name input
+     - Preview selected children with existing/new indicators
+     - Confirm selections to update registration form
+   - **Benefits**: Prevents duplicate child creation and enables family account linking
+
+4. **Account Creation**:
    - User account created with `status: 'pending'`
    - Cannot access system features until approved
    - Automatic notification sent to eligible approvers
+   - Children linked to parent accounts (existing children) or created (new children)
 
-#### **Step 2: Pending Review State**
+#### **Step 5: Pending Review State**
 - **Account Status**: `pending` - login disabled until approval
-- **Approver Notifications**: Admins and eligible class leads receive notifications
-- **Review Queue**: Applications appear in "User Approval" admin section
+- **Approver Notifications**: Admins and eligible class leads receive notifications with full name display
+- **Review Queue**: Applications appear in "User Approval" admin section with enhanced name presentation
+- **User Display**: Shows "FirstName LastName" with email below for clear identification
 - **No Auto-Approval**: All registrations require manual review and approval
 
-#### **Step 3: Approval Authority & Rules**
+#### **Step 6: Approval Authority & Rules**
 
 **Critical Approval Restrictions:**
 - 🚫 **Class leads CANNOT approve other class leads** (security measure)
@@ -300,9 +373,9 @@ A **secure, comprehensive class-based appointment booking application** with adv
 | **Class Lead** | ✅ Yes | ❌ **NO** | **Only administrators can approve class leads** |
 | **Administrator** | ✅ Yes | ❌ **NO** | **Only administrators can approve other admins** |
 
-#### **Step 4: Approval/Rejection Process**
+#### **Step 7: Approval/Rejection Process**
 **Approval Actions:**
-1. Approver reviews application details (email, role, class assignments)
+1. Approver reviews application details (full name, email, role, class assignments)
 2. System validates approver has sufficient permissions
 3. Click "Approve" - user status changes to `approved`
 4. User receives approval notification and can immediately log in
@@ -640,7 +713,7 @@ rdvapp/
 │   ├── classes.json              # Class definitions and properties
 │   ├── slots.json                # Time slot availability
 │   ├── bookings.json             # Appointment bookings
-│   ├── notifications.json        # User notifications
+│   ├── notifications.json        # User notifications (auto-cleaned after 30 days)
 │   ├── classAssignmentRequests.json # Class assignment change requests
 │   └── config.json               # System configuration
 ├── scripts/                       # Utility scripts
@@ -926,6 +999,30 @@ Response:
   "message": "Notification marked as read"
 }
 ```
+
+#### Cleanup Old Notifications (Admin Only)
+```http
+POST /auth/notifications/cleanup
+Authorization: Bearer jwt-token-here
+
+Response:
+{
+  "message": "Notification cleanup completed",
+  "result": {
+    "initialCount": 45,
+    "remainingCount": 23,
+    "removedCount": 22
+  }
+}
+```
+
+**Cleanup Features:**
+- **Automatic Daily Cleanup**: Runs every day at 2:00 AM
+- **Startup Cleanup**: Executes when server starts
+- **30-Day Retention**: Removes notifications older than 30 days
+- **Admin Manual Control**: Administrators can trigger cleanup on-demand
+- **Performance Benefits**: Maintains optimal database size and query speed
+- **Audit Logging**: All cleanup operations are logged for monitoring
 
 **Notification Types:**
 - `user_approval_request` - New user registration requiring approval
@@ -1377,7 +1474,7 @@ data/
 ├── classes.json            # Class definitions
 ├── slots.json              # Time slot data
 ├── bookings.json           # Appointment bookings
-├── notifications.json      # User notifications
+├── notifications.json      # User notifications (auto-cleaned after 30 days)
 ├── classAssignmentRequests.json # Assignment requests
 └── config.json             # System configuration
 ```
@@ -1641,13 +1738,22 @@ interface Child {
 ### 📅 Advanced Appointment Management
 - **Flexible Time Slot Creation**: Create multiple time slots in batch using date/time ranges
 - **Configurable Duration**: Set appointment durations (10, 15, 20, or 30 minutes)
-- **Smart Booking System**: Prevents double-booking with real-time availability checks
+- **Smart Booking System**: Prevents double-booking with real-time availability checks and one-booking-per-child policy
 - **Child Name Tracking**: Each booking records the child's name for easy identification
 - **Booking Status Display**: Visual indicators for available/booked slots with child names
 - **ICS Calendar Export**: Download `.ics` files for booked appointments (Google/Apple/Outlook compatible)
 - **Delete Bookings**: Users can delete/cancel their appointments with confirmation dialog
 - **Automatic Slot Release**: Deleted bookings immediately make slots available again
 - **Duplicate Prevention**: Automatic detection and prevention of overlapping slots per class
+
+### 🚫 **Booking Policies & Restrictions**
+- **One Booking Per Child**: Each child can only maintain one active appointment at a time
+- **Multi-Parent Protection**: When multiple parents are registered for the same child, only one can book
+- **Automatic Conflict Detection**: System checks for existing bookings before allowing new ones
+- **Clear Error Messaging**: Users receive detailed information when booking restrictions apply
+- **Existing Booking Information**: Shows details of current booking when restrictions are triggered
+- **Fair Access Policy**: Ensures equal opportunity for all families to secure appointments
+- **Cancellation Required**: To book a new appointment, existing booking must be cancelled first
 
 ### 🌐 Complete Internationalization (i18n)
 - **Multi-Language Support**: Full UI translation in French (default), English, and Dutch
@@ -1882,7 +1988,7 @@ rdvapp/
 │   ├── users.json                # User accounts
 │   ├── userRoles.json            # User role assignments
 │   ├── userClasses.json          # User class assignments
-│   ├── notifications.json        # User notifications
+│   ├── notifications.json        # User notifications (auto-cleaned after 30 days)
 │   └── classAssignmentRequests.json # Class assignment change requests
 ├── prisma/                        # Database schema (reference)
 │   └── schema.prisma             # Prisma schema definition
@@ -1930,6 +2036,11 @@ rdvapp/
 - `GET /auth/class-assignment-requests` - List all class assignment requests (admin only)
 - `POST /auth/approve-class-assignment/:requestId` - Approve class assignment request (admin only)
 - `POST /auth/reject-class-assignment/:requestId` - Reject class assignment request (admin only, body: `{ reason? }`)
+
+### Notifications
+- `GET /auth/notifications` - Get user notifications with smart navigation metadata
+- `POST /auth/notifications/:notificationId/read` - Mark notification as read
+- `POST /auth/notifications/cleanup` - Cleanup old notifications (admin only, 30+ days retention)
 
 ### Admin
 - `POST /api/reset` - Reset entire database (body: `{ confirm: true }`)

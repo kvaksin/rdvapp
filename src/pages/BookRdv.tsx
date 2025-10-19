@@ -6,8 +6,10 @@ import type { Slot } from '../types/api'
 
 interface Child {
   id: string
-  name: string
-  parentId: string
+  name?: string // Legacy field
+  firstName?: string
+  lastName?: string
+  parentId?: string
   classId: string
   createdAt: string
 }
@@ -25,6 +27,14 @@ export default function BookRdv() {
       loadUserChildren()
     }
   }, [user])
+
+  // Helper function to get display name for a child
+  const getChildDisplayName = (child: Child): string => {
+    if (child.firstName && child.lastName) {
+      return `${child.firstName} ${child.lastName}`
+    }
+    return child.name || 'No name'
+  }
 
   async function load() {
     const s = await fetchSlots(undefined, undefined)
@@ -67,7 +77,7 @@ export default function BookRdv() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           slotId, 
-          childName: selectedChild.name,
+          childName: getChildDisplayName(selectedChild),
           childId: selectedChild.id
         })
       })
@@ -120,7 +130,7 @@ export default function BookRdv() {
                         : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
                     }`}
                   >
-                    {child.name}
+                    {getChildDisplayName(child)}
                   </button>
                 ))}
               </div>
@@ -130,7 +140,7 @@ export default function BookRdv() {
           {/* Selected child display */}
           {selectedChild && (
             <div className="text-sm text-gray-300">
-              Selected: <span className="font-medium text-white">{selectedChild.name}</span>
+              Selected: <span className="font-medium text-white">{getChildDisplayName(selectedChild)}</span>
             </div>
           )}
           

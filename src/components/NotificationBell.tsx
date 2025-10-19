@@ -142,15 +142,15 @@ const NotificationBell = () => {
     switch (type) {
       case 'user_approval_request':
       case 'class_assignment_request':
-        return 'text-blue-600'
+        return 'text-blue-400'
       case 'user_approved':
       case 'class_assignment_approved':
-        return 'text-green-600'
+        return 'text-green-400'
       case 'user_rejected':
       case 'class_assignment_rejected':
-        return 'text-red-600'
+        return 'text-red-400'
       default:
-        return 'text-gray-600'
+        return 'text-gray-300'
     }
   }
 
@@ -187,13 +187,13 @@ const NotificationBell = () => {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-          <div className="p-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">
+        <div className="absolute right-0 mt-2 w-80 bg-gray-800 rounded-lg shadow-lg border border-gray-700 z-50">
+          <div className="p-4 border-b border-gray-700">
+            <h3 className="text-lg font-semibold text-white">
               <FormattedMessage id="notifications.title" defaultMessage="Notifications" />
             </h3>
             {unreadCount > 0 && (
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-400 mt-1">
                 <FormattedMessage 
                   id="notifications.unread.count" 
                   defaultMessage="{count} unread"
@@ -205,22 +205,22 @@ const NotificationBell = () => {
 
           <div className="max-h-96 overflow-y-auto">
             {loading ? (
-              <div className="p-4 text-center text-gray-500">
+              <div className="p-4 text-center text-gray-400">
                 <FormattedMessage id="notifications.loading" defaultMessage="Loading..." />
               </div>
             ) : notifications.length === 0 ? (
-              <div className="p-4 text-center text-gray-500">
+              <div className="p-4 text-center text-gray-400">
                 <FormattedMessage id="notifications.empty" defaultMessage="No notifications" />
               </div>
             ) : (
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 border-b border-gray-100 transition-colors ${
-                    !notification.isRead ? 'bg-blue-50' : ''
+                  className={`p-4 border-b border-gray-700 transition-colors ${
+                    !notification.isRead ? 'bg-purple-900/20' : ''
                   } ${isActionableNotification(notification.type) 
-                      ? 'hover:bg-gray-50 cursor-pointer' 
-                      : 'hover:bg-gray-25 cursor-default'
+                      ? 'hover:bg-gray-700 cursor-pointer' 
+                      : 'hover:bg-gray-750 cursor-default'
                     }`}
                   onClick={() => handleNotificationClick(notification)}
                   title={isActionableNotification(notification.type) 
@@ -236,7 +236,7 @@ const NotificationBell = () => {
                       <p className={`text-sm font-medium ${getNotificationColor(notification.type)}`}>
                         {notification.message}
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-gray-400 mt-1">
                         <FormattedDate 
                           value={new Date(notification.createdAt)}
                           year="numeric"
@@ -247,7 +247,7 @@ const NotificationBell = () => {
                         />
                       </p>
                       {notification.userRole && (
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-gray-500 mt-1">
                           <FormattedMessage 
                             id="notifications.role" 
                             defaultMessage="Role: {role}"
@@ -256,12 +256,12 @@ const NotificationBell = () => {
                         </p>
                       )}
                       {isActionableNotification(notification.type) && (
-                        <p className="text-xs text-blue-500 mt-1 font-medium">
+                        <p className="text-xs text-blue-400 mt-1 font-medium">
                           Click to view pending task →
                         </p>
                       )}
                       {!notification.isRead && (
-                        <div className="w-2 h-2 bg-blue-500 rounded-full absolute right-2 top-4"></div>
+                        <div className="w-2 h-2 bg-purple-500 rounded-full absolute right-2 top-4"></div>
                       )}
                     </div>
                   </div>

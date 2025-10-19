@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FormattedMessage, useIntl } from 'react-intl';
 import DatePicker from 'react-datepicker';
 import { fetchSlots, fetchClasses, bookSlot, fetchBookings, cancelBooking } from '../api/client';
+import { useAuth, authenticatedFetch } from '../contexts/AuthContext';
 import type { Slot, Class } from '../types/api';
 
 interface ClassScheduleProps {
@@ -13,8 +14,19 @@ interface BookingModalProps {
   slot: Slot | null;
   open: boolean;
   onClose: () => void;
-  onBook: (slotId: string, childName: string) => Promise<void>;
+  onBook: (slotId: string, childId: string) => Promise<void>;
   loading: boolean;
+  classId: string;
+}
+
+interface Child {
+  id: string;
+  name?: string; // Legacy field
+  firstName?: string;
+  lastName?: string;
+  parentId?: string;
+  classId: string;
+  createdAt: string;
 }
 
 export default function ClassSchedule({ classId }: ClassScheduleProps) {
@@ -31,52 +43,167 @@ export default function ClassSchedule({ classId }: ClassScheduleProps) {
   const [bookingsBySlot, setBookingsBySlot] = useState<Record<string, { childName: string; bookingId: string }>>({});
   const [deletingBookingId, setDeletingBookingId] = useState<string | null>(null);
 
+  // Helper function to get display name for a child
+  const getChildDisplayName = (child: Child): string => {
+    if (child.firstName && child.lastName) {
+      return `${child.firstName} ${child.lastName}`;
+    }
+    return child.name || 'No name';
+  };
+
   // BookingModal component
-  function BookingModal({ slot, open, onClose, onBook, loading }: BookingModalProps) {
-    const [childName, setChildName] = useState('');
+  function BookingModal({ slot, open, onClose, onBook, loading, classId }: BookingModalProps) {
+    const { user } = useAuth();
+    const [selectedChild, setSelectedChild] = useState<Child | null>(null);
+    const [availableChildren, setAvailableChildren] = useState<Child[]>([]);
+    const [loadingChildren, setLoadingChildren] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    
     useEffect(() => {
-      setChildName('');
+      setSelectedChild(null);
       setError(null);
-    }, [slot, open]);
+      if (open && user && classId) {
+        loadAvailableChildren();
+      }
+    }, [slot, open, user, classId]);
+
+    const loadAvailableChildren = async () => {
+      if (!user) return;
+      
+      try {
+        setLoadingChildren(true);
+        const response = await authenticatedFetch('/api/children');
+        
+        if (response.ok) {
+          const allChildren = await response.json();
+          // Filter children who are enrolled in this specific class
+          const childrenInClass = allChildren.filter((child: Child) => child.classId === classId);
+          setAvailableChildren(childrenInClass);
+          
+          // Auto-select first child if available
+          if (childrenInClass.length > 0) {
+            setSelectedChild(childrenInClass[0]);
+          }
+        } else {
+          throw new Error('Failed to fetch children');
+        }
+      } catch (err) {
+        console.error('Error loading children:', err);
+        setError(intl.formatMessage({ 
+          id: 'schedule.failedLoadChildren', 
+          defaultMessage: 'Failed to load your children' 
+        }));
+      } finally {
+        setLoadingChildren(false);
+      }
+    };
+    
     if (!open || !slot) return null;
+    
     const handleBook = async () => {
-      if (!childName.trim()) {
-        setError(intl.formatMessage({ id: 'schedule.childNameRequired' }));
+      if (!selectedChild) {
+        setError(intl.formatMessage({ 
+          id: 'schedule.childRequired', 
+          defaultMessage: 'Please select a child' 
+        }));
         return;
       }
+      
       try {
-        await onBook(slot.id, childName.trim());
+        await onBook(slot.id, selectedChild.id);
       } catch (e: any) {
         const msg = typeof e?.message === 'string' ? e.message : intl.formatMessage({ id: 'schedule.failedBookSlot' });
         setError(msg);
       }
     };
+    
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
         <div className="bg-gray-900 rounded-lg shadow-lg p-6 w-full max-w-md">
-          <h2 className="text-xl font-bold mb-4 text-purple-200">{intl.formatMessage({ id: 'schedule.bookAppointment' })}</h2>
-          <div className="mb-2 text-gray-300">
-            <span className="font-semibold">{intl.formatMessage({ id: 'schedule.time' })}</span> {new Date(slot.start).toLocaleString()}<br/>
-            <span className="font-semibold">{intl.formatMessage({ id: 'schedule.duration' })}</span> {Math.round((new Date(slot.end).getTime() - new Date(slot.start).getTime())/60000)} {intl.formatMessage({ id: 'schedule.min' })}
+          <h2 className="text-xl font-bold mb-4 text-purple-200">
+            {intl.formatMessage({ id: 'schedule.bookAppointment', defaultMessage: 'Book Appointment' })}
+          </h2>
+          
+          <div className="mb-4 text-gray-300">
+            <div className="mb-1">
+              <span className="font-semibold">{intl.formatMessage({ id: 'schedule.time', defaultMessage: 'Time' })}</span> {new Date(slot.start).toLocaleString()}
+            </div>
+            <div>
+              <span className="font-semibold">{intl.formatMessage({ id: 'schedule.duration', defaultMessage: 'Duration' })}</span> {Math.round((new Date(slot.end).getTime() - new Date(slot.start).getTime())/60000)} {intl.formatMessage({ id: 'schedule.min', defaultMessage: 'min' })}
+            </div>
           </div>
-          <label className="block text-sm font-medium text-gray-400 mb-1 mt-4">{intl.formatMessage({ id: 'schedule.childName' })}</label>
-          <input
-            type="text"
-            value={childName}
-            onChange={e => setChildName(e.target.value)}
-            className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700 mb-2"
-            placeholder={intl.formatMessage({ id: 'schedule.enterChildName' })}
-            disabled={loading}
-          />
-          {error && <div className="text-red-400 text-xs mb-2">{error}</div>}
+          
+          <label className="block text-sm font-medium text-gray-400 mb-2">
+            {intl.formatMessage({ id: 'schedule.childName', defaultMessage: 'Child Name' })}
+          </label>
+          
+          {loadingChildren ? (
+            <div className="text-center py-4 text-gray-400">
+              {intl.formatMessage({ id: 'schedule.loadingChildren', defaultMessage: 'Loading your children...' })}
+            </div>
+          ) : availableChildren.length === 0 ? (
+            <div className="text-yellow-400 text-sm mb-4 p-3 bg-yellow-900/20 rounded border border-yellow-600/30">
+              {intl.formatMessage({ 
+                id: 'schedule.noChildrenInClass', 
+                defaultMessage: 'No children found enrolled in this class. Please contact your administrator.' 
+              })}
+            </div>
+          ) : (
+            <div className="mb-4">
+              <div className="grid gap-2">
+                {availableChildren.map((child) => (
+                  <button
+                    key={child.id}
+                    type="button"
+                    onClick={() => setSelectedChild(child)}
+                    className={`p-3 text-left rounded border transition-colors ${
+                      selectedChild?.id === child.id
+                        ? 'bg-purple-600 border-purple-500 text-white'
+                        : 'bg-gray-800 border-gray-600 text-gray-300 hover:bg-gray-700'
+                    }`}
+                    disabled={loading}
+                  >
+                    <div className="font-medium">{getChildDisplayName(child)}</div>
+                    <div className="text-xs opacity-75">
+                      {intl.formatMessage({ 
+                        id: 'schedule.enrolledInClass', 
+                        defaultMessage: 'Enrolled in this class' 
+                      })}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {error && (
+            <div className="text-red-400 text-sm mb-4 p-2 bg-red-900/20 rounded border border-red-600/30">
+              {error}
+            </div>
+          )}
+          
           <div className="flex justify-end gap-2 mt-4">
-            <button onClick={onClose} className="px-4 py-2 rounded bg-gray-700 text-gray-200 hover:bg-gray-600">{intl.formatMessage({ id: 'schedule.cancel' })}</button>
+            <button 
+              onClick={onClose} 
+              className="px-4 py-2 rounded bg-gray-700 text-gray-200 hover:bg-gray-600"
+              disabled={loading}
+            >
+              {intl.formatMessage({ id: 'schedule.cancel', defaultMessage: 'Cancel' })}
+            </button>
             <button
               onClick={handleBook}
-              className={`px-4 py-2 rounded bg-green-600 text-white font-semibold ${loading ? 'opacity-60' : 'hover:bg-green-700'}`}
-              disabled={loading}
-            >{loading ? intl.formatMessage({ id: 'schedule.booking' }) : intl.formatMessage({ id: 'schedule.book' })}</button>
+              className={`px-4 py-2 rounded bg-green-600 text-white font-semibold ${
+                loading || !selectedChild || availableChildren.length === 0
+                  ? 'opacity-60 cursor-not-allowed' 
+                  : 'hover:bg-green-700'
+              }`}
+              disabled={loading || !selectedChild || availableChildren.length === 0}
+            >
+              {loading 
+                ? intl.formatMessage({ id: 'schedule.booking', defaultMessage: 'Booking...' })
+                : intl.formatMessage({ id: 'schedule.book', defaultMessage: 'Book' })
+              }
+            </button>
           </div>
         </div>
       </div>
@@ -117,9 +244,31 @@ export default function ClassSchedule({ classId }: ClassScheduleProps) {
         fetchBookings()
       ]);
       setSlots((allSlots as Slot[]).filter((s: Slot) => s.classId === classId && !s.removed));
+      
+      // Fetch children data to get full names for bookings
+      let childrenData: Child[] = [];
+      try {
+        const childrenResponse = await authenticatedFetch('/api/children');
+        if (childrenResponse.ok) {
+          childrenData = await childrenResponse.json();
+        }
+      } catch (err) {
+        console.log('Could not fetch children data for full names');
+      }
+      
       const map: Record<string, { childName: string; bookingId: string }> = {};
       (allBookings as any[]).forEach((b: any) => {
-        if (!b.cancelled) map[b.slotId] = { childName: b.childName, bookingId: b.id };
+        if (!b.cancelled) {
+          // Try to find the child to get full name, fall back to stored childName
+          let displayName = b.childName;
+          if (b.childId) {
+            const child = childrenData.find(c => c.id === b.childId);
+            if (child) {
+              displayName = getChildDisplayName(child);
+            }
+          }
+          map[b.slotId] = { childName: displayName, bookingId: b.id };
+        }
       });
       setBookingsBySlot(map);
     } catch (err) {
@@ -244,11 +393,12 @@ export default function ClassSchedule({ classId }: ClassScheduleProps) {
       <BookingModal
         slot={bookingSlot}
         open={!!bookingSlot}
+        classId={classId}
         onClose={() => setBookingSlot(null)}
-        onBook={async (slotId: string, name: string) => {
+        onBook={async (slotId: string, childId: string) => {
           setBookingLoading(true);
           try {
-            await bookSlot(slotId, name);
+            await bookSlot(slotId, childId);
             setBookingSlot(null);
             await loadData();
           } catch (err: any) {

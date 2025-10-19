@@ -70,14 +70,14 @@ export async function fetchBookings() {
   }
 }
 
-export async function bookSlot(slotId: any, childName: any) {
+export async function bookSlot(slotId: any, childId: any) {
   try {
     const baseUrl = window.location.origin + (API_BASE || '')
     const url = new URL('/api/bookings', baseUrl)
     const res = await authenticatedFetch(url.toString(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slotId, childName })
+      body: JSON.stringify({ slotId, childId })
     })
     if (!res.ok) {
       const text = await res.text()

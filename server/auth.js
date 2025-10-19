@@ -59,6 +59,8 @@ export const createUser = async (userData) => {
   // Create user
   const newUser = {
     id: generateId(),
+    firstName: userData.firstName || null,
+    lastName: userData.lastName || null,
     email: userData.email,
     password: hashedPassword,
     phone: userData.phone || null,
@@ -120,15 +122,17 @@ export const createUser = async (userData) => {
 
   // Create notifications for admins
   adminUsers.forEach(admin => {
+    const fullName = `${newUser.firstName || ''} ${newUser.lastName || ''}`.trim() || 'Unknown Name'
     notifications.push({
       id: generateId(),
       type: 'user_approval_request',
       recipientId: admin.id,
       senderId: newUser.id,
       senderEmail: newUser.email,
+      senderName: fullName,
       userRole: userRoles.join(', '),
       classAssignments: userData.classAssignments || [],
-      message: `New ${userRoles.join(', ')} registration: ${newUser.email}`,
+      message: `New ${userRoles.join(', ')} registration: ${fullName} (${newUser.email})`,
       isRead: false,
       createdAt: new Date().toISOString(),
       status: 'pending'
@@ -499,6 +503,56 @@ export const getPendingUsers = () => {
     .map(u => ({ ...u, password: undefined }))
 }
 
+// Cleanup old notifications (30+ days)
+export const cleanupOldNotifications = () => {
+  const notifications = getNotifications()
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // 30 days in milliseconds
+  
+  const initialCount = notifications.length
+  const recentNotifications = notifications.filter(notification => {
+    const createdAt = new Date(notification.createdAt)
+    return createdAt > thirtyDaysAgo
+  })
+  
+  const removedCount = initialCount - recentNotifications.length
+  
+  if (removedCount > 0) {
+    saveNotifications(recentNotifications)
+    console.log(`🧹 Cleaned up ${removedCount} old notifications (older than 30 days)`)
+  }
+  
+  return {
+    initialCount,
+    remainingCount: recentNotifications.length,
+    removedCount
+  }
+}
+
+// Auto-cleanup notifications on startup and periodically
+export const scheduleNotificationCleanup = () => {
+  // Run cleanup on startup
+  cleanupOldNotifications()
+  
+  // Schedule daily cleanup at 2 AM
+  const scheduleNextCleanup = () => {
+    const now = new Date()
+    const tomorrow = new Date(now)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    tomorrow.setHours(2, 0, 0, 0) // 2 AM
+    
+    const timeUntilNextCleanup = tomorrow.getTime() - now.getTime()
+    
+    setTimeout(() => {
+      cleanupOldNotifications()
+      scheduleNextCleanup() // Schedule the next one
+    }, timeUntilNextCleanup)
+    
+    console.log(`📅 Next notification cleanup scheduled for: ${tomorrow.toLocaleString()}`)
+  }
+  
+  scheduleNextCleanup()
+}
+
 // Class assignment request management
 const classAssignmentRequestsFile = path.join(dataDir, 'classAssignmentRequests.json')
 
@@ -758,13 +812,49 @@ const saveChildren = (children) => {
   }
 }
 
+// Parent-Child relationship management
+const parentChildRelationshipsFile = path.join(dataDir, 'parentChildRelationships.json')
+
+const getParentChildRelationships = () => {
+  try {
+    if (!fs.existsSync(parentChildRelationshipsFile)) {
+      return []
+    }
+    const data = fs.readFileSync(parentChildRelationshipsFile, 'utf8')
+    return JSON.parse(data)
+  } catch (error) {
+    console.error('Error reading parent-child relationships:', error)
+    return []
+  }
+}
+
+const saveParentChildRelationships = (relationships) => {
+  try {
+    fs.writeFileSync(parentChildRelationshipsFile, JSON.stringify(relationships, null, 2))
+  } catch (error) {
+    console.error('Error saving parent-child relationships:', error)
+    throw error
+  }
+}
+
+// Alias for backward compatibility
+const saveChildrenData = saveChildren
+
 export const getChildren = () => {
   return getChildrenData()
 }
 
 export const getChildrenByParent = (parentId) => {
   const children = getChildrenData()
-  return children.filter(child => child.parentId === parentId)
+  const relationships = getParentChildRelationships()
+  
+  // Get child IDs for this parent
+  const childIds = relationships
+    .filter(rel => rel.parentId === parentId)
+    .map(rel => rel.childId)
+  
+  // Return children that this parent has access to
+  return children.filter(child => childIds.includes(child.id))
 }
 
 export const getChildrenByClass = (classId) => {
@@ -772,28 +862,137 @@ export const getChildrenByClass = (classId) => {
   return children.filter(child => child.classId === classId)
 }
 
-export const addChild = ({ parentId, name, classId }) => {
-  const children = getChildrenData()
+export const getParentsByChild = (childId) => {
+  const relationships = getParentChildRelationships()
+  const users = getUsers()
   
-  // Check if child with same name already exists for this parent
-  const existingChild = children.find(c => c.parentId === parentId && c.name.toLowerCase() === name.toLowerCase())
-  if (existingChild) {
-    throw new Error('Child with this name already exists')
+  // Get parent IDs for this child
+  const parentIds = relationships
+    .filter(rel => rel.childId === childId)
+    .map(rel => rel.parentId)
+  
+  // Return parent users
+  return users.filter(user => parentIds.includes(user.id))
+}
+
+export const addChild = ({ parentId, name, firstName, lastName, classId }) => {
+  const children = getChildrenData()
+  const relationships = getParentChildRelationships()
+  
+  // Handle legacy name parameter or firstName/lastName
+  let childFirstName = firstName
+  let childLastName = lastName
+  let fullName = name
+  
+  if (!firstName && !lastName && name) {
+    // Legacy: split name into firstName and lastName
+    const nameParts = name.trim().split(' ')
+    childFirstName = nameParts[0] || ''
+    childLastName = nameParts.slice(1).join(' ') || ''
+    fullName = name
+  } else if (firstName || lastName) {
+    fullName = `${firstName || ''} ${lastName || ''}`.trim()
   }
   
-  const newChild = {
+  if (!childFirstName && !childLastName) {
+    throw new Error('Child firstName and lastName are required')
+  }
+  
+  // Check if child with same name and class already exists
+  const existingChild = children.find(c => {
+    if (c.firstName && c.lastName) {
+      return c.firstName.toLowerCase() === childFirstName.toLowerCase() && 
+             c.lastName.toLowerCase() === childLastName.toLowerCase() && 
+             c.classId === classId
+    } else {
+      // Legacy check
+      return c.name && c.name.toLowerCase() === fullName.toLowerCase() && c.classId === classId
+    }
+  })
+  
+  let childId
+  
+  if (existingChild) {
+    // Child exists, just create relationship if it doesn't exist
+    childId = existingChild.id
+    const existingRelationship = relationships.find(rel => 
+      rel.parentId === parentId && rel.childId === childId
+    )
+    
+    if (existingRelationship) {
+      throw new Error('This child is already associated with this parent')
+    }
+  } else {
+    // Create new child
+    const newChild = {
+      id: generateId(),
+      name: fullName, // Keep for backward compatibility
+      firstName: childFirstName,
+      lastName: childLastName,
+      classId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    
+    children.push(newChild)
+    saveChildren(children)
+    childId = newChild.id
+  }
+  
+  // Create parent-child relationship
+  const newRelationship = {
     id: generateId(),
     parentId,
-    name,
-    classId,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    childId,
+    relationship: 'parent',
+    createdAt: new Date().toISOString()
   }
   
-  children.push(newChild)
-  saveChildren(children)
+  relationships.push(newRelationship)
+  saveParentChildRelationships(relationships)
   
-  return newChild
+  // Return the child with relationship info
+  return {
+    ...children.find(c => c.id === childId),
+    relationshipId: newRelationship.id
+  }
+}
+
+export const linkParentToChild = (parentId, childId) => {
+  const children = getChildrenData()
+  const relationships = getParentChildRelationships()
+  
+  // Check if child exists
+  const child = children.find(c => c.id === childId)
+  if (!child) {
+    throw new Error('Child not found')
+  }
+  
+  // Check if relationship already exists
+  const existingRelationship = relationships.find(rel => 
+    rel.parentId === parentId && rel.childId === childId
+  )
+  
+  if (existingRelationship) {
+    throw new Error('This child is already associated with this parent')
+  }
+  
+  // Create new relationship
+  const newRelationship = {
+    id: generateId('rel'),
+    parentId,
+    childId,
+    relationship: 'parent',
+    createdAt: new Date().toISOString()
+  }
+  
+  relationships.push(newRelationship)
+  saveParentChildRelationships(relationships)
+  
+  return {
+    ...child,
+    relationshipId: newRelationship.id
+  }
 }
 
 export const updateChild = (childId, updates) => {
@@ -804,9 +1003,12 @@ export const updateChild = (childId, updates) => {
     throw new Error('Child not found')
   }
   
+  // Don't allow updating the ID
+  const { id, ...allowedUpdates } = updates
+  
   children[childIndex] = {
     ...children[childIndex],
-    ...updates,
+    ...allowedUpdates,
     updatedAt: new Date().toISOString()
   }
   
@@ -816,13 +1018,39 @@ export const updateChild = (childId, updates) => {
 
 export const deleteChild = (childId) => {
   const children = getChildrenData()
-  const filteredChildren = children.filter(c => c.id !== childId)
+  const relationships = getParentChildRelationships()
   
-  if (filteredChildren.length === children.length) {
+  // Check if child exists
+  const childExists = children.some(c => c.id === childId)
+  if (!childExists) {
     throw new Error('Child not found')
   }
   
+  // Remove all parent-child relationships for this child
+  const filteredRelationships = relationships.filter(rel => rel.childId !== childId)
+  saveParentChildRelationships(filteredRelationships)
+  
+  // Remove the child
+  const filteredChildren = children.filter(c => c.id !== childId)
   saveChildren(filteredChildren)
+  
+  return true
+}
+
+// Add function to remove parent-child relationship (without deleting the child)
+export const removeParentChildRelationship = (parentId, childId) => {
+  const relationships = getParentChildRelationships()
+  const relationshipIndex = relationships.findIndex(rel => 
+    rel.parentId === parentId && rel.childId === childId
+  )
+  
+  if (relationshipIndex === -1) {
+    throw new Error('Parent-child relationship not found')
+  }
+  
+  relationships.splice(relationshipIndex, 1)
+  saveParentChildRelationships(relationships)
+  
   return true
 }
 
@@ -974,4 +1202,127 @@ const canManageUser = (currentUser, targetUserRoles) => {
   }
   
   return false
+}
+
+// Remove user from specific class (Class leads can remove users from their classes)
+export const removeUserFromClass = (userId, classId, currentUser) => {
+  // Check permissions
+  if (!currentUser.roles.includes('administrator') && !currentUser.roles.includes('class_lead')) {
+    throw new Error('Insufficient permissions')
+  }
+  
+  // If class lead, check if they manage this class
+  if (currentUser.roles.includes('class_lead') && !currentUser.roles.includes('administrator')) {
+    const userClassIds = currentUser.classAssignments?.map(ca => ca.classId) || []
+    if (!userClassIds.includes(classId)) {
+      throw new Error('You can only remove users from classes you manage')
+    }
+  }
+  
+  const userClasses = getUserClasses()
+  const assignments = userClasses.filter(uc => uc.userId === userId && uc.classId === classId)
+  
+  if (assignments.length === 0) {
+    throw new Error('User is not assigned to this class')
+  }
+  
+  // Remove all assignments for this user-class combination
+  const updatedUserClasses = userClasses.filter(uc => !(uc.userId === userId && uc.classId === classId))
+  saveUserClasses(updatedUserClasses)
+  
+  // Create notification for user
+  const notifications = getNotifications()
+  const newNotification = {
+    id: Date.now().toString() + Math.random().toString(36).substring(2, 15),
+    userId: userId,
+    type: 'class_removal',
+    title: 'Removed from Class',
+    message: `You have been removed from a class by ${currentUser.email}`,
+    isRead: false,
+    createdAt: new Date().toISOString()
+  }
+  
+  notifications.push(newNotification)
+  saveNotifications(notifications)
+  
+  return {
+    removedAssignments: assignments.length,
+    classId,
+    userId
+  }
+}
+
+// Delete user completely (Admins only)
+export const deleteUser = (userId, currentUser) => {
+  if (!currentUser.roles.includes('administrator')) {
+    throw new Error('Only administrators can delete users')
+  }
+  
+  const users = getUsers()
+  const userIndex = users.findIndex(u => u.id === userId)
+  
+  if (userIndex === -1) {
+    throw new Error('User not found')
+  }
+  
+  const { password, ...userInfo } = users[userIndex]
+  
+  // Remove user from users array
+  users.splice(userIndex, 1)
+  saveUsers(users)
+  
+  // Remove user roles
+  const userRoles = getUserRoles()
+  const updatedUserRoles = userRoles.filter(ur => ur.userId !== userId)
+  saveUserRoles(updatedUserRoles)
+  
+  // Remove user class assignments
+  const userClasses = getUserClasses()
+  const updatedUserClasses = userClasses.filter(uc => uc.userId !== userId)
+  saveUserClasses(updatedUserClasses)
+  
+  // Remove parent-child relationships for this user
+  const relationships = getParentChildRelationships()
+  const updatedRelationships = relationships.filter(rel => rel.parentId !== userId)
+  saveParentChildRelationships(updatedRelationships)
+  
+  // Note: We don't delete children themselves as they may be linked to other parents
+  
+  // Remove user notifications
+  const notifications = getNotifications()
+  const updatedNotifications = notifications.filter(n => n.userId !== userId)
+  saveNotifications(updatedNotifications)
+  
+  // Remove class assignment requests
+  const requests = getClassAssignmentRequestsData()
+  const updatedRequests = requests.filter(r => r.userId !== userId)
+  saveClassAssignmentRequests(updatedRequests)
+  
+  return userInfo
+}
+
+// Bulk delete users (Admins only)
+export const bulkDeleteUsers = (userIds, currentUser) => {
+  if (!currentUser.roles.includes('administrator')) {
+    throw new Error('Only administrators can delete users')
+  }
+  
+  const deletedUsers = []
+  const errors = []
+  
+  for (const userId of userIds) {
+    try {
+      const deletedUser = deleteUser(userId, currentUser)
+      deletedUsers.push(deletedUser)
+    } catch (error) {
+      errors.push({ userId, error: error.message })
+    }
+  }
+  
+  return {
+    deleted: deletedUsers.length,
+    errors,
+    total: userIds.length,
+    deletedUsers
+  }
 }

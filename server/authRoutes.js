@@ -46,11 +46,15 @@ passport.deserializeUser((id, done) => {
 // Register new user
 router.post('/register', authLimiter, async (req, res) => {
   try {
-    const { email, password, confirmPassword, phone, roles, classAssignments } = req.body
+    const { firstName, lastName, email, password, confirmPassword, phone, roles, classAssignments } = req.body
 
     // Validation
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' })
+    }
+
+    if (!firstName || !lastName) {
+      return res.status(400).json({ error: 'First name and last name are required' })
     }
 
     if (password !== confirmPassword) {
@@ -83,14 +87,17 @@ router.post('/register', authLimiter, async (req, res) => {
           return res.status(400).json({ error: `Invalid class ID: ${assignment.classId}` })
         }
         
-        // Parents must provide child name
-        if (roles && roles.includes('parent') && !assignment.childName) {
-          return res.status(400).json({ error: 'Child name is required for parent role' })
+        // Parents must provide either child ID, child name, or firstName/lastName
+        if (roles && roles.includes('parent') && !assignment.childId && !assignment.childName && 
+            !(assignment.childFirstName && assignment.childLastName)) {
+          return res.status(400).json({ error: 'Child ID, child name, or child firstName and lastName are required for parent role' })
         }
       }
     }
 
     const user = await auth.createUser({
+      firstName,
+      lastName,
       email,
       password,
       phone,
@@ -101,15 +108,35 @@ router.post('/register', authLimiter, async (req, res) => {
     // Create children for parent users based on class assignments
     if (roles && roles.includes('parent') && classAssignments && classAssignments.length > 0) {
       for (const assignment of classAssignments) {
-        if (assignment.childName) {
+        // Handle both existing child IDs and new child names
+        if (assignment.childId) {
+          // Link to existing child
           try {
-            auth.addChild({
-              parentId: user.id,
-              name: assignment.childName,
-              classId: assignment.classId
-            })
+            auth.linkParentToChild(user.id, assignment.childId)
           } catch (childError) {
-            console.warn(`Failed to create child ${assignment.childName}:`, childError.message)
+            console.warn(`Failed to link to existing child ${assignment.childId}:`, childError.message)
+          }
+        } else if (assignment.childName || (assignment.childFirstName && assignment.childLastName)) {
+          // Create new child
+          try {
+            if (assignment.childFirstName && assignment.childLastName) {
+              // New format with firstName and lastName
+              auth.addChild({
+                parentId: user.id,
+                firstName: assignment.childFirstName,
+                lastName: assignment.childLastName,
+                classId: assignment.classId
+              })
+            } else {
+              // Legacy format with just name
+              auth.addChild({
+                parentId: user.id,
+                name: assignment.childName,
+                classId: assignment.classId
+              })
+            }
+          } catch (childError) {
+            console.warn(`Failed to create child ${assignment.childName || `${assignment.childFirstName} ${assignment.childLastName}`}:`, childError.message)
             // Continue with registration even if child creation fails
           }
         }
@@ -523,6 +550,21 @@ router.post('/notifications/:notificationId/read', passport.authenticate('jwt', 
   }
 })
 
+// Cleanup old notifications (admin only)
+router.post('/notifications/cleanup', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator']), async (req, res) => {
+  try {
+    const result = auth.cleanupOldNotifications()
+    
+    res.json({
+      message: 'Notification cleanup completed',
+      result
+    })
+  } catch (error) {
+    console.error('Error cleaning up notifications:', error)
+    res.status(500).json({ error: 'Failed to cleanup notifications' })
+  }
+})
+
 // Children management routes
 router.get('/children', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
@@ -657,6 +699,50 @@ router.post('/users/bulk-deactivate', passport.authenticate('jwt', { session: fa
     res.json({ message: `Successfully deactivated ${result.deactivated} users`, result })
   } catch (error) {
     console.error('Error bulk deactivating users:', error)
+    res.status(400).json({ error: error.message })
+  }
+})
+
+// User deletion routes - Class leads can remove users from their classes, Admins can delete users completely
+router.delete('/users/:userId/remove-from-class/:classId', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator', 'class_lead']), async (req, res) => {
+  try {
+    const { userId, classId } = req.params
+    const currentUser = req.user
+    
+    const result = auth.removeUserFromClass(userId, classId, currentUser)
+    res.json({ message: 'User removed from class successfully', result })
+  } catch (error) {
+    console.error('Error removing user from class:', error)
+    res.status(400).json({ error: error.message })
+  }
+})
+
+router.delete('/users/:userId', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator']), async (req, res) => {
+  try {
+    const { userId } = req.params
+    const currentUser = req.user
+    
+    const result = auth.deleteUser(userId, currentUser)
+    res.json({ message: 'User deleted successfully', result })
+  } catch (error) {
+    console.error('Error deleting user:', error)
+    res.status(400).json({ error: error.message })
+  }
+})
+
+router.post('/users/bulk-delete', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator']), async (req, res) => {
+  try {
+    const { userIds } = req.body
+    const currentUser = req.user
+    
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ error: 'User IDs array is required' })
+    }
+    
+    const result = auth.bulkDeleteUsers(userIds, currentUser)
+    res.json({ message: `Successfully deleted ${result.deleted} users`, result })
+  } catch (error) {
+    console.error('Error bulk deleting users:', error)
     res.status(400).json({ error: error.message })
   }
 })

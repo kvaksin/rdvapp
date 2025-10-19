@@ -1,33 +1,9 @@
 [
   {
-    "id": "f168f65e-557e-4057-938a-0f24228205d3",
-    "name": "Languages",
-    "description": "French, Dutch, and English language classes",
-    "color": "#F59E0B",
-    "createdAt": "2025-10-18T11:05:17.681Z",
-    "updatedAt": "2025-10-18T11:05:17.681Z"
-  },
-  {
-    "id": "d185132d-8bbc-43c1-abc0-3294dca888a9",
-    "name": "Mathematics",
-    "description": "Elementary and advanced mathematics classes",
-    "color": "#3B82F6",
-    "createdAt": "2025-10-18T11:05:17.681Z",
-    "updatedAt": "2025-10-18T11:05:17.681Z"
-  },
-  {
-    "id": "c68692d9-7dee-43ba-bdf2-9b1ea59f78e8",
-    "name": "Science",
-    "description": "Physics, chemistry, and biology classes",
-    "color": "#10B981",
-    "createdAt": "2025-10-18T11:05:17.681Z",
-    "updatedAt": "2025-10-18T11:05:17.681Z"
-  },
-  {
     "id": "2e3ff20d-d759-481a-bd9e-1f4ebdc8b782",
     "name": "M3C",
-    "description": "",
-    "color": "#6366F1",
+    "description": "Cocinelle",
+    "color": "#10B981",
     "createdAt": "2025-10-18T11:07:11.045Z",
     "updatedAt": "2025-10-18T11:07:11.045Z"
   }

@@ -3,6 +3,7 @@ import { FormattedMessage, useIntl } from 'react-intl'
 import { useAuth } from '../contexts/AuthContext'
 import { authenticatedFetch } from '../contexts/AuthContext'
 import { LanguageSelector } from '../i18n'
+import ChildSelectionModal from '../components/ChildSelectionModal'
 
 interface Class {
   id: string
@@ -13,14 +14,20 @@ interface Class {
 
 interface Child {
   id: string
-  name: string
+  name?: string // Legacy field
+  firstName: string
+  lastName: string
   parentId: string
   classId: string
+  createdAt: string
 }
 
 interface ClassAssignment {
   classId: string
-  childName: string
+  childName?: string
+  childId?: string
+  childFirstName?: string
+  childLastName?: string
 }
 
 const Register: React.FC = () => {
@@ -28,7 +35,12 @@ const Register: React.FC = () => {
   const { register, error, loading, clearError } = useAuth()
   const [classes, setClasses] = useState<Class[]>([])
   const [childrenByClass, setChildrenByClass] = useState<{[classId: string]: Child[]}>({})
+  const [allChildren, setAllChildren] = useState<Child[]>([])
+  const [isChildModalOpen, setIsChildModalOpen] = useState(false)
+  const [selectedClassForModal, setSelectedClassForModal] = useState<Class | null>(null)
   const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -53,14 +65,17 @@ const Register: React.FC = () => {
           console.log('Loaded classes:', classData)
           setClasses(classData)
           
-          // Load existing children for each class
+          // Load existing children for each class and all children
           const childrenData: {[classId: string]: Child[]} = {}
+          let allChildrenData: Child[] = []
+          
           for (const cls of classData) {
             try {
-              const childrenResponse = await fetch(`/auth/children/class/${cls.id}`)
+              const childrenResponse = await authenticatedFetch(`/auth/children/class/${cls.id}`)
               if (childrenResponse.ok) {
                 const children = await childrenResponse.json()
                 childrenData[cls.id] = children
+                allChildrenData = [...allChildrenData, ...children]
               }
             } catch (error) {
               console.warn(`Failed to load children for class ${cls.id}:`, error)
@@ -68,6 +83,7 @@ const Register: React.FC = () => {
             }
           }
           setChildrenByClass(childrenData)
+          setAllChildren(allChildrenData)
           
           // Clean up invalid class assignments
           const availableClassIds = classData.map((cls: Class) => cls.id)
@@ -134,10 +150,16 @@ const Register: React.FC = () => {
       return
     }
 
-    // Validate parent role requires child names
+    // Validate required fields
+    if (!formData.firstName.trim() || !formData.lastName.trim()) {
+      alert(intl.formatMessage({ id: 'auth.nameRequired', defaultMessage: 'First name and last name are required' }))
+      return
+    }
+
+    // Validate parent role requires child names or child IDs
     if (formData.roles.includes('parent')) {
       for (const assignment of formData.classAssignments) {
-        if (!assignment.childName.trim()) {
+        if (!assignment.childId && (!assignment.childName || !assignment.childName.trim())) {
           alert(intl.formatMessage({ id: 'auth.childNameRequired', defaultMessage: 'Child name is required for parent role' }))
           return
         }
@@ -151,6 +173,8 @@ const Register: React.FC = () => {
 
     try {
       await register({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         email: formData.email,
         password: formData.password,
         confirmPassword: formData.confirmPassword,
@@ -201,10 +225,82 @@ const Register: React.FC = () => {
       ...prev,
       classAssignments: prev.classAssignments.map(assignment =>
         assignment.classId === classId
-          ? { ...assignment, childName }
+          ? { ...assignment, childName, childId: undefined }
           : assignment
       )
     }))
+  }
+
+  const handleOpenChildModal = (classId: string) => {
+    const selectedClass = classes.find(c => c.id === classId)
+    if (selectedClass) {
+      setSelectedClassForModal(selectedClass)
+      setIsChildModalOpen(true)
+    }
+  }
+
+  const handleChildSelectionChange = (selectedChildren: string[], newChildData?: {firstName: string, lastName: string}) => {
+    if (selectedClassForModal) {
+      const classId = selectedClassForModal.id
+      
+      // Find existing children by name to get their IDs
+      const existingChildren = allChildren.filter(child => {
+        const childDisplayName = child.firstName && child.lastName ? 
+          `${child.firstName} ${child.lastName}` : 
+          child.name || ''
+        return child.classId === classId && selectedChildren.includes(childDisplayName)
+      })
+      
+      // Update form data with selected children
+      setFormData(prev => {
+        const updatedAssignments = prev.classAssignments.filter(a => a.classId !== classId)
+        
+        // Add assignments for existing children
+        existingChildren.forEach(child => {
+          const childDisplayName = child.firstName && child.lastName ? 
+            `${child.firstName} ${child.lastName}` : 
+            child.name || ''
+          updatedAssignments.push({
+            classId,
+            childId: child.id,
+            childName: childDisplayName
+          })
+        })
+        
+        // Add assignment for new children (those not found in existing)
+        const newChildren = selectedChildren.filter(name => 
+          !existingChildren.some(child => {
+            const childDisplayName = child.firstName && child.lastName ? 
+              `${child.firstName} ${child.lastName}` : 
+              child.name || ''
+            return childDisplayName === name
+          })
+        )
+        
+        // Handle new child creation
+        if (newChildData) {
+          updatedAssignments.push({
+            classId,
+            childFirstName: newChildData.firstName,
+            childLastName: newChildData.lastName,
+            childName: `${newChildData.firstName} ${newChildData.lastName}`
+          })
+        } else {
+          // Handle legacy new children (just names)
+          newChildren.forEach(childName => {
+            updatedAssignments.push({
+              classId,
+              childName
+            })
+          })
+        }
+        
+        return {
+          ...prev,
+          classAssignments: updatedAssignments
+        }
+      })
+    }
   }
 
   const selectedClassIds = formData.classAssignments.map(a => a.classId)
@@ -265,6 +361,42 @@ const Register: React.FC = () => {
               </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-300">
+                    <FormattedMessage id="auth.firstName" defaultMessage="First name" />
+                  </label>
+                  <input
+                    id="firstName"
+                    name="firstName"
+                    type="text"
+                    autoComplete="given-name"
+                    required
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-white placeholder-gray-400"
+                    placeholder={intl.formatMessage({ id: 'auth.firstNamePlaceholder', defaultMessage: 'Enter your first name' })}
+                    aria-describedby={error ? "error-message" : undefined}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-300">
+                    <FormattedMessage id="auth.lastName" defaultMessage="Last name" />
+                  </label>
+                  <input
+                    id="lastName"
+                    name="lastName"
+                    type="text"
+                    autoComplete="family-name"
+                    required
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-white placeholder-gray-400"
+                    placeholder={intl.formatMessage({ id: 'auth.lastNamePlaceholder', defaultMessage: 'Enter your last name' })}
+                    aria-describedby={error ? "error-message" : undefined}
+                  />
+                </div>
+
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-300">
                     <FormattedMessage id="auth.email" defaultMessage="Email address" />
@@ -482,56 +614,60 @@ const Register: React.FC = () => {
                           </label>
                         </div>
                         
-                        {/* Child name input for parents */}
+                        {/* Child selection for parents */}
                         {selectedClassIds.includes(cls.id) && isParentRole && (
                           <div className="mt-2 ml-7">
-                            <label className="block text-xs font-medium text-gray-300 mb-1">
-                              <FormattedMessage 
-                                id="auth.childNameForClass" 
-                                defaultMessage="Child's name for {className}:"
-                                values={{ className: cls.name }}
-                              />
-                            </label>
+                            <div className="flex items-center justify-between mb-2">
+                              <label className="block text-xs font-medium text-gray-300">
+                                <FormattedMessage 
+                                  id="auth.childNameForClass" 
+                                  defaultMessage="Child's name for {className}:"
+                                  values={{ className: cls.name }}
+                                />
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenChildModal(cls.id)}
+                                className="px-3 py-1 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors"
+                              >
+                                <FormattedMessage 
+                                  id="childSelection.selectChildren"
+                                  defaultMessage="Select Children"
+                                />
+                              </button>
+                            </div>
                             
-                            {/* Show existing children for this class */}
-                            {childrenByClass[cls.id] && childrenByClass[cls.id].length > 0 && (
-                              <div className="mb-2">
-                                <p className="text-xs text-gray-400 mb-1">
+                            {/* Show selected children for this class */}
+                            {(() => {
+                              const selectedForClass = formData.classAssignments.filter(a => a.classId === cls.id)
+                              if (selectedForClass.length > 0) {
+                                return (
+                                  <div className="flex flex-wrap gap-1 mb-2">
+                                    {selectedForClass.map((assignment, index) => (
+                                      <span
+                                        key={`${cls.id}-${index}`}
+                                        className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-600 text-white rounded-full"
+                                      >
+                                        {assignment.childName}
+                                        {assignment.childId ? (
+                                          <span className="ml-1 text-xs opacity-75">(existing)</span>
+                                        ) : (
+                                          <span className="ml-1 text-xs opacity-75">(new)</span>
+                                        )}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )
+                              }
+                              return (
+                                <div className="text-xs text-gray-400 mb-2">
                                   <FormattedMessage 
-                                    id="auth.existingChildrenInClass" 
-                                    defaultMessage="Existing children in this class:"
+                                    id="childSelection.noChildrenSelected"
+                                    defaultMessage="No children selected. Click 'Select Children' to choose."
                                   />
-                                </p>
-                                <div className="flex flex-wrap gap-1">
-                                  {childrenByClass[cls.id].map((child) => (
-                                    <button
-                                      key={child.id}
-                                      type="button"
-                                      onClick={() => handleChildNameChange(cls.id, child.name)}
-                                      className={`px-2 py-1 text-xs rounded border ${
-                                        formData.classAssignments.find(a => a.classId === cls.id)?.childName === child.name
-                                          ? 'bg-blue-600 border-blue-500 text-white'
-                                          : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
-                                      }`}
-                                    >
-                                      {child.name}
-                                    </button>
-                                  ))}
                                 </div>
-                              </div>
-                            )}
-                            
-                            {/* Text input for new child name */}
-                            <input
-                              type="text"
-                              value={formData.classAssignments.find(a => a.classId === cls.id)?.childName || ''}
-                              onChange={(e) => handleChildNameChange(cls.id, e.target.value)}
-                              className="block w-full px-3 py-2 text-sm bg-gray-600 border border-gray-500 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-white placeholder-gray-400"
-                              placeholder={intl.formatMessage({ 
-                                id: 'auth.enterChildName', 
-                                defaultMessage: 'Enter child\'s name' 
-                              })}
-                            />
+                              )
+                            })()}
                           </div>
                         )}
                       </div>
@@ -557,6 +693,26 @@ const Register: React.FC = () => {
           </form>
         </div>
       </div>
+
+      {/* Child Selection Modal */}
+      {selectedClassForModal && (
+        <ChildSelectionModal
+          isOpen={isChildModalOpen}
+          onClose={() => {
+            setIsChildModalOpen(false)
+            setSelectedClassForModal(null)
+          }}
+          classId={selectedClassForModal.id}
+          className={selectedClassForModal.name}
+          selectedChildren={formData.classAssignments
+            .filter(a => a.classId === selectedClassForModal.id)
+            .map(a => a.childName)
+            .filter(name => name) as string[]
+          }
+          onSelectionChange={handleChildSelectionChange}
+          existingChildren={allChildren}
+        />
+      )}
     </div>
   )
 }

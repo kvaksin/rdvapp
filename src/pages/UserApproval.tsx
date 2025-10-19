@@ -6,6 +6,8 @@ import type { Class } from '../types/api'
 
 interface PendingUser {
   id: string
+  firstName?: string
+  lastName?: string
   email: string
   phone?: string
   createdAt: string
@@ -353,10 +355,13 @@ const UserApproval: React.FC = () => {
                     <div className={`flex-1 ${isAdmin ? 'ml-8' : ''}`}>
                       <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                          {user.email.charAt(0).toUpperCase()}
+                          {(user.firstName || user.email).charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <h3 className="text-lg font-semibold text-white">{user.email}</h3>
+                          <h3 className="text-lg font-semibold text-white">
+                            {user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email}
+                          </h3>
+                          <p className="text-gray-300 text-sm">{user.email}</p>
                           <div className="flex items-center gap-2 mt-1">
                             {user.roles.map((role) => (
                               <span 

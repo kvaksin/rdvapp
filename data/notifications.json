@@ -179,7 +179,7 @@
     "recipientId": "admin-1",
     "senderId": "1760827452147y9gh7r7rc",
     "message": "New class assignment request from parent@example.com for class M3C",
-    "isRead": false,
+    "isRead": true,
     "createdAt": "2025-10-19T19:05:56.902Z",
     "status": "sent",
     "metadata": {
@@ -187,5 +187,63 @@
       "userEmail": "parent@example.com",
       "className": "M3C"
     }
+  },
+  {
+    "id": "1760901634981pdfq5oq8w",
+    "type": "class_assignment_approved",
+    "recipientId": "1760827452147y9gh7r7rc",
+    "senderId": "admin-1",
+    "message": "Your class assignment request for M3C has been approved",
+    "isRead": false,
+    "createdAt": "2025-10-19T19:20:34.981Z",
+    "status": "sent"
+  },
+  {
+    "id": "1760902151490jxv2sxx7n",
+    "type": "user_approval_request",
+    "recipientId": "admin-1",
+    "senderId": "1760902151489f4az5xulh",
+    "senderEmail": "parent@example.com",
+    "userRole": "parent",
+    "classAssignments": [
+      {
+        "classId": "2e3ff20d-d759-481a-bd9e-1f4ebdc8b782",
+        "childName": "Lora"
+      }
+    ],
+    "message": "New parent registration: parent@example.com",
+    "isRead": true,
+    "createdAt": "2025-10-19T19:29:11.490Z",
+    "status": "pending"
+  },
+  {
+    "id": "1760902169856m6wm0mifj",
+    "type": "user_approved",
+    "recipientId": "1760902151489f4az5xulh",
+    "senderId": "1760773065330af6ru11py",
+    "message": "Your account has been approved. You can now log in.",
+    "isRead": true,
+    "createdAt": "2025-10-19T19:29:29.856Z",
+    "status": "sent"
+  },
+  {
+    "id": "test-recent-1",
+    "type": "test_recent_notification",
+    "recipientId": "admin-1",
+    "senderId": "system",
+    "message": "Test recent notification - should be kept",
+    "isRead": false,
+    "createdAt": "2025-10-04T19:50:58.185Z",
+    "status": "sent"
+  },
+  {
+    "id": "1760904946990ojius5o9u",
+    "type": "user_rejected",
+    "recipientId": "17608276936087zqqug8qj",
+    "senderId": "admin-1",
+    "message": "Your account has been rejected. Reason: unknown",
+    "isRead": false,
+    "createdAt": "2025-10-19T20:15:46.990Z",
+    "status": "sent"
   }
 ]
