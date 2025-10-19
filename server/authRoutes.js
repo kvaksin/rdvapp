@@ -98,6 +98,24 @@ router.post('/register', authLimiter, async (req, res) => {
       classAssignments: classAssignments || []
     })
 
+    // Create children for parent users based on class assignments
+    if (roles && roles.includes('parent') && classAssignments && classAssignments.length > 0) {
+      for (const assignment of classAssignments) {
+        if (assignment.childName) {
+          try {
+            auth.addChild({
+              parentId: user.id,
+              name: assignment.childName,
+              classId: assignment.classId
+            })
+          } catch (childError) {
+            console.warn(`Failed to create child ${assignment.childName}:`, childError.message)
+            // Continue with registration even if child creation fails
+          }
+        }
+      }
+    }
+
     const token = auth.generateJWT(user)
 
     res.status(201).json({
@@ -386,23 +404,56 @@ router.post('/request-class-assignment', passport.authenticate('jwt', { session:
   }
 })
 
-router.get('/class-assignment-requests', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator']), async (req, res) => {
+router.get('/class-assignment-requests', auth.authenticateToken, async (req, res) => {
   try {
-    console.log('🔍 Admin requesting class assignment requests, user:', req.user?.email)
     const requests = await auth.getClassAssignmentRequests()
-    console.log('📋 Found requests:', requests.length)
-    console.log('🔥 Requests data:', JSON.stringify(requests, null, 2))
-    res.json(requests)
+    
+    // If user is admin, return all requests
+    if (req.user.roles.includes('administrator')) {
+      console.log('🔍 Admin requesting class assignment requests, user:', req.user?.email)
+      console.log('📋 Found requests:', requests.length)
+      console.log('🔥 Requests data:', JSON.stringify(requests, null, 2))
+      res.json(requests)
+    } 
+    // If user is class lead, return requests for their assigned classes
+    else if (req.user.roles.includes('class_lead')) {
+      const userClassIds = req.user.classAssignments?.map(ca => ca.classId) || []
+      const classRequests = requests.filter(request => userClassIds.includes(request.classId))
+      console.log('🎓 Class lead requesting class assignment requests, user:', req.user?.email)
+      console.log('🏫 User assigned to classes:', userClassIds)
+      console.log('📋 Found filtered requests:', classRequests.length)
+      res.json(classRequests)
+    } 
+    else {
+      // Return only user's own requests
+      const userRequests = requests.filter(request => request.userId === req.user.id)
+      res.json(userRequests)
+    }
   } catch (error) {
     console.error('Error fetching class assignment requests:', error)
     res.status(500).json({ error: 'Failed to fetch class assignment requests' })
   }
 })
 
-router.post('/approve-class-assignment/:requestId', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator']), async (req, res) => {
+router.post('/approve-class-assignment/:requestId', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator', 'class_lead']), async (req, res) => {
   try {
     const { requestId } = req.params
     const approverId = req.user.id
+
+    // Additional permission check for class leads
+    if (req.user.roles.includes('class_lead') && !req.user.roles.includes('administrator')) {
+      const requests = await auth.getClassAssignmentRequests()
+      const request = requests.find(r => r.id === requestId)
+      
+      if (!request) {
+        return res.status(404).json({ error: 'Request not found' })
+      }
+      
+      const userClassIds = req.user.classAssignments?.map(ca => ca.classId) || []
+      if (!userClassIds.includes(request.classId)) {
+        return res.status(403).json({ error: 'You can only approve requests for your assigned classes' })
+      }
+    }
 
     const result = await auth.approveClassAssignmentRequest(requestId, approverId)
     res.json({ message: 'Class assignment request approved', result })
@@ -412,11 +463,26 @@ router.post('/approve-class-assignment/:requestId', passport.authenticate('jwt',
   }
 })
 
-router.post('/reject-class-assignment/:requestId', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator']), async (req, res) => {
+router.post('/reject-class-assignment/:requestId', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator', 'class_lead']), async (req, res) => {
   try {
     const { requestId } = req.params
     const { reason } = req.body
     const approverId = req.user.id
+
+    // Additional permission check for class leads
+    if (req.user.roles.includes('class_lead') && !req.user.roles.includes('administrator')) {
+      const requests = await auth.getClassAssignmentRequests()
+      const request = requests.find(r => r.id === requestId)
+      
+      if (!request) {
+        return res.status(404).json({ error: 'Request not found' })
+      }
+      
+      const userClassIds = req.user.classAssignments?.map(ca => ca.classId) || []
+      if (!userClassIds.includes(request.classId)) {
+        return res.status(403).json({ error: 'You can only reject requests for your assigned classes' })
+      }
+    }
 
     const result = await auth.rejectClassAssignmentRequest(requestId, approverId, reason)
     res.json({ message: 'Class assignment request rejected', result })
@@ -522,6 +588,75 @@ router.delete('/children/:childId', passport.authenticate('jwt', { session: fals
     res.json({ message: 'Child deleted successfully' })
   } catch (error) {
     console.error('Error deleting child:', error)
+    res.status(400).json({ error: error.message })
+  }
+})
+
+// User management routes
+router.get('/users', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator', 'class_lead']), async (req, res) => {
+  try {
+    const currentUser = req.user
+    const users = auth.getAllUsersForManagement(currentUser)
+    res.json(users)
+  } catch (error) {
+    console.error('Error getting users:', error)
+    res.status(500).json({ error: 'Failed to get users' })
+  }
+})
+
+router.put('/users/:userId', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator', 'class_lead']), async (req, res) => {
+  try {
+    const { userId } = req.params
+    const { email, phone, isActive } = req.body
+    const currentUser = req.user
+    
+    const updatedUser = auth.updateUser(userId, { email, phone, isActive }, currentUser)
+    res.json({ message: 'User updated successfully', user: updatedUser })
+  } catch (error) {
+    console.error('Error updating user:', error)
+    res.status(400).json({ error: error.message })
+  }
+})
+
+router.post('/users/:userId/deactivate', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator', 'class_lead']), async (req, res) => {
+  try {
+    const { userId } = req.params
+    const currentUser = req.user
+    
+    const user = auth.deactivateUser(userId, currentUser)
+    res.json({ message: 'User deactivated successfully', user })
+  } catch (error) {
+    console.error('Error deactivating user:', error)
+    res.status(400).json({ error: error.message })
+  }
+})
+
+router.post('/users/:userId/reactivate', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator', 'class_lead']), async (req, res) => {
+  try {
+    const { userId } = req.params
+    const currentUser = req.user
+    
+    const user = auth.reactivateUser(userId, currentUser)
+    res.json({ message: 'User reactivated successfully', user })
+  } catch (error) {
+    console.error('Error reactivating user:', error)
+    res.status(400).json({ error: error.message })
+  }
+})
+
+router.post('/users/bulk-deactivate', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator', 'class_lead']), async (req, res) => {
+  try {
+    const { userIds } = req.body
+    const currentUser = req.user
+    
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ error: 'User IDs array is required' })
+    }
+    
+    const result = auth.bulkDeactivateUsers(userIds, currentUser)
+    res.json({ message: `Successfully deactivated ${result.deactivated} users`, result })
+  } catch (error) {
+    console.error('Error bulk deactivating users:', error)
     res.status(400).json({ error: error.message })
   }
 })

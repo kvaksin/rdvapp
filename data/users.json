@@ -76,9 +76,9 @@
     "phone": null,
     "createdAt": "2025-10-18T22:48:13.608Z",
     "isActive": true,
-    "status": "approved",
-    "approvedBy": "admin-1",
-    "approvedAt": "2025-10-18T22:55:49.109Z",
+    "status": "pending",
+    "approvedBy": null,
+    "approvedAt": null,
     "rejectedBy": null,
     "rejectedAt": null,
     "rejectionReason": null

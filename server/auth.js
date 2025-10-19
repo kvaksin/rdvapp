@@ -408,6 +408,7 @@ export const deleteUsers = async (userIds, deleterId) => {
   const userRoles = getUserRoles()
   const userClasses = getUserClasses()
   const notifications = getNotifications()
+  const children = getChildrenData()
   
   const deletedUsers = []
   
@@ -425,6 +426,14 @@ export const deleteUsers = async (userIds, deleterId) => {
     
     // Remove user from users array
     users.splice(userIndex, 1)
+    
+    // Delete children if user is a parent
+    const userChildrenToDelete = children.filter(child => child.parentId === userId)
+    if (userChildrenToDelete.length > 0) {
+      const filteredChildren = children.filter(child => child.parentId !== userId)
+      saveChildren(filteredChildren)
+      console.log(`Deleted ${userChildrenToDelete.length} children for user ${userInfo.email}`)
+    }
   }
   
   // Remove user roles for deleted users
@@ -815,4 +824,154 @@ export const deleteChild = (childId) => {
   
   saveChildren(filteredChildren)
   return true
+}
+
+// User Management Functions
+export const getAllUsersForManagement = (currentUser) => {
+  const users = getUsers()
+  const userRoles = getUserRoles()
+  
+  // Get all users with their roles and class assignments
+  const usersWithDetails = users.map(user => {
+    const roles = userRoles
+      .filter(ur => ur.userId === user.id)
+      .map(ur => ur.role)
+    
+    const classAssignments = getUserClasses()
+      .filter(uc => uc.userId === user.id)
+    
+    return {
+      ...user,
+      password: undefined, // Never return passwords
+      roles,
+      classAssignments
+    }
+  })
+  
+  // Filter based on current user permissions
+  if (currentUser.roles && currentUser.roles.includes('administrator')) {
+    // Admins can see all users
+    return usersWithDetails
+  } else if (currentUser.roles && currentUser.roles.includes('class_lead')) {
+    // Class leads can only see parents
+    return usersWithDetails.filter(user => user.roles.includes('parent'))
+  }
+  
+  return []
+}
+
+export const updateUser = (userId, updates, currentUser) => {
+  const users = getUsers()
+  const userIndex = users.findIndex(u => u.id === userId)
+  
+  if (userIndex === -1) {
+    throw new Error('User not found')
+  }
+  
+  const targetUser = users[userIndex]
+  const userRoles = getUserRoles()
+  const targetUserRoles = userRoles
+    .filter(ur => ur.userId === userId)
+    .map(ur => ur.role)
+  
+  // Check permissions
+  if (!canManageUser(currentUser, targetUserRoles)) {
+    throw new Error('You do not have permission to manage this user')
+  }
+  
+  // Prevent self-deactivation for admins
+  if (userId === currentUser.id && updates.isActive === false) {
+    throw new Error('You cannot deactivate your own account')
+  }
+  
+  // Update user
+  users[userIndex] = {
+    ...targetUser,
+    ...updates,
+    updatedAt: new Date().toISOString()
+  }
+  
+  saveUsers(users)
+  return { ...users[userIndex], password: undefined }
+}
+
+export const deactivateUser = (userId, currentUser) => {
+  return updateUser(userId, { isActive: false }, currentUser)
+}
+
+export const reactivateUser = (userId, currentUser) => {
+  return updateUser(userId, { isActive: true }, currentUser)
+}
+
+export const bulkDeactivateUsers = (userIds, currentUser) => {
+  const users = getUsers()
+  const userRoles = getUserRoles()
+  let deactivated = 0
+  let errors = []
+  
+  for (const userId of userIds) {
+    try {
+      const targetUser = users.find(u => u.id === userId)
+      if (!targetUser) {
+        errors.push(`User ${userId} not found`)
+        continue
+      }
+      
+      const targetUserRoles = userRoles
+        .filter(ur => ur.userId === userId)
+        .map(ur => ur.role)
+      
+      // Check permissions
+      if (!canManageUser(currentUser, targetUserRoles)) {
+        errors.push(`No permission to manage user ${targetUser.email}`)
+        continue
+      }
+      
+      // Prevent self-deactivation
+      if (userId === currentUser.id) {
+        errors.push('Cannot deactivate your own account')
+        continue
+      }
+      
+      // Deactivate user
+      const userIndex = users.findIndex(u => u.id === userId)
+      users[userIndex] = {
+        ...users[userIndex],
+        isActive: false,
+        updatedAt: new Date().toISOString()
+      }
+      deactivated++
+    } catch (error) {
+      errors.push(`Error deactivating user ${userId}: ${error.message}`)
+    }
+  }
+  
+  if (deactivated > 0) {
+    saveUsers(users)
+  }
+  
+  return {
+    deactivated,
+    errors,
+    total: userIds.length
+  }
+}
+
+// Helper function to check if current user can manage target user
+const canManageUser = (currentUser, targetUserRoles) => {
+  if (!currentUser.roles) return false
+  
+  // Admins can manage everyone
+  if (currentUser.roles.includes('administrator')) {
+    return true
+  }
+  
+  // Class leads can only manage parents
+  if (currentUser.roles.includes('class_lead')) {
+    return targetUserRoles.includes('parent') && 
+           !targetUserRoles.includes('administrator') && 
+           !targetUserRoles.includes('class_lead')
+  }
+  
+  return false
 }

@@ -89,6 +89,26 @@ A **secure, comprehensive class-based appointment booking application** with adv
 - **Comprehensive Data Cleanup**: Automatically removes associated bookings, requests, and assignments
 - **Confirmation Dialogs**: Multiple confirmation steps for destructive operations
 
+#### **🧒 Child Management System**
+- **Parent-Child Relationships**: Secure linkage between parents and their children with class enrollment tracking
+- **Child Registration Portal**: Parents can add their children during account registration or later via Children Management
+- **Role-Based Child Access**:
+  - **Parents**: Can only view and manage their own children
+  - **Class Leads**: Can view and manage children in their assigned classes
+  - **Administrators**: Can view and manage all children across all classes
+- **Child Enrollment Validation**: Children are linked to specific classes and parents can only book for enrolled children
+- **Booking Restrictions**: Parents can only book appointments for their registered children in their enrolled classes
+- **Child Data Management**:
+  - Add, edit, and delete children with proper authorization
+  - Class assignment validation and enforcement
+  - Automatic cleanup when parents are deleted
+  - Search and filtering capabilities by name, class, and parent
+- **User Interface Features**:
+  - Dedicated Children Management page for all user roles
+  - Child selection interface in booking system
+  - Real-time validation of parent-child relationships
+  - Class enrollment status tracking
+
 #### **Class Assignment Request System**
 - **Request Submission Portal**: Parents and class leads can request class assignment changes
 - **Admin Approval Workflow**: All class assignment changes require administrator approval
@@ -115,6 +135,36 @@ A **secure, comprehensive class-based appointment booking application** with adv
   - Real-time updates without page refresh
 - **Workflow Optimization**: Streamlined user experience from notification alert to task completion
 
+#### **👥 Advanced User Management System**
+- **Comprehensive User Administration**: Complete interface for managing user accounts, permissions, and activities
+- **Role-Based Management Access**: 
+  - **Administrators**: Can manage all user types (parents, class leads, administrators)
+  - **Class Leads**: Can only manage parent users (restricted from managing other class leads or administrators)
+- **Advanced Search & Filtering**:
+  - Search by email or phone number
+  - Filter by user status (pending, approved, rejected)
+  - Filter by user role (parent, class lead, administrator)
+  - Real-time filtering with instant results
+- **Bulk Operations**: 
+  - Multi-select checkbox interface for bulk actions
+  - Bulk deactivation with confirmation dialogs
+  - Bulk selection management (select all, clear selection)
+- **User Account Management**:
+  - **Edit User Details**: Update email, phone number, and active status
+  - **Activate/Deactivate Users**: Toggle user access without data deletion
+  - **View User Information**: Creation date, approval status, role assignments
+  - **User Status Tracking**: Complete audit trail of user status changes
+- **Security Features**:
+  - Self-deletion prevention (administrators cannot deactivate themselves)
+  - Permission validation for all user management actions
+  - Role-based access control with strict enforcement
+  - Comprehensive audit logging of all management activities
+- **User Interface**:
+  - Sortable and filterable data table
+  - Responsive design for mobile and desktop
+  - Real-time status updates and notifications
+  - Intuitive edit modal with form validation
+
 ### 👥 Role-Based Permissions Matrix
 
 #### 👑 **Administrator (Full System Control)**
@@ -124,6 +174,9 @@ A **secure, comprehensive class-based appointment booking application** with adv
 - ✅ Manage class assignment requests with approval/rejection workflow
 - ✅ View system-wide user activity and audit logs
 - ✅ Access complete user management dashboard
+- ✅ **Advanced User Administration**: Full access to User Management page with complete user control
+- ✅ **Edit User Details**: Update email, phone, and activation status for all users
+- ✅ **Bulk User Operations**: Multi-select deactivation and management of user accounts
 
 **Class & Appointment Management:**
 - ✅ Create, modify, and delete classes with custom colors and descriptions
@@ -131,6 +184,13 @@ A **secure, comprehensive class-based appointment booking application** with adv
 - ✅ View and manage ALL bookings across all classes
 - ✅ Reset individual class schedules or entire system
 - ✅ Configure global system settings (appointment duration, etc.)
+
+**Child Management:**
+- ✅ View and manage ALL children across all classes
+- ✅ Create children for any parent user
+- ✅ Edit child details (name, class assignments)
+- ✅ Delete children with proper authorization checks
+- ✅ Manage parent-child relationships and class enrollments
 
 **System Administration:**
 - ✅ Access complete admin dashboard with all features
@@ -146,6 +206,9 @@ A **secure, comprehensive class-based appointment booking application** with adv
 - ❌ Cannot approve class lead or administrator registrations
 - ✅ Submit class assignment change requests
 - ✅ View notifications related to assigned classes
+- ✅ **Limited User Administration**: Access to User Management page for parent users only
+- ✅ **Parent User Control**: Edit and deactivate/reactivate parent user accounts
+- ❌ **Cannot manage other class leads or administrators** (security restriction)
 
 **Class & Appointment Management:**
 - ✅ Create and manage time slots for assigned classes only
@@ -154,20 +217,33 @@ A **secure, comprehensive class-based appointment booking application** with adv
 - ❌ Cannot access other classes' data or system-wide information
 - ❌ Cannot modify global system settings
 
+**Child Management:**
+- ✅ View children in assigned classes only
+- ✅ Create children for parent users (when assigned to their classes)
+- ✅ Edit children details in assigned classes
+- ✅ Delete children in assigned classes
+- ❌ Cannot access children in other classes
+
 **Restrictions:**
 - ❌ No access to bulk user operations
 - ❌ Cannot approve other class leads or administrators
 - ❌ Cannot view system-wide audit logs or analytics
 - ❌ Cannot delete users or access advanced admin features
 
-**Navigation Access:** Home, Limited Admin Dashboard, User Approval (parents only), Class Requests
+**Navigation Access:** Home, Limited Admin Dashboard, User Approval (parents only), User Management (parents only), Class Requests
 
 #### 👨‍👩‍👧‍👦 **Parent (Booking & Request Access)**
 **Appointment Management:**
-- ✅ Book appointments for children in assigned class
+- ✅ Book appointments ONLY for registered children in enrolled classes
 - ✅ Cancel/delete own bookings with confirmation
 - ✅ Download calendar files (.ics) for personal bookings
 - ✅ View personal booking history and upcoming appointments
+
+**Child Management:**
+- ✅ Add, edit, and delete own children
+- ✅ Manage child-class enrollments (children must be enrolled to book appointments)
+- ✅ View only own children in Children Management page
+- ❌ Cannot access other parents' children
 
 **Class Assignment:**
 - ✅ Submit class assignment change requests with reason
@@ -179,8 +255,9 @@ A **secure, comprehensive class-based appointment booking application** with adv
 - ❌ Cannot approve users or manage system
 - ❌ Cannot view other users' bookings or data
 - ❌ Cannot create time slots or manage classes
+- ❌ Cannot book appointments without registered children
 
-**Navigation Access:** Home, Class Schedule (assigned class only), Class Requests
+**Navigation Access:** Home, Class Schedule (assigned class only), Children Management, Class Requests
 
 ### 🔄 Registration & Approval Workflow
 
@@ -862,6 +939,215 @@ Response:
 - Frontend automatically navigates to appropriate pages when notifications are clicked
 - Actionable notifications (approval/assignment requests) open relevant management pages
 - Informational notifications (approved/rejected) are marked as read only
+
+### User Management Endpoints
+
+#### Get All Users (Admin/Class Lead Only)
+```http
+GET /auth/users
+Authorization: Bearer jwt-token-here
+
+Response:
+[
+  {
+    "id": "user-id",
+    "email": "user@example.com",
+    "phone": "123-456-7890",
+    "isActive": true,
+    "status": "approved",
+    "createdAt": "2025-10-18T10:00:00Z",
+    "roles": ["parent"],
+    "classAssignments": [
+      {
+        "id": "assignment-id",
+        "classId": "class-id",
+        "childName": "Child Name",
+        "createdAt": "2025-10-18T10:00:00Z"
+      }
+    ]
+  }
+]
+```
+
+**Note**: Class leads only see parent users, administrators see all users.
+
+#### Update User
+```http
+PUT /auth/users/user-id
+Authorization: Bearer jwt-token-here
+Content-Type: application/json
+
+{
+  "email": "newemail@example.com",
+  "phone": "987-654-3210",
+  "isActive": true
+}
+
+Response:
+{
+  "message": "User updated successfully",
+  "user": { ... }
+}
+```
+
+#### Deactivate User
+```http
+POST /auth/users/user-id/deactivate
+Authorization: Bearer jwt-token-here
+
+Response:
+{
+  "message": "User deactivated successfully",
+  "user": { ... }
+}
+```
+
+#### Reactivate User
+```http
+POST /auth/users/user-id/reactivate
+Authorization: Bearer jwt-token-here
+
+Response:
+{
+  "message": "User reactivated successfully",
+  "user": { ... }
+}
+```
+
+#### Bulk Deactivate Users
+```http
+POST /auth/users/bulk-deactivate
+Authorization: Bearer jwt-token-here
+Content-Type: application/json
+
+{
+  "userIds": ["user-id-1", "user-id-2", "user-id-3"]
+}
+
+Response:
+{
+  "message": "Successfully deactivated 3 users",
+  "result": {
+    "deactivated": 3,
+    "errors": [],
+    "total": 3
+  }
+}
+```
+
+**Permission Rules:**
+- **Administrators**: Can manage all user types
+- **Class Leads**: Can only manage parent users (cannot manage other class leads or administrators)
+- **Self-Protection**: Users cannot deactivate their own accounts
+
+### Child Management Endpoints
+
+#### Get Children
+```http
+GET /api/children?classId=class-id
+Authorization: Bearer jwt-token-here
+
+Response:
+[
+  {
+    "id": "child-id",
+    "parentId": "parent-user-id",
+    "name": "Child Name",
+    "classId": "class-id",
+    "createdAt": "2025-10-19T10:00:00Z",
+    "updatedAt": "2025-10-19T10:00:00Z"
+  }
+]
+```
+
+**Permissions**:
+- **Parents**: See only their own children
+- **Class Leads**: See children in their assigned classes
+- **Administrators**: See all children (optionally filtered by classId)
+
+#### Get Specific Child
+```http
+GET /api/children/child-id
+Authorization: Bearer jwt-token-here
+
+Response:
+{
+  "id": "child-id",
+  "parentId": "parent-user-id",
+  "name": "Child Name",
+  "classId": "class-id",
+  "createdAt": "2025-10-19T10:00:00Z",
+  "updatedAt": "2025-10-19T10:00:00Z"
+}
+```
+
+#### Create Child
+```http
+POST /api/children
+Authorization: Bearer jwt-token-here
+Content-Type: application/json
+
+{
+  "name": "Child Name",
+  "classId": "class-id",
+  "parentId": "parent-user-id"  // Optional for parents (defaults to current user)
+}
+
+Response:
+{
+  "id": "child-id",
+  "parentId": "parent-user-id",
+  "name": "Child Name",
+  "classId": "class-id",
+  "createdAt": "2025-10-19T10:00:00Z",
+  "updatedAt": "2025-10-19T10:00:00Z"
+}
+```
+
+**Permissions**:
+- **Parents**: Can only create children for themselves
+- **Class Leads**: Can create children for parents in their classes
+- **Administrators**: Can create children for any parent
+
+#### Update Child
+```http
+PUT /api/children/child-id
+Authorization: Bearer jwt-token-here
+Content-Type: application/json
+
+{
+  "name": "Updated Child Name",
+  "classId": "new-class-id"
+}
+
+Response:
+{
+  "id": "child-id",
+  "parentId": "parent-user-id",
+  "name": "Updated Child Name",
+  "classId": "new-class-id",
+  "createdAt": "2025-10-19T10:00:00Z",
+  "updatedAt": "2025-10-19T11:00:00Z"
+}
+```
+
+#### Delete Child
+```http
+DELETE /api/children/child-id
+Authorization: Bearer jwt-token-here
+
+Response:
+{
+  "message": "Child deleted successfully"
+}
+```
+
+**Permission Rules for Child Management**:
+- **Parents**: Can only manage their own children
+- **Class Leads**: Can manage children in their assigned classes
+- **Administrators**: Can manage all children
+- **Child-Class Validation**: Children must be enrolled in classes before booking appointments
+- **Booking Restrictions**: Parents can only book for their registered children
 
 ### Class Management Endpoints
 

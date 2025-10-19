@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useIntl } from 'react-intl'
-import { fetchSlots, bookSlot } from '../api/client'
+import { fetchSlots } from '../api/client'
 import { useAuth, authenticatedFetch } from '../contexts/AuthContext'
 import type { Slot } from '../types/api'
 
@@ -16,7 +16,7 @@ export default function BookRdv() {
   const intl = useIntl()
   const { user } = useAuth()
   const [slots, setSlots] = useState<Slot[]>([])
-  const [childName, setChildName] = useState('')
+  const [selectedChild, setSelectedChild] = useState<Child | null>(null)
   const [userChildren, setUserChildren] = useState<Child[]>([])
 
   useEffect(() => { 
@@ -35,16 +35,15 @@ export default function BookRdv() {
     if (!user) return
     
     try {
-      const response = await authenticatedFetch('/api/auth/children')
+      const baseUrl = window.location.origin
+      const response = await authenticatedFetch(`${baseUrl}/api/children`)
       if (response.ok) {
         const children = await response.json()
-        // Filter children for current parent
-        const myChildren = children.filter((child: Child) => child.parentId === user.id)
-        setUserChildren(myChildren)
+        setUserChildren(children)
         
         // Auto-select first child if available
-        if (myChildren.length > 0 && !childName) {
-          setChildName(myChildren[0].name)
+        if (children.length > 0 && !selectedChild) {
+          setSelectedChild(children[0])
         }
       }
     } catch (error) {
@@ -53,10 +52,43 @@ export default function BookRdv() {
   }
 
   async function handleBook(slotId: string) {
-    if (!childName) return alert(intl.formatMessage({ id: 'bookRdv.enterChildName' }))
-    await bookSlot(slotId, childName)
-    setChildName('')
-    load()
+    if (!selectedChild) {
+      alert(intl.formatMessage({ 
+        id: 'bookRdv.selectChild', 
+        defaultMessage: 'Please select a child' 
+      }))
+      return
+    }
+
+    try {
+      const baseUrl = window.location.origin
+      const response = await authenticatedFetch(`${baseUrl}/api/bookings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          slotId, 
+          childName: selectedChild.name,
+          childId: selectedChild.id
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to book slot')
+      }
+
+      alert(intl.formatMessage({ 
+        id: 'bookRdv.bookingSuccess', 
+        defaultMessage: 'Booking successful!' 
+      }))
+      load()
+    } catch (error: any) {
+      console.error('Booking failed:', error)
+      alert(intl.formatMessage({ 
+        id: 'bookRdv.bookingError', 
+        defaultMessage: 'Booking failed: {error}' 
+      }, { error: error.message }))
+    }
   }
 
   return (
@@ -81,9 +113,9 @@ export default function BookRdv() {
                   <button
                     key={child.id}
                     type="button"
-                    onClick={() => setChildName(child.name)}
+                    onClick={() => setSelectedChild(child)}
                     className={`px-2 py-1 text-xs rounded border ${
-                      childName === child.name
+                      selectedChild?.id === child.id
                         ? 'bg-blue-600 border-blue-500 text-white'
                         : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
                     }`}
@@ -95,13 +127,22 @@ export default function BookRdv() {
             </div>
           )}
           
-          {/* Text input for manual entry or new child */}
-          <input 
-            value={childName} 
-            onChange={e=>setChildName(e.target.value)} 
-            placeholder={intl.formatMessage({ id: 'schedule.childName' })} 
-            className="bg-gray-700 px-3 py-2 rounded-md w-full border border-gray-600 focus:border-blue-500 focus:outline-none" 
-          />
+          {/* Selected child display */}
+          {selectedChild && (
+            <div className="text-sm text-gray-300">
+              Selected: <span className="font-medium text-white">{selectedChild.name}</span>
+            </div>
+          )}
+          
+          {/* No children message */}
+          {userChildren.length === 0 && (
+            <div className="text-sm text-yellow-400">
+              {intl.formatMessage({ 
+                id: 'bookRdv.noChildren', 
+                defaultMessage: 'No children found. Please add children in Children Management first.' 
+              })}
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-3 mt-4">
@@ -109,7 +150,17 @@ export default function BookRdv() {
             <div key={slot.id} className="bg-gray-800 p-3 rounded-md">
               <div>{new Date(slot.start).toLocaleString()}</div>
               <div className="mt-2 flex gap-2">
-                <button onClick={()=>handleBook(slot.id)} className="bg-green-600 px-2 py-1 rounded-md">{intl.formatMessage({ id: 'schedule.book' })}</button>
+                <button 
+                  onClick={()=>handleBook(slot.id)} 
+                  disabled={!selectedChild}
+                  className={`px-2 py-1 rounded-md ${
+                    selectedChild 
+                      ? 'bg-green-600 hover:bg-green-700' 
+                      : 'bg-gray-600 cursor-not-allowed'
+                  }`}
+                >
+                  {intl.formatMessage({ id: 'schedule.book' })}
+                </button>
               </div>
             </div>
           ))}

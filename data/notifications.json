@@ -118,7 +118,7 @@
     "recipientId": "1760773065330af6ru11py",
     "senderId": "admin-1",
     "message": "Your class assignment request for M3C has been approved",
-    "isRead": false,
+    "isRead": true,
     "createdAt": "2025-10-18T22:40:53.194Z",
     "status": "sent"
   },
@@ -146,7 +146,7 @@
     "recipientId": "1760827452147y9gh7r7rc",
     "senderId": "1760773065330af6ru11py",
     "message": "Your account has been approved. You can now log in.",
-    "isRead": false,
+    "isRead": true,
     "createdAt": "2025-10-18T22:44:51.342Z",
     "status": "sent"
   },
@@ -172,5 +172,20 @@
     "isRead": false,
     "createdAt": "2025-10-18T22:55:49.109Z",
     "status": "sent"
+  },
+  {
+    "id": "17609007569014aif1wmvi",
+    "type": "class_assignment_request",
+    "recipientId": "admin-1",
+    "senderId": "1760827452147y9gh7r7rc",
+    "message": "New class assignment request from parent@example.com for class M3C",
+    "isRead": false,
+    "createdAt": "2025-10-19T19:05:56.902Z",
+    "status": "sent",
+    "metadata": {
+      "requestId": "1760900756901fvike8frs",
+      "userEmail": "parent@example.com",
+      "className": "M3C"
+    }
   }
 ]

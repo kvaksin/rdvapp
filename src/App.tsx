@@ -10,6 +10,9 @@ import NotificationBell from './components/NotificationBell';
 // Pages - using dynamic imports to handle module loading issues
 const Admin = React.lazy(() => import('./pages/Admin'));
 const UserApproval = React.lazy(() => import('./pages/UserApproval'));
+const UserManagement = React.lazy(() => import('./pages/UserManagement'));
+const ChildrenManagement = React.lazy(() => import('./pages/ChildrenManagement'));
+const ParentProfile = React.lazy(() => import('./pages/ParentProfile'));
 const ClassRequest = React.lazy(() => import('./pages/ClassRequest'));
 const Home = React.lazy(() => import('./pages/Home'));
 const ClassSchedule = React.lazy(() => import('./pages/ClassSchedule'));
@@ -50,6 +53,7 @@ function ErrorBoundary({ children }: { children: React.ReactNode }) {
 
 function UserMenu() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
   if (!user) return null;
@@ -74,6 +78,15 @@ function UserMenu() {
               {user.roles.join(', ')}
             </div>
           </div>
+          <button
+            onClick={() => {
+              navigate('/profile');
+              setIsOpen(false);
+            }}
+            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+          >
+            <FormattedMessage id="nav.profile" defaultMessage="My Profile" />
+          </button>
           <button
             onClick={() => {
               logout();
@@ -112,6 +125,18 @@ function Layout({ children }: { children: React.ReactNode }) {
       defaultMessage: 'User Approval', 
       path: '/user-approval', 
       show: user?.roles && (user.roles.includes('administrator') || user.roles.includes('class_lead'))
+    },
+    { 
+      label: 'nav.userManagement', 
+      defaultMessage: 'User Management', 
+      path: '/user-management', 
+      show: user?.roles && (user.roles.includes('administrator') || user.roles.includes('class_lead'))
+    },
+    { 
+      label: 'nav.childrenManagement', 
+      defaultMessage: 'Children Management', 
+      path: '/children-management', 
+      show: user?.roles && (user.roles.includes('administrator') || user.roles.includes('class_lead') || user.roles.includes('parent'))
     },
     { 
       label: 'nav.classRequest', 
@@ -379,6 +404,36 @@ const router = createBrowserRouter([
       <ProtectedRoute requiredRoles={['administrator', 'class_lead']}>
         <ErrorBoundary>
           <UserApproval />
+        </ErrorBoundary>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: '/user-management',
+    element: (
+      <ProtectedRoute requiredRoles={['administrator', 'class_lead']}>
+        <ErrorBoundary>
+          <UserManagement />
+        </ErrorBoundary>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: '/children-management',
+    element: (
+      <ProtectedRoute requiredRoles={['administrator', 'class_lead', 'parent']}>
+        <ErrorBoundary>
+          <ChildrenManagement />
+        </ErrorBoundary>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: '/profile',
+    element: (
+      <ProtectedRoute requiredRoles={['administrator', 'class_lead', 'parent']}>
+        <ErrorBoundary>
+          <ParentProfile />
         </ErrorBoundary>
       </ProtectedRoute>
     )

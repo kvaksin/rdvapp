@@ -13,6 +13,7 @@ import helmet from 'helmet'
 import * as db from './db.js'
 import * as auth from './auth.js'
 import authRoutes from './authRoutes.js'
+import childrenRoutes from './childrenRoutes.js'
 
 // Load environment variables
 dotenv.config()
@@ -129,6 +130,9 @@ app.use(express.static(validDistPath, {
 
 // Authentication routes - must come before catch-all route
 app.use('/auth', authRoutes)
+
+// Children management routes
+app.use('/api/children', childrenRoutes)
 
 // SPA routing - this should be the last middleware
 app.get('*', (req, res, next) => {
@@ -478,8 +482,8 @@ app.get('/api/bookings', auth.authenticateToken, async (req, res) => {
 
 // POST booking
 app.post('/api/bookings', auth.authenticateToken, async (req, res) => {
-  const { slotId, childName } = req.body
-  if (!slotId || !childName) return res.status(400).json({ error: 'slotId and childName required' })
+  const { slotId, childName, childId } = req.body
+  if (!slotId) return res.status(400).json({ error: 'slotId is required' })
 
   try {
     // ensure slot exists and not booked/removed
@@ -493,15 +497,57 @@ app.post('/api/bookings', auth.authenticateToken, async (req, res) => {
       return res.status(403).json({ error: 'Access denied to this class' })
     }
 
-    // For parents, validate that they have the correct child name for this class
-    if (req.user.roles.includes('parent') && slot.classId) {
-      const userClasses = auth.getUserClasses()
-      const userClassAssignment = userClasses.find(uc => 
-        uc.userId === req.user.id && uc.classId === slot.classId
-      )
+    let finalChildName = childName
+    let finalChildId = childId
+
+    // For parents, enforce child selection and validation
+    if (req.user.roles.includes('parent')) {
+      if (!childId && !childName) {
+        return res.status(400).json({ error: 'Child selection is required for parents' })
+      }
+
+      // Get parent's children
+      const parentChildren = auth.getChildrenByParent(req.user.id)
       
-      if (!userClassAssignment || userClassAssignment.childName !== childName) {
-        return res.status(403).json({ error: 'Invalid child name for this class' })
+      let selectedChild = null
+      if (childId) {
+        selectedChild = parentChildren.find(child => child.id === childId)
+      } else if (childName) {
+        selectedChild = parentChildren.find(child => child.name === childName)
+      }
+
+      if (!selectedChild) {
+        return res.status(403).json({ error: 'Selected child not found or not owned by parent' })
+      }
+
+      // Validate child belongs to the slot's class
+      if (slot.classId && selectedChild.classId !== slot.classId) {
+        return res.status(403).json({ error: 'Child is not enrolled in this class' })
+      }
+
+      finalChildName = selectedChild.name
+      finalChildId = selectedChild.id
+    } else {
+      // For class leads and admins, childName or childId is still required
+      if (!childName && !childId) {
+        return res.status(400).json({ error: 'Child name or ID is required' })
+      }
+
+      // If childId provided, validate it exists and get the name
+      if (childId) {
+        const children = auth.getChildren()
+        const child = children.find(c => c.id === childId)
+        if (!child) {
+          return res.status(404).json({ error: 'Child not found' })
+        }
+        
+        // Check if admin/class lead has access to this child's class
+        if (child.classId && !auth.hasAccessToClass(req.user.id, child.classId)) {
+          return res.status(403).json({ error: 'Access denied to this child\'s class' })
+        }
+
+        finalChildName = child.name
+        finalChildId = child.id
       }
     }
 
@@ -509,7 +555,8 @@ app.post('/api/bookings', auth.authenticateToken, async (req, res) => {
     await db.updateSlot(slotId, { booked: true })
     const booking = await db.createBooking({ 
       slotId, 
-      childName,
+      childName: finalChildName,
+      childId: finalChildId,
       originalSlotStart: slot.start 
     })
 
@@ -523,7 +570,7 @@ app.post('/api/bookings', auth.authenticateToken, async (req, res) => {
 // PUT modify booking -> move to new slot
 app.put('/api/bookings/:id', auth.authenticateToken, async (req, res) => {
   const { id } = req.params
-  const { slotId, childName } = req.body
+  const { slotId, childName, childId } = req.body
   try {
     const booking = await db.findBooking(id)
     if (!booking) {
@@ -542,6 +589,53 @@ app.put('/api/bookings/:id', auth.authenticateToken, async (req, res) => {
       return res.status(403).json({ error: 'Access denied to new slot class' })
     }
 
+    let finalChildName = childName || booking.childName
+    let finalChildId = childId || booking.childId
+
+    // For parents, enforce child validation
+    if (req.user.roles.includes('parent')) {
+      // Get parent's children
+      const parentChildren = auth.getChildrenByParent(req.user.id)
+      
+      let selectedChild = null
+      if (childId) {
+        selectedChild = parentChildren.find(child => child.id === childId)
+      } else if (childName) {
+        selectedChild = parentChildren.find(child => child.name === childName)
+      } else if (booking.childId) {
+        selectedChild = parentChildren.find(child => child.id === booking.childId)
+      }
+
+      if (!selectedChild) {
+        return res.status(403).json({ error: 'Selected child not found or not owned by parent' })
+      }
+
+      // Validate child belongs to the new slot's class
+      if (newSlot?.classId && selectedChild.classId !== newSlot.classId) {
+        return res.status(403).json({ error: 'Child is not enrolled in the new slot\'s class' })
+      }
+
+      finalChildName = selectedChild.name
+      finalChildId = selectedChild.id
+    } else {
+      // For class leads and admins, validate childId if provided
+      if (childId) {
+        const children = auth.getChildren()
+        const child = children.find(c => c.id === childId)
+        if (!child) {
+          return res.status(404).json({ error: 'Child not found' })
+        }
+        
+        // Check if admin/class lead has access to this child's class
+        if (child.classId && !auth.hasAccessToClass(req.user.id, child.classId)) {
+          return res.status(403).json({ error: 'Access denied to this child\'s class' })
+        }
+
+        finalChildName = child.name
+        finalChildId = child.id
+      }
+    }
+
     // free old slot
     await db.updateSlot(booking.slotId, { booked: false })
 
@@ -554,7 +648,8 @@ app.put('/api/bookings/:id', auth.authenticateToken, async (req, res) => {
     await db.updateSlot(slotId, { booked: true })
     const updated = await db.updateBooking(id, { 
       slotId, 
-      childName: childName || booking.childName, 
+      childName: finalChildName,
+      childId: finalChildId,
       originalSlotStart: targetSlot.start 
     })
 
