@@ -78,8 +78,99 @@
     "recipientId": "1760773065330af6ru11py",
     "senderId": "admin-1",
     "message": "Your account has been approved. You can now log in.",
-    "isRead": false,
+    "isRead": true,
     "createdAt": "2025-10-18T09:18:58.981Z",
+    "status": "sent"
+  },
+  {
+    "id": "1760786957495hnvsrarms",
+    "type": "class_assignment_request",
+    "recipientId": "admin-1",
+    "senderId": "1760773065330af6ru11py",
+    "message": "New class assignment request from teacher@example.com for class M3C",
+    "isRead": true,
+    "createdAt": "2025-10-18T11:29:17.495Z",
+    "status": "sent",
+    "metadata": {
+      "requestId": "1760786957495yc2s1la4i",
+      "userEmail": "teacher@example.com",
+      "className": "M3C"
+    }
+  },
+  {
+    "id": "17607879991767ilnnf2rk",
+    "type": "class_assignment_request",
+    "recipientId": "admin-1",
+    "senderId": "1760773065330af6ru11py",
+    "message": "New class assignment request from teacher@example.com for class M3C",
+    "isRead": false,
+    "createdAt": "2025-10-18T11:46:39.176Z",
+    "status": "sent",
+    "metadata": {
+      "requestId": "17607879991755guu2oa5n",
+      "userEmail": "teacher@example.com",
+      "className": "M3C"
+    }
+  },
+  {
+    "id": "17608272531948dc06cg5z",
+    "type": "class_assignment_approved",
+    "recipientId": "1760773065330af6ru11py",
+    "senderId": "admin-1",
+    "message": "Your class assignment request for M3C has been approved",
+    "isRead": false,
+    "createdAt": "2025-10-18T22:40:53.194Z",
+    "status": "sent"
+  },
+  {
+    "id": "1760827452149n076jbjqc",
+    "type": "user_approval_request",
+    "recipientId": "admin-1",
+    "senderId": "1760827452147y9gh7r7rc",
+    "senderEmail": "parent@example.com",
+    "userRole": "parent",
+    "classAssignments": [
+      {
+        "classId": "2e3ff20d-d759-481a-bd9e-1f4ebdc8b782",
+        "childName": "Lora"
+      }
+    ],
+    "message": "New parent registration: parent@example.com",
+    "isRead": true,
+    "createdAt": "2025-10-18T22:44:12.149Z",
+    "status": "pending"
+  },
+  {
+    "id": "1760827491341myt46n7vc",
+    "type": "user_approved",
+    "recipientId": "1760827452147y9gh7r7rc",
+    "senderId": "1760773065330af6ru11py",
+    "message": "Your account has been approved. You can now log in.",
+    "isRead": false,
+    "createdAt": "2025-10-18T22:44:51.342Z",
+    "status": "sent"
+  },
+  {
+    "id": "1760827693609p2u0mt5af",
+    "type": "user_approval_request",
+    "recipientId": "admin-1",
+    "senderId": "17608276936087zqqug8qj",
+    "senderEmail": "security.test@example.com",
+    "userRole": "parent",
+    "classAssignments": [],
+    "message": "New parent registration: security.test@example.com",
+    "isRead": true,
+    "createdAt": "2025-10-18T22:48:13.609Z",
+    "status": "pending"
+  },
+  {
+    "id": "1760828149109kcxx27vy7",
+    "type": "user_approved",
+    "recipientId": "17608276936087zqqug8qj",
+    "senderId": "admin-1",
+    "message": "Your account has been approved. You can now log in.",
+    "isRead": false,
+    "createdAt": "2025-10-18T22:55:49.109Z",
     "status": "sent"
   }
 ]

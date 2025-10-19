@@ -3,6 +3,7 @@ import path from 'path'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { fileURLToPath } from 'url'
+import { getClasses } from './db.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -260,6 +261,29 @@ export const authenticateToken = (req, res, next) => {
       return res.status(401).json({ error: 'User not found' })
     }
 
+    // **SECURITY FIX**: Check user approval status
+    if (user.status === 'pending') {
+      return res.status(403).json({ 
+        error: 'Account pending approval',
+        details: 'Please wait for an administrator to approve your account.'
+      })
+    }
+    
+    if (user.status === 'rejected') {
+      const reason = user.rejectionReason ? ` Reason: ${user.rejectionReason}` : ''
+      return res.status(403).json({ 
+        error: 'Account access denied',
+        details: `Your account has been rejected.${reason}`
+      })
+    }
+
+    if (user.status !== 'approved') {
+      return res.status(403).json({ 
+        error: 'Account not approved',
+        details: 'Your account must be approved before accessing the system.'
+      })
+    }
+
     req.user = user
     next()
   } catch (error) {
@@ -378,6 +402,67 @@ export const rejectUser = async (userId, rejectorId, reason = null) => {
   return { ...users[userIndex], password: undefined }
 }
 
+// User deletion function
+export const deleteUsers = async (userIds, deleterId) => {
+  const users = getUsers()
+  const userRoles = getUserRoles()
+  const userClasses = getUserClasses()
+  const notifications = getNotifications()
+  
+  const deletedUsers = []
+  
+  for (const userId of userIds) {
+    const userIndex = users.findIndex(u => u.id === userId)
+    
+    if (userIndex === -1) {
+      console.warn(`User with ID ${userId} not found`)
+      continue
+    }
+    
+    // Store user info before deletion (without password)
+    const { password, ...userInfo } = users[userIndex]
+    deletedUsers.push(userInfo)
+    
+    // Remove user from users array
+    users.splice(userIndex, 1)
+  }
+  
+  // Remove user roles for deleted users
+  const filteredUserRoles = userRoles.filter(ur => !userIds.includes(ur.userId))
+  saveUserRoles(filteredUserRoles)
+  
+  // Remove user class assignments for deleted users
+  const filteredUserClasses = userClasses.filter(uc => !userIds.includes(uc.userId))
+  saveUserClasses(filteredUserClasses)
+  
+  // Remove notifications for deleted users
+  const filteredNotifications = notifications.filter(n => 
+    !userIds.includes(n.recipientId) && !userIds.includes(n.senderId)
+  )
+  saveNotifications(filteredNotifications)
+  
+  // Save updated users
+  saveUsers(users)
+  
+  // Create audit log notification for the admin who deleted users
+  const auditNotification = {
+    id: generateId(),
+    type: 'users_deleted',
+    recipientId: deleterId,
+    senderId: deleterId,
+    message: `Deleted ${deletedUsers.length} users: ${deletedUsers.map(u => u.email).join(', ')}`,
+    isRead: false,
+    createdAt: new Date().toISOString(),
+    status: 'sent'
+  }
+  
+  const updatedNotifications = getNotifications()
+  updatedNotifications.push(auditNotification)
+  saveNotifications(updatedNotifications)
+  
+  return deletedUsers
+}
+
 // Notification management functions
 export const getUserNotifications = (userId) => {
   const notifications = getNotifications()
@@ -403,4 +488,331 @@ export const getPendingUsers = () => {
   const users = getUsers()
   return users.filter(u => u.status === 'pending')
     .map(u => ({ ...u, password: undefined }))
+}
+
+// Class assignment request management
+const classAssignmentRequestsFile = path.join(dataDir, 'classAssignmentRequests.json')
+
+// Children management
+const childrenFile = path.join(dataDir, 'children.json')
+
+const getClassAssignmentRequestsData = () => {
+  try {
+    if (!fs.existsSync(classAssignmentRequestsFile)) {
+      return []
+    }
+    const data = fs.readFileSync(classAssignmentRequestsFile, 'utf8')
+    return JSON.parse(data)
+  } catch (error) {
+    console.error('Error reading class assignment requests:', error)
+    return []
+  }
+}
+
+const saveClassAssignmentRequests = (requests) => {
+  try {
+    fs.writeFileSync(classAssignmentRequestsFile, JSON.stringify(requests, null, 2))
+  } catch (error) {
+    console.error('Error saving class assignment requests:', error)
+    throw error
+  }
+}
+
+export const getClassAssignmentRequests = async () => {
+  const requests = getClassAssignmentRequestsData()
+  const users = getUsers()
+  const classes = await getClasses()
+
+  // Enhance requests with user and class information
+  return requests.map(request => {
+    const user = users.find(u => u.id === request.userId)
+    const targetClass = classes.find(c => c.id === request.classId)
+    
+    return {
+      ...request,
+      userEmail: user?.email || 'Unknown',
+      className: targetClass?.name || 'Unknown Class',
+      classColor: targetClass?.color || '#6B7280'
+    }
+  }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+}
+
+export const createClassAssignmentRequest = async ({ userId, classId, reason, childName }) => {
+  const users = getUsers()
+  const classes = await getClasses()
+  const requests = getClassAssignmentRequestsData()
+
+  // Validate user exists
+  const user = users.find(u => u.id === userId)
+  if (!user) {
+    throw new Error('User not found')
+  }
+
+  // Validate class exists
+  const targetClass = classes.find(c => c.id === classId)
+  if (!targetClass) {
+    throw new Error('Class not found')
+  }
+
+  // Check if user already has a pending request for this class
+  const existingRequest = requests.find(r => 
+    r.userId === userId && 
+    r.classId === classId && 
+    r.status === 'pending'
+  )
+  if (existingRequest) {
+    throw new Error('You already have a pending request for this class')
+  }
+
+  const newRequest = {
+    id: generateId(),
+    userId,
+    classId,
+    reason: reason || '',
+    childName: childName || null,
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+
+  requests.push(newRequest)
+  saveClassAssignmentRequests(requests)
+
+  // Create notification for admins
+  const notifications = getNotifications()
+  const allUsers = getUsers()
+  const allUserRoles = getUserRoles()
+  const adminUsers = allUserRoles
+    .filter(ur => ur.role === 'administrator')
+    .map(ur => allUsers.find(u => u.id === ur.userId))
+    .filter(u => u && u.status === 'approved')
+  
+  for (const admin of adminUsers) {
+    const notification = {
+      id: generateId(),
+      type: 'class_assignment_request',
+      recipientId: admin.id,
+      senderId: userId,
+      message: `New class assignment request from ${user.email} for class ${targetClass.name}`,
+      isRead: false,
+      createdAt: new Date().toISOString(),
+      status: 'sent',
+      metadata: {
+        requestId: newRequest.id,
+        userEmail: user.email,
+        className: targetClass.name
+      }
+    }
+    notifications.push(notification)
+  }
+
+  saveNotifications(notifications)
+  return newRequest
+}
+
+export const approveClassAssignmentRequest = async (requestId, approverId) => {
+  const requests = getClassAssignmentRequestsData()
+  const users = getUsers()
+  const userClasses = getUserClasses()
+  const notifications = getNotifications()
+
+  const requestIndex = requests.findIndex(r => r.id === requestId)
+  if (requestIndex === -1) {
+    throw new Error('Class assignment request not found')
+  }
+
+  const request = requests[requestIndex]
+  if (request.status !== 'pending') {
+    throw new Error('Request has already been processed')
+  }
+
+  const user = users.find(u => u.id === request.userId)
+  if (!user) {
+    throw new Error('User not found')
+  }
+
+  // Update request status
+  requests[requestIndex] = {
+    ...request,
+    status: 'approved',
+    updatedAt: new Date().toISOString(),
+    approverId
+  }
+
+  // Remove existing class assignments for this user
+  const filteredUserClasses = userClasses.filter(uc => uc.userId !== request.userId)
+  
+  // Add new class assignment
+  const newAssignment = {
+    id: generateId(),
+    userId: request.userId,
+    classId: request.classId,
+    childName: request.childName,
+    createdAt: new Date().toISOString()
+  }
+  filteredUserClasses.push(newAssignment)
+
+  // Save changes
+  saveClassAssignmentRequests(requests)
+  saveUserClasses(filteredUserClasses)
+
+  // Create notification for user
+  const classes = await getClasses()
+  const targetClass = classes.find(c => c.id === request.classId)
+  const userNotification = {
+    id: generateId(),
+    type: 'class_assignment_approved',
+    recipientId: request.userId,
+    senderId: approverId,
+    message: `Your class assignment request for ${targetClass?.name || 'the requested class'} has been approved`,
+    isRead: false,
+    createdAt: new Date().toISOString(),
+    status: 'sent'
+  }
+
+  notifications.push(userNotification)
+  saveNotifications(notifications)
+
+  return { request: requests[requestIndex], assignment: newAssignment }
+}
+
+export const rejectClassAssignmentRequest = async (requestId, approverId, reason = '') => {
+  const requests = getClassAssignmentRequestsData()
+  const users = getUsers()
+  const notifications = getNotifications()
+
+  const requestIndex = requests.findIndex(r => r.id === requestId)
+  if (requestIndex === -1) {
+    throw new Error('Class assignment request not found')
+  }
+
+  const request = requests[requestIndex]
+  if (request.status !== 'pending') {
+    throw new Error('Request has already been processed')
+  }
+
+  const user = users.find(u => u.id === request.userId)
+  if (!user) {
+    throw new Error('User not found')
+  }
+
+  // Update request status
+  requests[requestIndex] = {
+    ...request,
+    status: 'rejected',
+    updatedAt: new Date().toISOString(),
+    approverId,
+    rejectionReason: reason
+  }
+
+  // Save changes
+  saveClassAssignmentRequests(requests)
+
+  // Create notification for user
+  const userNotification = {
+    id: generateId(),
+    type: 'class_assignment_rejected',
+    recipientId: request.userId,
+    senderId: approverId,
+    message: `Your class assignment request has been rejected${reason ? ': ' + reason : ''}`,
+    isRead: false,
+    createdAt: new Date().toISOString(),
+    status: 'sent'
+  }
+
+  notifications.push(userNotification)
+  saveNotifications(notifications)
+
+  return requests[requestIndex]
+}
+
+// Children management functions
+const getChildrenData = () => {
+  try {
+    if (!fs.existsSync(childrenFile)) {
+      return []
+    }
+    const data = fs.readFileSync(childrenFile, 'utf8')
+    return JSON.parse(data)
+  } catch (error) {
+    console.error('Error reading children data:', error)
+    return []
+  }
+}
+
+const saveChildren = (children) => {
+  try {
+    fs.writeFileSync(childrenFile, JSON.stringify(children, null, 2))
+  } catch (error) {
+    console.error('Error saving children data:', error)
+    throw error
+  }
+}
+
+export const getChildren = () => {
+  return getChildrenData()
+}
+
+export const getChildrenByParent = (parentId) => {
+  const children = getChildrenData()
+  return children.filter(child => child.parentId === parentId)
+}
+
+export const getChildrenByClass = (classId) => {
+  const children = getChildrenData()
+  return children.filter(child => child.classId === classId)
+}
+
+export const addChild = ({ parentId, name, classId }) => {
+  const children = getChildrenData()
+  
+  // Check if child with same name already exists for this parent
+  const existingChild = children.find(c => c.parentId === parentId && c.name.toLowerCase() === name.toLowerCase())
+  if (existingChild) {
+    throw new Error('Child with this name already exists')
+  }
+  
+  const newChild = {
+    id: generateId(),
+    parentId,
+    name,
+    classId,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+  
+  children.push(newChild)
+  saveChildren(children)
+  
+  return newChild
+}
+
+export const updateChild = (childId, updates) => {
+  const children = getChildrenData()
+  const childIndex = children.findIndex(c => c.id === childId)
+  
+  if (childIndex === -1) {
+    throw new Error('Child not found')
+  }
+  
+  children[childIndex] = {
+    ...children[childIndex],
+    ...updates,
+    updatedAt: new Date().toISOString()
+  }
+  
+  saveChildren(children)
+  return children[childIndex]
+}
+
+export const deleteChild = (childId) => {
+  const children = getChildrenData()
+  const filteredChildren = children.filter(c => c.id !== childId)
+  
+  if (filteredChildren.length === children.length) {
+    throw new Error('Child not found')
+  }
+  
+  saveChildren(filteredChildren)
+  return true
 }

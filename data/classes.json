@@ -1,26 +1,34 @@
 [
   {
-    "id": "0c18fc69-97de-437c-8ae0-1aee97281785",
-    "name": "Mathematics",
-    "description": "Elementary and advanced mathematics classes",
-    "color": "#3B82F6",
-    "createdAt": "2025-10-18T09:19:19.906Z",
-    "updatedAt": "2025-10-18T09:19:19.906Z"
-  },
-  {
-    "id": "0d2f719a-2c8f-4694-8d5a-8e896ec2aa56",
-    "name": "Science",
-    "description": "Physics, chemistry, and biology classes",
-    "color": "#10B981",
-    "createdAt": "2025-10-18T09:19:19.906Z",
-    "updatedAt": "2025-10-18T09:19:19.906Z"
-  },
-  {
-    "id": "29b05258-e12c-4a97-a1af-8b7aab9d23ed",
+    "id": "f168f65e-557e-4057-938a-0f24228205d3",
     "name": "Languages",
     "description": "French, Dutch, and English language classes",
     "color": "#F59E0B",
-    "createdAt": "2025-10-18T09:19:19.906Z",
-    "updatedAt": "2025-10-18T09:19:19.906Z"
+    "createdAt": "2025-10-18T11:05:17.681Z",
+    "updatedAt": "2025-10-18T11:05:17.681Z"
+  },
+  {
+    "id": "d185132d-8bbc-43c1-abc0-3294dca888a9",
+    "name": "Mathematics",
+    "description": "Elementary and advanced mathematics classes",
+    "color": "#3B82F6",
+    "createdAt": "2025-10-18T11:05:17.681Z",
+    "updatedAt": "2025-10-18T11:05:17.681Z"
+  },
+  {
+    "id": "c68692d9-7dee-43ba-bdf2-9b1ea59f78e8",
+    "name": "Science",
+    "description": "Physics, chemistry, and biology classes",
+    "color": "#10B981",
+    "createdAt": "2025-10-18T11:05:17.681Z",
+    "updatedAt": "2025-10-18T11:05:17.681Z"
+  },
+  {
+    "id": "2e3ff20d-d759-481a-bd9e-1f4ebdc8b782",
+    "name": "M3C",
+    "description": "",
+    "color": "#6366F1",
+    "createdAt": "2025-10-18T11:07:11.045Z",
+    "updatedAt": "2025-10-18T11:07:11.045Z"
   }
 ]

@@ -11,6 +11,13 @@ interface Class {
   color: string
 }
 
+interface Child {
+  id: string
+  name: string
+  parentId: string
+  classId: string
+}
+
 interface ClassAssignment {
   classId: string
   childName: string
@@ -20,6 +27,7 @@ const Register: React.FC = () => {
   const intl = useIntl()
   const { register, error, loading, clearError } = useAuth()
   const [classes, setClasses] = useState<Class[]>([])
+  const [childrenByClass, setChildrenByClass] = useState<{[classId: string]: Child[]}>({})
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -29,20 +37,56 @@ const Register: React.FC = () => {
     classAssignments: [] as ClassAssignment[]
   })
 
-  // Load available classes
+  // Load available classes and existing children
   useEffect(() => {
-    const loadClasses = async () => {
+    const loadClassesAndChildren = async () => {
       try {
-        const response = await fetch('/api/classes/public')
+        const response = await fetch('/api/classes/public', {
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          },
+          cache: 'no-store'
+        })
         if (response.ok) {
           const classData = await response.json()
+          console.log('Loaded classes:', classData)
           setClasses(classData)
+          
+          // Load existing children for each class
+          const childrenData: {[classId: string]: Child[]} = {}
+          for (const cls of classData) {
+            try {
+              const childrenResponse = await fetch(`/auth/children/class/${cls.id}`)
+              if (childrenResponse.ok) {
+                const children = await childrenResponse.json()
+                childrenData[cls.id] = children
+              }
+            } catch (error) {
+              console.warn(`Failed to load children for class ${cls.id}:`, error)
+              childrenData[cls.id] = []
+            }
+          }
+          setChildrenByClass(childrenData)
+          
+          // Clean up invalid class assignments
+          const availableClassIds = classData.map((cls: Class) => cls.id)
+          setFormData(prev => ({
+            ...prev,
+            classAssignments: prev.classAssignments.filter(
+              assignment => availableClassIds.includes(assignment.classId)
+            )
+          }))
+        } else {
+          console.error('Failed to load classes:', response.status, response.statusText)
         }
       } catch (error) {
         console.error('Failed to load classes:', error)
+        // Set empty array to show "No classes available" message
+        setClasses([])
       }
     }
-    loadClasses()
+    loadClassesAndChildren()
   }, [])
 
   const getLocalizedError = (error: string) => {
@@ -75,6 +119,21 @@ const Register: React.FC = () => {
       return
     }
 
+    // Validate class IDs against current available classes
+    const availableClassIds = classes.map(cls => cls.id)
+    const invalidClassAssignments = formData.classAssignments.filter(
+      assignment => !availableClassIds.includes(assignment.classId)
+    )
+    
+    if (invalidClassAssignments.length > 0) {
+      console.error('Invalid class IDs detected:', invalidClassAssignments)
+      alert(intl.formatMessage({ 
+        id: 'auth.invalidClassSelection', 
+        defaultMessage: 'Some selected classes are no longer available. Please refresh the page and try again.' 
+      }))
+      return
+    }
+
     // Validate parent role requires child names
     if (formData.roles.includes('parent')) {
       for (const assignment of formData.classAssignments) {
@@ -85,6 +144,11 @@ const Register: React.FC = () => {
       }
     }
 
+    // Filter out any assignments for classes that no longer exist
+    const validClassAssignments = formData.classAssignments.filter(
+      assignment => availableClassIds.includes(assignment.classId)
+    )
+
     try {
       await register({
         email: formData.email,
@@ -92,7 +156,7 @@ const Register: React.FC = () => {
         confirmPassword: formData.confirmPassword,
         phone: formData.phone || undefined,
         roles: formData.roles,
-        classAssignments: formData.classAssignments.map(assignment => ({
+        classAssignments: validClassAssignments.map(assignment => ({
           classId: assignment.classId,
           childName: assignment.childName || undefined
         }))
@@ -342,14 +406,57 @@ const Register: React.FC = () => {
             {/* Class Selection */}
             {formData.roles.length > 0 && (
               <div className="bg-gray-800 p-6 rounded-lg shadow-sm">
-                <h3 className="text-lg font-medium text-white mb-4">
-                  <FormattedMessage id="auth.selectClasses" defaultMessage="Select Classes" />
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-white">
+                    <FormattedMessage id="auth.selectClasses" defaultMessage="Select Classes" />
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Reload classes
+                      const loadClasses = async () => {
+                        try {
+                          const response = await fetch('/api/classes/public', {
+                            headers: {
+                              'Cache-Control': 'no-cache',
+                              'Pragma': 'no-cache'
+                            },
+                            cache: 'no-store'
+                          })
+                          if (response.ok) {
+                            const classData = await response.json()
+                            setClasses(classData)
+                            
+                            // Clean up invalid class assignments
+                            const availableClassIds = classData.map((cls: Class) => cls.id)
+                            setFormData(prev => ({
+                              ...prev,
+                              classAssignments: prev.classAssignments.filter(
+                                assignment => availableClassIds.includes(assignment.classId)
+                              )
+                            }))
+                          }
+                        } catch (error) {
+                          console.error('Failed to reload classes:', error)
+                        }
+                      }
+                      loadClasses()
+                    }}
+                    className="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+                  >
+                    🔄 <FormattedMessage id="common.refresh" defaultMessage="Refresh" />
+                  </button>
+                </div>
                 
                 {classes.length === 0 ? (
-                  <p className="text-gray-400 text-sm">
-                    <FormattedMessage id="auth.noClassesAvailable" defaultMessage="No classes available" />
-                  </p>
+                  <div className="text-center py-4">
+                    <p className="text-gray-400 text-sm mb-2">
+                      <FormattedMessage id="auth.noClassesAvailable" defaultMessage="No classes available" />
+                    </p>
+                    <p className="text-gray-500 text-xs">
+                      <FormattedMessage id="auth.noClassesHint" defaultMessage="Try refreshing or contact an administrator" />
+                    </p>
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     {classes.map((cls) => (
@@ -385,6 +492,36 @@ const Register: React.FC = () => {
                                 values={{ className: cls.name }}
                               />
                             </label>
+                            
+                            {/* Show existing children for this class */}
+                            {childrenByClass[cls.id] && childrenByClass[cls.id].length > 0 && (
+                              <div className="mb-2">
+                                <p className="text-xs text-gray-400 mb-1">
+                                  <FormattedMessage 
+                                    id="auth.existingChildrenInClass" 
+                                    defaultMessage="Existing children in this class:"
+                                  />
+                                </p>
+                                <div className="flex flex-wrap gap-1">
+                                  {childrenByClass[cls.id].map((child) => (
+                                    <button
+                                      key={child.id}
+                                      type="button"
+                                      onClick={() => handleChildNameChange(cls.id, child.name)}
+                                      className={`px-2 py-1 text-xs rounded border ${
+                                        formData.classAssignments.find(a => a.classId === cls.id)?.childName === child.name
+                                          ? 'bg-blue-600 border-blue-500 text-white'
+                                          : 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
+                                      }`}
+                                    >
+                                      {child.name}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Text input for new child name */}
                             <input
                               type="text"
                               value={formData.classAssignments.find(a => a.classId === cls.id)?.childName || ''}

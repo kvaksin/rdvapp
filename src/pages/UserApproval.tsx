@@ -25,6 +25,7 @@ const UserApproval: React.FC = () => {
   const [classes, setClasses] = useState<Class[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set())
 
   // Helper function to get class info by ID
   const getClassInfo = (classId: string) => {
@@ -37,6 +38,29 @@ const UserApproval: React.FC = () => {
   // Helper function to check if a user is a class lead
   const isClassLead = (user: PendingUser) => {
     return user.roles.includes('class_lead')
+  }
+
+  // Toggle user selection
+  const toggleUserSelection = (userId: string) => {
+    setSelectedUsers(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(userId)) {
+        newSet.delete(userId)
+      } else {
+        newSet.add(userId)
+      }
+      return newSet
+    })
+  }
+
+  // Select all users
+  const selectAllUsers = () => {
+    setSelectedUsers(new Set(pendingUsers.map(user => user.id)))
+  }
+
+  // Clear all selections
+  const clearAllSelections = () => {
+    setSelectedUsers(new Set())
   }
 
   const fetchPendingUsers = async () => {
@@ -126,6 +150,50 @@ const UserApproval: React.FC = () => {
     }
   }
 
+  // Bulk delete selected users
+  const bulkDeleteUsers = async () => {
+    if (selectedUsers.size === 0) return
+
+    if (!confirm(intl.formatMessage(
+      { id: 'admin.users.delete.confirm.bulk' },
+      { count: selectedUsers.size }
+    ))) {
+      return
+    }
+
+    setLoading(true)
+    try {
+      const response = await authenticatedFetch('/auth/delete-users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userIds: Array.from(selectedUsers)
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to delete users')
+      }
+
+      // Clear selections and refresh data
+      setSelectedUsers(new Set())
+      await fetchPendingUsers()
+
+      alert(intl.formatMessage(
+        { id: 'admin.users.delete.success' },
+        { count: selectedUsers.size }
+      ))
+    } catch (error) {
+      console.error('Error deleting users:', error)
+      setError(error instanceof Error ? error.message : 'Failed to delete users')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     fetchClassesData()
     fetchPendingUsers()
@@ -154,7 +222,7 @@ const UserApproval: React.FC = () => {
 
       <div className="bg-gray-800 rounded-lg shadow-lg">
         <div className="p-6 border-b border-gray-700">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-purple-300 flex items-center gap-2">
               <FormattedMessage id="userApproval.pendingUsers" defaultMessage="Pending Users" />
               {pendingUsers.length > 0 && (
@@ -185,6 +253,64 @@ const UserApproval: React.FC = () => {
               )}
             </button>
           </div>
+
+          {/* Bulk Selection Controls - Only show for admins */}
+          {isAdmin && pendingUsers.length > 0 && (
+            <div className="flex items-center justify-between gap-4 p-3 bg-gray-700/50 rounded-lg">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="select-all"
+                    checked={selectedUsers.size === pendingUsers.length && pendingUsers.length > 0}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        selectAllUsers()
+                      } else {
+                        clearAllSelections()
+                      }
+                    }}
+                    className="w-4 h-4 text-purple-600 bg-gray-600 border-gray-500 rounded focus:ring-purple-500 focus:ring-2"
+                  />
+                  <label htmlFor="select-all" className="text-sm text-gray-300">
+                    <FormattedMessage id="admin.users.selectAll" defaultMessage="Select All" />
+                  </label>
+                </div>
+                
+                {selectedUsers.size > 0 && (
+                  <span className="text-sm text-purple-300">
+                    <FormattedMessage 
+                      id="admin.users.selected" 
+                      defaultMessage="{count} selected"
+                      values={{ count: selectedUsers.size }}
+                    />
+                  </span>
+                )}
+              </div>
+
+              {selectedUsers.size > 0 && (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={clearAllSelections}
+                    className="px-3 py-1 text-xs bg-gray-600 hover:bg-gray-500 text-gray-300 rounded transition-colors"
+                  >
+                    <FormattedMessage id="admin.users.clearSelection" defaultMessage="Clear" />
+                  </button>
+                  <button
+                    onClick={bulkDeleteUsers}
+                    disabled={loading}
+                    className="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    🗑️ <FormattedMessage 
+                      id="admin.users.deleteSelected" 
+                      defaultMessage="Delete Selected ({count})"
+                      values={{ count: selectedUsers.size }}
+                    />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="p-6">
@@ -209,9 +335,22 @@ const UserApproval: React.FC = () => {
           ) : (
             <div className="space-y-6">
               {pendingUsers.map((user) => (
-                <div key={user.id} className="bg-gray-700 rounded-lg p-6 border border-gray-600">
+                <div key={user.id} className={`bg-gray-700 rounded-lg p-6 border border-gray-600 ${isAdmin ? 'relative' : ''}`}>
                   <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                    <div className="flex-1">
+                    {/* Selection checkbox for admins */}
+                    {isAdmin && (
+                      <div className="absolute top-4 left-4">
+                        <input
+                          type="checkbox"
+                          id={`select-${user.id}`}
+                          checked={selectedUsers.has(user.id)}
+                          onChange={() => toggleUserSelection(user.id)}
+                          className="w-4 h-4 text-purple-600 bg-gray-600 border-gray-500 rounded focus:ring-purple-500 focus:ring-2"
+                        />
+                      </div>
+                    )}
+                    
+                    <div className={`flex-1 ${isAdmin ? 'ml-8' : ''}`}>
                       <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">
                           {user.email.charAt(0).toUpperCase()}

@@ -344,6 +344,88 @@ router.post('/reject/:userId', passport.authenticate('jwt', { session: false }),
   }
 })
 
+// Bulk delete users (admin only)
+router.delete('/delete-users', auth.authenticateToken, auth.requireRole(['administrator']), async (req, res) => {
+  try {
+    const { userIds } = req.body
+    const deleterId = req.user.id
+
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ error: 'userIds array is required' })
+    }
+
+    const result = await auth.deleteUsers(userIds, deleterId)
+    res.json(result)
+  } catch (error) {
+    console.error('Error deleting users:', error)
+    res.status(500).json({ error: 'Failed to delete users' })
+  }
+})
+
+// Class assignment request routes
+router.post('/request-class-assignment', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    const { classId, reason, childName } = req.body
+    const userId = req.user.id // Fixed: use req.user.id instead of req.user.userId
+
+    if (!classId) {
+      return res.status(400).json({ error: 'Class ID is required' })
+    }
+
+    const request = await auth.createClassAssignmentRequest({
+      userId,
+      classId,
+      reason: reason || '',
+      childName: childName || null
+    })
+
+    res.json({ message: 'Class assignment request submitted', request })
+  } catch (error) {
+    console.error('Error creating class assignment request:', error)
+    res.status(500).json({ error: 'Failed to create class assignment request' })
+  }
+})
+
+router.get('/class-assignment-requests', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator']), async (req, res) => {
+  try {
+    console.log('🔍 Admin requesting class assignment requests, user:', req.user?.email)
+    const requests = await auth.getClassAssignmentRequests()
+    console.log('📋 Found requests:', requests.length)
+    console.log('🔥 Requests data:', JSON.stringify(requests, null, 2))
+    res.json(requests)
+  } catch (error) {
+    console.error('Error fetching class assignment requests:', error)
+    res.status(500).json({ error: 'Failed to fetch class assignment requests' })
+  }
+})
+
+router.post('/approve-class-assignment/:requestId', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator']), async (req, res) => {
+  try {
+    const { requestId } = req.params
+    const approverId = req.user.id
+
+    const result = await auth.approveClassAssignmentRequest(requestId, approverId)
+    res.json({ message: 'Class assignment request approved', result })
+  } catch (error) {
+    console.error('Error approving class assignment request:', error)
+    res.status(500).json({ error: error.message || 'Failed to approve class assignment request' })
+  }
+})
+
+router.post('/reject-class-assignment/:requestId', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator']), async (req, res) => {
+  try {
+    const { requestId } = req.params
+    const { reason } = req.body
+    const approverId = req.user.id
+
+    const result = await auth.rejectClassAssignmentRequest(requestId, approverId, reason)
+    res.json({ message: 'Class assignment request rejected', result })
+  } catch (error) {
+    console.error('Error rejecting class assignment request:', error)
+    res.status(500).json({ error: 'Failed to reject class assignment request' })
+  }
+})
+
 // Get user notifications
 router.get('/notifications', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
@@ -371,6 +453,75 @@ router.post('/notifications/:notificationId/read', passport.authenticate('jwt', 
     })
   } catch (error) {
     console.error('Error marking notification as read:', error)
+    res.status(400).json({ error: error.message })
+  }
+})
+
+// Children management routes
+router.get('/children', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    const userId = req.user.id
+    const children = auth.getChildrenByParent(userId)
+    res.json(children)
+  } catch (error) {
+    console.error('Error getting children:', error)
+    res.status(500).json({ error: 'Failed to get children' })
+  }
+})
+
+router.get('/children/class/:classId', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    const { classId } = req.params
+    const children = auth.getChildrenByClass(classId)
+    res.json(children)
+  } catch (error) {
+    console.error('Error getting children by class:', error)
+    res.status(500).json({ error: 'Failed to get children' })
+  }
+})
+
+router.post('/children', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    const { name, classId } = req.body
+    const parentId = req.user.id
+    
+    if (!name) {
+      return res.status(400).json({ error: 'Child name is required' })
+    }
+    
+    if (!classId) {
+      return res.status(400).json({ error: 'Class ID is required' })
+    }
+    
+    const child = auth.addChild({ parentId, name, classId })
+    res.json({ message: 'Child added successfully', child })
+  } catch (error) {
+    console.error('Error adding child:', error)
+    res.status(400).json({ error: error.message })
+  }
+})
+
+router.put('/children/:childId', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    const { childId } = req.params
+    const updates = req.body
+    
+    const child = auth.updateChild(childId, updates)
+    res.json({ message: 'Child updated successfully', child })
+  } catch (error) {
+    console.error('Error updating child:', error)
+    res.status(400).json({ error: error.message })
+  }
+})
+
+router.delete('/children/:childId', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    const { childId } = req.params
+    
+    auth.deleteChild(childId)
+    res.json({ message: 'Child deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting child:', error)
     res.status(400).json({ error: error.message })
   }
 })

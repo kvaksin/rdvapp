@@ -1,23 +1,16 @@
 [
   {
-    "id": "1760770647823qvphgfbii",
-    "userId": "1760770647821dt5co9jou",
-    "classId": "edd99350-bde6-48c3-a69d-b26445391785",
-    "childName": "Test Child",
-    "createdAt": "2025-10-18T06:57:27.823Z"
-  },
-  {
-    "id": "1760770780225ry6zii5zk",
-    "userId": "1760770780224qexhm2pe9",
-    "classId": "edd99350-bde6-48c3-a69d-b26445391785",
-    "childName": "Another Child",
-    "createdAt": "2025-10-18T06:59:40.225Z"
-  },
-  {
-    "id": "17607730653351mmcn5763",
+    "id": "1760827253189w7c6p1okq",
     "userId": "1760773065330af6ru11py",
-    "classId": "4c9c5e68-db86-4335-a5e3-65e4830d131a",
+    "classId": "2e3ff20d-d759-481a-bd9e-1f4ebdc8b782",
     "childName": null,
-    "createdAt": "2025-10-18T07:37:45.335Z"
+    "createdAt": "2025-10-18T22:40:53.190Z"
+  },
+  {
+    "id": "17608274521492jo4lculx",
+    "userId": "1760827452147y9gh7r7rc",
+    "classId": "2e3ff20d-d759-481a-bd9e-1f4ebdc8b782",
+    "childName": "Lora",
+    "createdAt": "2025-10-18T22:44:12.149Z"
   }
 ]

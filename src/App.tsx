@@ -10,6 +10,7 @@ import NotificationBell from './components/NotificationBell';
 // Pages - using dynamic imports to handle module loading issues
 const Admin = React.lazy(() => import('./pages/Admin'));
 const UserApproval = React.lazy(() => import('./pages/UserApproval'));
+const ClassRequest = React.lazy(() => import('./pages/ClassRequest'));
 const Home = React.lazy(() => import('./pages/Home'));
 const ClassSchedule = React.lazy(() => import('./pages/ClassSchedule'));
 const Login = React.lazy(() => import('./pages/Login'));
@@ -111,6 +112,12 @@ function Layout({ children }: { children: React.ReactNode }) {
       defaultMessage: 'User Approval', 
       path: '/user-approval', 
       show: user?.roles && (user.roles.includes('administrator') || user.roles.includes('class_lead'))
+    },
+    { 
+      label: 'nav.classRequest', 
+      defaultMessage: 'Request Class Assignment', 
+      path: '/class-request', 
+      show: user?.roles && (user.roles.includes('parent') || user.roles.includes('class_lead'))
     }
   ];
 
@@ -372,6 +379,16 @@ const router = createBrowserRouter([
       <ProtectedRoute requiredRoles={['administrator', 'class_lead']}>
         <ErrorBoundary>
           <UserApproval />
+        </ErrorBoundary>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: '/class-request',
+    element: (
+      <ProtectedRoute requiredRoles={['parent', 'class_lead']}>
+        <ErrorBoundary>
+          <ClassRequest />
         </ErrorBoundary>
       </ProtectedRoute>
     )

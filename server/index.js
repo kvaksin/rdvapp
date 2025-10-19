@@ -691,7 +691,7 @@ app.post('/api/reset', async (req, res) => {
 const port = process.env.PORT || 4000
 
 // Initialize data files
-await db.resetDatabase().catch(console.error)
+// await db.resetDatabase().catch(console.error) // Commented out to prevent auto-reset
 
 // Start server
 app.listen(port, () => {

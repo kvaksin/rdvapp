@@ -4,18 +4,1353 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4-blue.svg)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-7.1-646cff.svg)](https://vitejs.dev/)
 [![Tailwind](https://img.shields.io/badge/Tailwind-3.4-38bdf8.svg)](https://tailwindcss.com/)
+[![Security](https://img.shields.io/badge/Security-Enhanced-green.svg)](https://github.com/kvaksin/rdvapp)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-A modern, multi-class appointment booking application built with Vite, React, TypeScript, and Tailwind CSS. Features class-based scheduling, responsive design, full internationalization support (French, English, Dutch), and calendar integration with ICS export.
+A **secure, comprehensive class-based appointment booking application** with advanced user management, role-based authentication, and robust approval workflows. Built with modern web technologies including Vite, React, TypeScript, and Tailwind CSS.
 
-## ✨ Features Overview
+## 🚨 **Recent Enhancements**
+
+### ✅ **Smart Notification Navigation (v2.2.0)**
+**New Feature**: Enhanced notification system with intelligent click-to-action navigation for improved workflow efficiency.
+
+**Navigation Improvements**:
+- ✅ **Smart Click Navigation**: Clicking notifications automatically opens relevant pages for pending tasks
+- ✅ **Action-Based Routing**: User approval requests → User Approval page, Class assignment requests → Admin page
+- ✅ **Visual Task Indicators**: Clear distinction between actionable and informational notifications
+- ✅ **Workflow Optimization**: Streamlined user experience from notification to task completion
+
+### ✅ **Authentication Security Fix (v2.1.0)**
+**Issue Resolved**: Fixed critical security vulnerability where users with pending or rejected status could access protected endpoints with valid JWT tokens.
+
+**Security Improvements**:
+- ✅ **Enhanced Token Validation**: `authenticateToken` middleware now verifies user approval status on every request
+- ✅ **Status-Based Access Control**: Users must have `status: "approved"` to access any protected resources
+- ✅ **Real-Time Authorization**: Token validation includes live user status checking
+- ✅ **Graceful Error Messages**: Clear feedback for pending/rejected users with detailed status information
+
+**Protected Endpoints**:
+- `/api/slots` - Class schedules and time slots
+- `/api/bookings` - Appointment bookings
+- `/api/classes` - Class management
+- All admin and user management functions
+
+**Before Fix**: Pending/rejected users could access class schedules and book appointments  
+**After Fix**: Only approved users can access any system functionality beyond login
+
+**Security Testing**: ✅ Verified that pending users receive `403 Forbidden` errors when accessing protected resources
+
+## 🛡️ **Security Architecture**
+
+### **Multi-Layer Security Model**
+1. **Authentication Layer**: JWT-based token authentication with secure password hashing
+2. **Authorization Layer**: Role-based permissions (Administrator, Class Lead, Parent)
+3. **Status Verification Layer**: Real-time user approval status validation
+4. **Input Validation Layer**: Server-side validation of all user inputs
+5. **Audit Layer**: Comprehensive logging of all security events
+
+### **User Approval Workflow Security**
+- **Pending State**: New registrations cannot access any protected resources
+- **Approval Authority**: Strict role-based approval permissions prevent privilege escalation
+- **Status Enforcement**: Token validation includes live user status checking on every request
+- **Rejection Handling**: Rejected users receive clear feedback and cannot re-access system
+
+### **Class Lead Security Restrictions**
+- ✅ Can approve parent users only
+- ❌ **Cannot approve other class leads** (prevents unauthorized privilege escalation)
+- ❌ **Cannot approve administrators** (maintains admin authority hierarchy)
+- 🔒 All approval violations logged and blocked with user notification
+
+## ✨ Key Features
+
+### 🔐 Advanced Authentication & User Management System
+
+#### **Multi-Role Authentication Architecture**
+- **JWT-based Security**: Secure token authentication with role-based access control
+- **Three User Roles**: Administrator, Class Lead, and Parent with distinct permissions
+- **Registration & Approval Workflow**: Multi-step user registration with mandatory approval process
+- **Role-Based Route Protection**: Pages and features restricted based on user authorization levels
+
+#### **User Registration & Approval System**
+- **Self-Registration Portal**: Users can register with email, password, and role selection
+- **Class Assignment During Registration**: Users select their target class during signup
+- **Pending Status Management**: New registrations enter pending state until approved
+- **Approval Authority Rules**:
+  - **Administrators**: Can approve all user types (administrators, class leads, parents)
+  - **Class Leads**: Can approve parents only (NOT other class leads or administrators)
+  - **Parents**: Cannot approve any users
+- **Email Notifications**: Automatic notifications for approval/rejection decisions
+- **Audit Logging**: Complete tracking of all approval decisions and user actions
+
+#### **Bulk User Management**
+- **Multi-Select Interface**: Checkbox-based selection for bulk operations
+- **Admin-Only Bulk Deletion**: Mass user removal with cascading data cleanup
+- **Self-Deletion Prevention**: Administrators cannot delete their own accounts
+- **Comprehensive Data Cleanup**: Automatically removes associated bookings, requests, and assignments
+- **Confirmation Dialogs**: Multiple confirmation steps for destructive operations
+
+#### **Class Assignment Request System**
+- **Request Submission Portal**: Parents and class leads can request class assignment changes
+- **Admin Approval Workflow**: All class assignment changes require administrator approval
+- **Request Tracking**: Users can view status and history of their requests
+- **Reason Documentation**: Optional reason field for assignment change requests
+- **Notification System**: Automatic notifications for request status updates
+- **Historical Records**: Complete audit trail of all class assignment changes
+
+#### **📬 Smart Notification System**
+- **Real-Time Notifications**: Instant notifications for all system events and user actions
+- **Interactive Click Navigation**: Clicking notifications automatically opens relevant action pages
+- **Smart Routing Logic**:
+  - **User Approval Requests** → Navigate directly to User Approval page
+  - **Class Assignment Requests** → Navigate directly to Admin management page
+  - **Informational Messages** → Mark as read without navigation (approvals/rejections)
+- **Role-Based Targeting**: Notifications sent only to users with appropriate permissions
+- **Visual Indicators**: 
+  - Unread count badges on notification bell
+  - Color-coded notification types (blue=action required, green=approved, red=rejected)
+  - Actionable vs informational notification styling
+- **Notification Management**: 
+  - Mark as read functionality with automatic status updates
+  - Notification history and audit trail
+  - Real-time updates without page refresh
+- **Workflow Optimization**: Streamlined user experience from notification alert to task completion
+
+### 👥 Role-Based Permissions Matrix
+
+#### 👑 **Administrator (Full System Control)**
+**User Management:**
+- ✅ Approve/reject ALL user registrations (administrators, class leads, parents)
+- ✅ Bulk delete users with comprehensive audit logging
+- ✅ Manage class assignment requests with approval/rejection workflow
+- ✅ View system-wide user activity and audit logs
+- ✅ Access complete user management dashboard
+
+**Class & Appointment Management:**
+- ✅ Create, modify, and delete classes with custom colors and descriptions
+- ✅ Create and manage time slots for ALL classes system-wide
+- ✅ View and manage ALL bookings across all classes
+- ✅ Reset individual class schedules or entire system
+- ✅ Configure global system settings (appointment duration, etc.)
+
+**System Administration:**
+- ✅ Access complete admin dashboard with all features
+- ✅ View comprehensive system logs and analytics
+- ✅ Configure system-wide settings and preferences
+- ✅ Manage API access and security settings
+
+**Navigation Access:** All pages and features
+
+#### 🎓 **Class Lead (Limited Administrative Access)**
+**User Management:**
+- ✅ Approve parent user registrations (parents only)
+- ❌ Cannot approve class lead or administrator registrations
+- ✅ Submit class assignment change requests
+- ✅ View notifications related to assigned classes
+
+**Class & Appointment Management:**
+- ✅ Create and manage time slots for assigned classes only
+- ✅ View and manage bookings for assigned classes only
+- ✅ Reset schedules for assigned classes only
+- ❌ Cannot access other classes' data or system-wide information
+- ❌ Cannot modify global system settings
+
+**Restrictions:**
+- ❌ No access to bulk user operations
+- ❌ Cannot approve other class leads or administrators
+- ❌ Cannot view system-wide audit logs or analytics
+- ❌ Cannot delete users or access advanced admin features
+
+**Navigation Access:** Home, Limited Admin Dashboard, User Approval (parents only), Class Requests
+
+#### 👨‍👩‍👧‍👦 **Parent (Booking & Request Access)**
+**Appointment Management:**
+- ✅ Book appointments for children in assigned class
+- ✅ Cancel/delete own bookings with confirmation
+- ✅ Download calendar files (.ics) for personal bookings
+- ✅ View personal booking history and upcoming appointments
+
+**Class Assignment:**
+- ✅ Submit class assignment change requests with reason
+- ✅ View status and history of assignment requests
+- ✅ Receive notifications for request status updates
+
+**Restrictions:**
+- ❌ Cannot access any administrative functions
+- ❌ Cannot approve users or manage system
+- ❌ Cannot view other users' bookings or data
+- ❌ Cannot create time slots or manage classes
+
+**Navigation Access:** Home, Class Schedule (assigned class only), Class Requests
+
+### 🔄 Registration & Approval Workflow
+
+#### **Step 1: User Registration Process**
+1. **Registration Form Completion**:
+   - Valid email address (serves as unique identifier)
+   - Secure password (minimum requirements enforced)
+   - Phone number (optional contact information)
+   - Role selection (Parent, Class Lead, or Administrator)
+
+2. **Class Assignment Selection**:
+   - Choose from available classes in dropdown
+   - Provide child's name (required for parent role)
+   - System validates class availability and capacity
+
+3. **Account Creation**:
+   - User account created with `status: 'pending'`
+   - Cannot access system features until approved
+   - Automatic notification sent to eligible approvers
+
+#### **Step 2: Pending Review State**
+- **Account Status**: `pending` - login disabled until approval
+- **Approver Notifications**: Admins and eligible class leads receive notifications
+- **Review Queue**: Applications appear in "User Approval" admin section
+- **No Auto-Approval**: All registrations require manual review and approval
+
+#### **Step 3: Approval Authority & Rules**
+
+**Critical Approval Restrictions:**
+- 🚫 **Class leads CANNOT approve other class leads** (security measure)
+- 🚫 **Class leads CANNOT approve administrators** (privilege escalation prevention)
+- ✅ **Only administrators can approve class leads and other administrators**
+- ⚠️ **All approval violations are logged and blocked with user feedback**
+
+**Approval Matrix:**
+
+| Applicant Role | Administrator Can Approve | Class Lead Can Approve | Notes |
+|---|---|---|---|
+| **Parent** | ✅ Yes | ✅ Yes | Any admin or class lead can approve parents |
+| **Class Lead** | ✅ Yes | ❌ **NO** | **Only administrators can approve class leads** |
+| **Administrator** | ✅ Yes | ❌ **NO** | **Only administrators can approve other admins** |
+
+#### **Step 4: Approval/Rejection Process**
+**Approval Actions:**
+1. Approver reviews application details (email, role, class assignments)
+2. System validates approver has sufficient permissions
+3. Click "Approve" - user status changes to `approved`
+4. User receives approval notification and can immediately log in
+5. Access granted based on assigned role with appropriate navigation
+
+**Rejection Actions:**
+1. Click "Reject" with optional reason for rejection
+2. User account marked as `rejected` - cannot log in
+3. User receives rejection notification with reason (if provided)
+4. Rejection prevents future applications with same email address
+
+### 🏫 Class Assignment Change Workflow
+
+#### **Request Submission Process**
+1. **Navigation**: Access "Request Class Assignment" from user menu
+2. **Form Completion**:
+   - Select desired class from dropdown (populated with available classes)
+   - Provide child's name (required for parents)
+   - Optional reason for assignment change (recommended for faster approval)
+3. **Submission**: Request enters `pending` status in admin review queue
+
+#### **Administrator Review Process**
+1. **Request Queue**: All pending requests appear in admin dashboard
+2. **Review Information**:
+   - Current assignment vs. requested assignment
+   - User details and provided reason
+   - Class capacity and availability status
+3. **Decision Actions**:
+   - **Approve**: User moved to new class, old assignments cleaned up
+   - **Reject**: Request denied with optional reason for user feedback
+
+#### **Smart Notification & Tracking System**
+- **Submission Confirmation**: User receives request submission confirmation
+- **Admin Notifications**: Administrators receive immediate notification of new requests
+- **Status Updates**: Users notified of approval/rejection decisions
+- **Request History**: Complete audit trail of all assignment change requests
+- **Status Tracking**: Users can view current status of pending requests
+- **Click-to-Action Navigation**: Clicking notifications automatically opens relevant management pages
+- **Smart Routing**: Different notification types navigate to appropriate workflow pages
+- **Visual Task Indicators**: Clear distinction between actionable and informational notifications
 
 ### 🎓 Class-Based Appointment System
-- **Multiple Class Management**: Create and manage multiple classes with unique colors and names
-- **Per-Class Scheduling**: Each class has its own dedicated schedule and booking URL
-- **Class-Specific URLs**: Shareable URLs for each class schedule (e.g., `/class/{classId}/{token}`)
-- **Visual Class Identification**: Color-coded slots and badges for easy class recognition
-- **Isolated Class Operations**: Reset or manage slots for individual classes without affecting others
+- **Multiple Class Management**: Create unlimited classes with custom names, colors, and descriptions
+- **Per-Class Scheduling**: Each class maintains independent schedule and booking system
+- **Class-Specific URLs**: Shareable direct links for each class schedule
+- **Visual Class Identification**: Color-coded interface elements for easy class recognition
+- **Isolated Operations**: Class-specific resets and management without affecting other classes
+
+### 📅 Advanced Appointment Management
+- **Flexible Time Slot Creation**: Batch create multiple slots using date/time ranges
+- **Configurable Duration**: Customizable appointment lengths (10, 15, 20, or 30 minutes)
+- **Smart Booking System**: Real-time availability checks with conflict prevention
+- **Child Name Tracking**: Record child's name for each appointment booking
+- **Booking Status Indicators**: Visual display of available/booked slots with occupant information
+- **ICS Calendar Export**: Download `.ics` files compatible with Google Calendar, Apple Calendar, Outlook
+- **Self-Service Cancellation**: Users can cancel their own bookings with confirmation dialogs
+- **Automatic Slot Release**: Cancelled bookings immediately return to available pool
+- **Duplicate Prevention**: Server-side validation prevents overlapping or conflicting slots
+
+### 🌐 Complete Internationalization (i18n)
+- **Multi-Language Support**: Full interface translation in French (default), English, and Dutch
+- **100+ Translation Keys**: Comprehensive coverage including:
+  - Authentication flow (registration, login, approval)
+  - Admin interface and user management
+  - Booking system and calendar integration
+  - Error messages and system notifications
+  - User role descriptions and permissions
+  - Class assignment request workflow
+- **Localized Date/Time**: Native formatting for each supported language
+- **Language Persistence**: User language preference saved across sessions
+- **Easy Language Switching**: Accessible language selector in main navigation
+
+### 🎨 Modern, Responsive UI Design
+- **Dark Theme**: Professional dark color scheme optimized for extended use
+- **Mobile-First Responsive**: Fully functional across all device sizes and orientations
+- **Tailwind CSS**: Utility-first styling with consistent design system
+- **Interactive Components**: Smooth animations, hover effects, and loading states
+- **Accessibility Features**: ARIA labels, keyboard navigation, semantic HTML structure
+- **Visual Feedback**: Loading indicators, success messages, error displays, confirmation dialogs
+
+### 🛡️ Security & Audit Features
+
+#### **Authentication Security**
+- **JWT Token Management**: Secure token generation with configurable expiration
+- **Password Security**: Enforced minimum requirements with secure hashing
+- **Session Management**: Automatic session expiration and renewal
+- **Route Protection**: Server-side validation of user permissions for all endpoints
+- **CORS Configuration**: Controlled cross-origin access for security
+
+#### **Authorization Controls**
+- **Role-Based Access**: Granular permissions based on user role hierarchy
+- **Permission Validation**: Every action validated against user authorization level
+- **Privilege Escalation Prevention**: Strict controls prevent unauthorized role changes
+- **Self-Deletion Protection**: Users cannot delete their own accounts (admin safety)
+
+#### **Comprehensive Audit Logging**
+- **User Actions**: Registration, approval, rejection, role changes logged
+- **Bulk Operations**: Detailed logs of mass user deletions with affected user lists
+- **Class Assignments**: All assignment changes and requests tracked with timestamps
+- **Administrative Actions**: Admin decisions logged with user identification
+- **System Changes**: Configuration modifications and system resets documented
+- **Error Tracking**: Failed authentication attempts and permission violations logged
+
+#### **Data Integrity & Consistency**
+- **Transactional Operations**: Multi-step operations ensure data consistency
+- **Cascading Deletions**: User deletion properly cleans up associated data
+- **Validation**: Server-side validation of all user inputs and requests
+- **Error Recovery**: Graceful handling of failures with rollback capabilities
+
+### 📊 Admin Dashboard Features
+
+#### **User Management Interface**
+- **Registration Approval Queue**: Streamlined interface for reviewing pending users
+- **Bulk Operations**: Multi-select interface for efficient user management
+- **User Search & Filtering**: Find users by role, status, email, or class assignment
+- **Activity Monitoring**: View user login history and recent actions
+- **Role Management**: Assign and modify user roles with proper authorization checks
+
+#### **Class Management System**
+- **Class Creation**: Add new classes with custom names, colors, and descriptions
+- **Class Modification**: Edit existing class properties and settings
+- **Class Deletion**: Remove classes with proper cleanup of associated data
+- **Enrollment Management**: View and manage user assignments to classes
+- **Capacity Monitoring**: Track class enrollment and availability
+
+#### **Appointment & Schedule Management**
+- **Batch Slot Creation**: Create multiple time slots using date/time ranges
+- **Class-Specific Scheduling**: Manage slots independently for each class
+- **Booking Overview**: View all bookings across classes with filtering options
+- **Schedule Reset**: Reset individual class schedules or entire system
+- **Conflict Resolution**: Identify and resolve scheduling conflicts
+
+#### **System Configuration**
+- **Global Settings**: Configure appointment duration and system-wide preferences
+- **Notification Settings**: Manage email notification preferences and templates
+- **Security Settings**: Configure password requirements and session timeouts
+- **Data Export**: Export user data, bookings, and audit logs for reporting
+
+### 🔗 API Architecture & Documentation
+
+#### **RESTful API Design**
+- **Consistent Endpoints**: Logical URL structure following REST conventions
+- **Standard HTTP Methods**: Proper use of GET, POST, PUT, DELETE operations
+- **JSON Responses**: Consistent response format with comprehensive error handling
+- **Status Codes**: Appropriate HTTP status codes for all response scenarios
+
+#### **Authentication Endpoints**
+- `POST /auth/register` - User registration with role selection and class assignment
+- `POST /auth/login` - User authentication with JWT token generation
+- `GET /auth/profile` - Retrieve current user profile and permissions
+- `POST /auth/logout` - Secure logout with token invalidation
+
+#### **User Management Endpoints**
+- `GET /auth/pending-users` - List users awaiting approval (admin/class_lead only)
+- `POST /auth/approve/:userId` - Approve user registration (role-based permissions)
+- `POST /auth/reject/:userId` - Reject user registration with optional reason
+- `DELETE /auth/delete-users` - Bulk delete users (admin only)
+
+#### **Class Assignment Endpoints**
+- `POST /auth/request-class-assignment` - Submit class assignment change request
+- `GET /auth/class-assignment-requests` - List all assignment requests (admin only)
+- `POST /auth/approve-class-assignment/:requestId` - Approve assignment request
+- `POST /auth/reject-class-assignment/:requestId` - Reject assignment request
+
+#### **Comprehensive API Documentation**
+- **Interactive Swagger UI**: Available at `/api/docs/ui` for live testing
+- **OpenAPI Specification**: Complete API spec at `/api/openapi.json`
+- **Example Requests**: Code samples for all endpoints in multiple languages
+- **Authentication Guide**: Detailed instructions for JWT token usage
+- **Error Reference**: Complete list of error codes and troubleshooting guide
+
+## 🛠️ Technology Stack
+
+### Frontend Architecture
+- **React 18**: Modern hooks-based architecture with functional components
+- **TypeScript 5.4**: Full type safety, IntelliSense, and compile-time error checking
+- **Vite 7.1**: Lightning-fast development server with Hot Module Replacement (HMR)
+- **Tailwind CSS 3.4**: Utility-first styling with custom design system
+- **React Router**: Client-side routing with role-based route protection
+- **React Context**: State management for authentication and user sessions
+- **react-intl & i18next**: Complete internationalization framework
+- **react-datepicker**: Advanced date/time selection components
+
+### Backend Architecture
+- **Express.js**: Fast, minimalist web framework for Node.js
+- **Node.js**: Server-side JavaScript runtime environment
+- **JWT Authentication**: JSON Web Token-based security with role-based access control
+- **Passport.js**: Authentication middleware for Node.js
+- **File-based Storage**: JSON database system for rapid development and deployment
+- **ICS Generation**: RFC 5545 compliant calendar file generation
+- **CORS Support**: Configurable cross-origin resource sharing
+- **API Documentation**: Swagger/OpenAPI integration for interactive documentation
+
+### Database Architecture
+- **JSON File Storage**: Lightweight, file-based database system
+- **Data Models**:
+  - **Users**: Authentication, roles, and profile information
+  - **Classes**: Class definitions with colors and descriptions
+  - **Slots**: Time slot management with class associations
+  - **Bookings**: Appointment bookings with child information
+  - **UserRoles**: Role assignments and permissions
+  - **UserClasses**: Class assignment relationships
+  - **ClassAssignmentRequests**: Assignment change request tracking
+  - **Notifications**: User notification system
+  - **Config**: System configuration and settings
+
+### Security Implementation
+- **JWT Token Authentication**: Secure, stateless authentication system
+- **Role-Based Authorization**: Granular permission system with three user roles
+- **Password Hashing**: Secure password storage using industry-standard hashing
+- **Session Management**: Automatic token expiration and renewal
+- **Input Validation**: Server-side validation of all user inputs
+- **CORS Protection**: Controlled cross-origin access for security
+- **Audit Logging**: Comprehensive logging of all user actions and system changes
+
+## 🚀 Getting Started
+
+### Prerequisites
+- **Node.js 18+**: Required for running the application
+- **npm or yarn**: Package manager for dependency installation
+- **Modern Web Browser**: Chrome, Firefox, Safari, or Edge
+
+### Quick Start Installation
+
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/kvaksin/rdvapp.git
+   cd rdvapp
+   ```
+
+2. **Install Dependencies**:
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+
+3. **Environment Configuration**:
+   ```bash
+   # Copy environment template
+   cp .env.example .env
+   
+   # Edit environment variables (optional for development)
+   nano .env
+   ```
+
+4. **Initialize Database** (Optional - auto-created on first run):
+   ```bash
+   # Reset database to default state
+   npm run reset-db
+   ```
+
+5. **Start Development Servers**:
+   ```bash
+   # Start backend server (Terminal 1)
+   npm run start:server
+   
+   # Start frontend development server (Terminal 2)
+   npm run dev
+   ```
+
+6. **Access Application**:
+   - **Frontend**: http://localhost:5174
+   - **Backend API**: http://localhost:4000
+   - **API Documentation**: http://localhost:4000/api/docs/ui
+
+### Default User Accounts
+
+The system creates default accounts for immediate testing:
+
+```bash
+# Administrator Account
+Email: admin@example.com
+Password: Tenbosch@123
+Role: Administrator
+Access: Full system control
+
+# Class Lead Account
+Email: classlead@example.com
+Password: Tenbosch@123
+Role: Class Lead
+Access: Limited admin functions
+
+# Parent Account
+Email: parent@example.com
+Password: Tenbosch@123
+Role: Parent
+Access: Booking and requests only
+```
+
+## 📁 Project Structure
+
+```
+rdvapp/
+├── src/                           # Frontend React application
+│   ├── components/                # Reusable UI components
+│   │   ├── Feed.tsx              # Main content display component
+│   │   ├── LeftNav.tsx           # Primary navigation sidebar
+│   │   ├── RightPanel.tsx        # Secondary information panel
+│   │   ├── StreamCard.tsx        # Content card component
+│   │   ├── ClassAssignmentRequests.tsx # Admin class assignment management
+│   │   └── NotificationBell.tsx  # Smart notification system with click-to-action navigation
+│   ├── pages/                     # Application pages/routes
+│   │   ├── Home.tsx              # Landing page with overview
+│   │   ├── Login.tsx             # User authentication page
+│   │   ├── Register.tsx          # User registration with role selection
+│   │   ├── Admin.tsx             # Administrative dashboard
+│   │   ├── UserApproval.tsx      # User approval management
+│   │   ├── ClassRequest.tsx      # Class assignment request interface
+│   │   ├── ClassSchedule.tsx     # Class-specific booking interface
+│   │   ├── BookRdv.tsx           # General appointment booking
+│   │   └── ApiDocs.tsx           # API documentation viewer
+│   ├── contexts/                  # React context providers
+│   │   └── AuthContext.tsx       # Authentication state management
+│   ├── api/                       # API client functions
+│   │   └── client.ts             # HTTP client with authentication
+│   ├── types/                     # TypeScript type definitions
+│   │   └── api.ts                # API response and data types
+│   ├── translations/              # Internationalization files
+│   │   ├── fr.ts                 # French translations (default)
+│   │   ├── en.ts                 # English translations
+│   │   └── nl.ts                 # Dutch translations
+│   ├── i18n.tsx                   # i18n configuration and hooks
+│   ├── App.tsx                    # Main application component with routing
+│   └── main.tsx                   # Application entry point
+├── server/                        # Backend Express.js server
+│   ├── index.js                  # Main server file with API endpoints
+│   ├── auth.js                   # Authentication logic and user management
+│   ├── authRoutes.js            # Authentication and user routes
+│   └── db.js                     # Database operations and file management
+├── data/                          # JSON database files (auto-generated)
+│   ├── users.json                # User accounts and authentication
+│   ├── userRoles.json            # User role assignments
+│   ├── userClasses.json          # User class assignments
+│   ├── classes.json              # Class definitions and properties
+│   ├── slots.json                # Time slot availability
+│   ├── bookings.json             # Appointment bookings
+│   ├── notifications.json        # User notifications
+│   ├── classAssignmentRequests.json # Class assignment change requests
+│   └── config.json               # System configuration
+├── scripts/                       # Utility scripts
+│   ├── setup.sh                 # Initial setup script
+│   ├── reset-db.sh              # Database reset utility
+│   └── backup.sh                # Database backup script
+├── docs/                          # Documentation
+│   ├── API.md                    # API documentation
+│   ├── DEPLOYMENT.md            # Deployment guide
+│   └── DEVELOPMENT.md           # Development guidelines
+├── .env.example                   # Environment variables template
+├── vite.config.ts                # Vite configuration
+├── tailwind.config.cjs           # Tailwind CSS configuration
+├── tsconfig.json                 # TypeScript configuration
+└── package.json                   # Dependencies and scripts
+```
+
+## 🔗 API Reference
+
+### Authentication Endpoints
+
+#### User Registration
+```http
+POST /auth/register
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "SecurePassword123",
+  "roles": ["parent"],
+  "classAssignments": [
+    {
+      "classId": "class-id-here",
+      "childName": "Child Name"
+    }
+  ]
+}
+```
+
+#### User Login
+```http
+POST /auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "SecurePassword123"
+}
+
+Response:
+{
+  "token": "jwt-token-here",
+  "user": {
+    "id": "user-id",
+    "email": "user@example.com",
+    "roles": ["parent"]
+  }
+}
+```
+
+#### Get User Profile
+```http
+GET /auth/profile
+Authorization: Bearer jwt-token-here
+
+Response:
+{
+  "id": "user-id",
+  "email": "user@example.com",
+  "roles": ["parent"],
+  "classAssignments": [...]
+}
+```
+
+### User Management Endpoints (Admin/Class Lead Only)
+
+#### List Pending Users
+```http
+GET /auth/pending-users
+Authorization: Bearer jwt-token-here
+
+Response:
+[
+  {
+    "id": "user-id",
+    "email": "pending@example.com",
+    "roles": ["parent"],
+    "status": "pending",
+    "createdAt": "2025-10-18T10:00:00Z"
+  }
+]
+```
+
+#### Approve User
+```http
+POST /auth/approve/user-id
+Authorization: Bearer jwt-token-here
+
+Response:
+{
+  "message": "User approved successfully",
+  "user": { ... }
+}
+```
+
+#### Reject User
+```http
+POST /auth/reject/user-id
+Authorization: Bearer jwt-token-here
+Content-Type: application/json
+
+{
+  "reason": "Optional rejection reason"
+}
+```
+
+#### Bulk Delete Users (Admin Only)
+```http
+DELETE /auth/delete-users
+Authorization: Bearer jwt-token-here
+Content-Type: application/json
+
+{
+  "userIds": ["user-id-1", "user-id-2"]
+}
+```
+
+### Class Assignment Request Endpoints
+
+#### Submit Assignment Request
+```http
+POST /auth/request-class-assignment
+Authorization: Bearer jwt-token-here
+Content-Type: application/json
+
+{
+  "classId": "new-class-id",
+  "childName": "Child Name",
+  "reason": "Reason for class change"
+}
+```
+
+#### List Assignment Requests (Admin Only)
+```http
+GET /auth/class-assignment-requests
+Authorization: Bearer jwt-token-here
+
+Response:
+[
+  {
+    "id": "request-id",
+    "userId": "user-id",
+    "classId": "requested-class-id",
+    "reason": "Reason for change",
+    "status": "pending",
+    "createdAt": "2025-10-18T10:00:00Z"
+  }
+]
+```
+
+#### Approve Assignment Request (Admin Only)
+```http
+POST /auth/approve-class-assignment/request-id
+Authorization: Bearer jwt-token-here
+```
+
+#### Reject Assignment Request (Admin Only)
+```http
+POST /auth/reject-class-assignment/request-id
+Authorization: Bearer jwt-token-here
+Content-Type: application/json
+
+{
+  "reason": "Rejection reason"
+}
+```
+
+### Children Management Endpoints
+
+#### List Children
+```http
+GET /auth/children
+Authorization: Bearer jwt-token-here
+
+Response:
+[
+  {
+    "id": "child-id",
+    "name": "Emma Smith",
+    "parentId": "parent-user-id",
+    "classId": "class-id",
+    "createdAt": "2025-10-18T10:00:00Z"
+  }
+]
+```
+
+#### Add Child
+```http
+POST /auth/children
+Authorization: Bearer jwt-token-here
+Content-Type: application/json
+
+{
+  "name": "New Child Name",
+  "parentId": "parent-user-id",
+  "classId": "class-id"
+}
+```
+
+#### Update Child
+```http
+PUT /auth/children/child-id
+Authorization: Bearer jwt-token-here
+Content-Type: application/json
+
+{
+  "name": "Updated Child Name",
+  "classId": "new-class-id"
+}
+```
+
+#### Delete Child
+```http
+DELETE /auth/children/child-id
+Authorization: Bearer jwt-token-here
+```
+
+#### Get Children by Class
+```http
+GET /auth/children/class/class-id
+Authorization: Bearer jwt-token-here
+
+Response:
+[
+  {
+    "id": "child-id",
+    "name": "Emma Smith",
+    "parentId": "parent-user-id",
+    "classId": "class-id",
+    "createdAt": "2025-10-18T10:00:00Z"
+  }
+]
+```
+
+### Notification Management Endpoints
+
+#### Get User Notifications
+```http
+GET /auth/notifications
+Authorization: Bearer jwt-token-here
+
+Response:
+[
+  {
+    "id": "notification-id",
+    "type": "user_approval_request",
+    "recipientId": "admin-user-id",
+    "senderId": "new-user-id",
+    "senderEmail": "newuser@example.com",
+    "userRole": "parent",
+    "message": "New parent registration: newuser@example.com",
+    "isRead": false,
+    "createdAt": "2025-10-18T10:00:00Z",
+    "status": "pending",
+    "metadata": {
+      "requestId": "request-id",
+      "userEmail": "newuser@example.com",
+      "className": "Math Class"
+    }
+  }
+]
+```
+
+#### Mark Notification as Read
+```http
+POST /auth/notifications/notification-id/read
+Authorization: Bearer jwt-token-here
+
+Response:
+{
+  "id": "notification-id",
+  "isRead": true,
+  "message": "Notification marked as read"
+}
+```
+
+**Notification Types:**
+- `user_approval_request` - New user registration requiring approval
+- `user_approved` - User account has been approved
+- `user_rejected` - User account has been rejected
+- `class_assignment_request` - Request for class assignment change
+- `class_assignment_approved` - Class assignment request approved
+- `class_assignment_rejected` - Class assignment request rejected
+
+**Smart Navigation:**
+- Frontend automatically navigates to appropriate pages when notifications are clicked
+- Actionable notifications (approval/assignment requests) open relevant management pages
+- Informational notifications (approved/rejected) are marked as read only
+
+### Class Management Endpoints
+
+#### List Classes
+```http
+GET /api/classes
+Authorization: Bearer jwt-token-here
+
+Response:
+[
+  {
+    "id": "class-id",
+    "name": "Mathematics",
+    "description": "Elementary math classes",
+    "color": "#3B82F6",
+    "createdAt": "2025-10-18T10:00:00Z"
+  }
+]
+```
+
+#### Create Class (Admin Only)
+```http
+POST /api/classes
+Authorization: Bearer jwt-token-here
+Content-Type: application/json
+
+{
+  "name": "New Class",
+  "description": "Class description",
+  "color": "#10B981"
+}
+```
+
+#### Delete Class (Admin Only)
+```http
+DELETE /api/classes/class-id
+Authorization: Bearer jwt-token-here
+```
+
+### Slot Management Endpoints
+
+#### List Slots
+```http
+GET /api/slots?classId=class-id&from=2025-10-18&to=2025-10-25
+Authorization: Bearer jwt-token-here
+```
+
+#### Create Time Slots
+```http
+POST /api/slots/timeframe
+Authorization: Bearer jwt-token-here
+Content-Type: application/json
+
+{
+  "start": "2025-10-18T09:00:00Z",
+  "end": "2025-10-18T17:00:00Z",
+  "classId": "class-id"
+}
+```
+
+#### Delete Slot
+```http
+DELETE /api/slots/slot-id
+Authorization: Bearer jwt-token-here
+```
+
+### Booking Endpoints
+
+#### Create Booking
+```http
+POST /api/bookings
+Authorization: Bearer jwt-token-here
+Content-Type: application/json
+
+{
+  "slotId": "slot-id",
+  "childName": "Child Name"
+}
+```
+
+#### List Bookings
+```http
+GET /api/bookings
+Authorization: Bearer jwt-token-here
+```
+
+#### Cancel Booking
+```http
+DELETE /api/bookings/booking-id
+Authorization: Bearer jwt-token-here
+```
+
+#### Download ICS Calendar File
+```http
+GET /api/bookings/booking-id/ics
+Authorization: Bearer jwt-token-here
+
+Response: calendar.ics file download
+```
+
+### System Configuration Endpoints
+
+#### Get Configuration
+```http
+GET /api/config
+Authorization: Bearer jwt-token-here
+
+Response:
+{
+  "rdvDurationMinutes": 15
+}
+```
+
+#### Update Configuration (Admin Only)
+```http
+PUT /api/config
+Authorization: Bearer jwt-token-here
+Content-Type: application/json
+
+{
+  "rdvDurationMinutes": 20
+}
+```
+
+### System Maintenance Endpoints (Admin Only)
+
+#### Reset Entire System
+```http
+POST /api/reset
+Authorization: Bearer jwt-token-here
+Content-Type: application/json
+
+{
+  "confirm": true
+}
+```
+
+#### Reset Class Schedule
+```http
+POST /api/reset-class
+Authorization: Bearer jwt-token-here
+Content-Type: application/json
+
+{
+  "classId": "class-id",
+  "confirm": true
+}
+```
+
+## 💻 Development Workflow
+
+### Available Scripts
+
+```bash
+# Development
+npm run dev              # Start Vite frontend dev server
+npm run start:server     # Start Express backend server
+npm run build           # Build production bundle
+npm run preview         # Preview production build locally
+
+# Testing & Quality
+npm run test            # Run test suite
+npm run test:e2e        # Run end-to-end tests
+npm run lint            # Run ESLint code linting
+npm run type-check      # Run TypeScript type checking
+
+# Database Management
+npm run reset-db        # Reset database to initial state
+npm run backup-db       # Create database backup
+npm run restore-db      # Restore database from backup
+
+# Deployment
+npm run deploy:staging  # Deploy to staging environment
+npm run deploy:prod     # Deploy to production environment
+```
+
+### Development Environment Setup
+
+#### Port Configuration
+- **Frontend Development**: http://localhost:5174 (Vite dev server)
+- **Backend API**: http://localhost:4000 (Express server)
+- **API Documentation**: http://localhost:4000/api/docs/ui (Swagger UI)
+
+#### Environment Variables
+Create a `.env` file in the project root:
+
+```bash
+# Server Configuration
+PORT=4000
+NODE_ENV=development
+BASE_URL=http://localhost:5174
+
+# Authentication
+JWT_SECRET=your-super-secret-jwt-key-here
+JWT_EXPIRES_IN=7d
+
+# Database
+DATA_DIR=./data
+
+# Email Configuration (Optional)
+EMAIL_SERVICE=gmail
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-password
+
+# CORS Configuration
+CORS_ORIGIN=http://localhost:5174
+
+# API Configuration
+API_RATE_LIMIT=100
+API_RATE_WINDOW=900000
+
+# Logging
+LOG_LEVEL=debug
+LOG_FILE=./logs/app.log
+```
+
+### Database Management
+
+#### File-Based Storage Structure
+The application uses JSON files for data persistence:
+
+```bash
+data/
+├── users.json               # User accounts and authentication
+├── userRoles.json          # Role assignments
+├── userClasses.json        # Class assignments
+├── classes.json            # Class definitions
+├── slots.json              # Time slot data
+├── bookings.json           # Appointment bookings
+├── notifications.json      # User notifications
+├── classAssignmentRequests.json # Assignment requests
+└── config.json             # System configuration
+```
+
+#### Database Operations
+
+**Reset Database to Default State:**
+```bash
+# Complete system reset
+curl -X POST http://localhost:4000/api/reset \
+  -H "Authorization: Bearer your-jwt-token" \
+  -H "Content-Type: application/json" \
+  -d '{"confirm": true}'
+
+# Reset specific class
+curl -X POST http://localhost:4000/api/reset-class \
+  -H "Authorization: Bearer your-jwt-token" \
+  -H "Content-Type: application/json" \
+  -d '{"classId": "class-id", "confirm": true}'
+```
+
+**Backup Database:**
+```bash
+# Create timestamped backup
+cp -r data/ backup-$(date +%Y%m%d-%H%M%S)/
+```
+
+**Restore Database:**
+```bash
+# Restore from backup
+cp -r backup-20251018-120000/ data/
+```
+
+### User Roles & Permissions
+
+#### 👑 **Administrator**
+**Full System Access:**
+- ✅ Create, modify, and delete classes
+- ✅ Create and manage time slots for all classes
+- ✅ View and manage all bookings system-wide
+- ✅ Approve/reject ALL user registrations (including class leads)
+- ✅ Bulk delete users with full audit logging
+- ✅ Approve/reject class assignment requests
+- ✅ Access all admin dashboard sections
+- ✅ Reset entire system or individual class schedules
+- ✅ Configure global system settings (appointment duration)
+- ✅ View comprehensive audit logs and notifications
+
+**Navigation Access:** Home, Admin Dashboard, User Approval, All Features
+
+#### 🎓 **Class Lead**
+**Limited Administrative Access:**
+- ✅ Create and manage time slots for assigned classes only
+- ✅ View and manage bookings for assigned classes only
+- ✅ Approve parent user registrations (NOT other class leads)
+- ✅ Request class assignment changes
+- ✅ Reset schedules for assigned classes only
+- ❌ Cannot approve other class lead registrations
+- ❌ Cannot delete users or access bulk operations
+- ❌ Cannot modify global system settings
+- ❌ Cannot access system-wide audit logs
+
+**Navigation Access:** Home, Admin Dashboard (limited), User Approval (parents only), Class Requests
+
+#### 👨‍👩‍👧‍👦 **Parent**
+**Booking and Request Access:**
+- ✅ Book appointments for children in assigned class
+- ✅ Cancel/delete own bookings
+- ✅ Download calendar files (.ics) for bookings
+- ✅ Request class assignment changes
+- ✅ View own booking history and request status
+- ❌ Cannot access admin functions
+- ❌ Cannot approve users or manage system
+- ❌ Cannot view other users' bookings
+
+**Navigation Access:** Home, Class Schedule (for assigned class), Class Requests
+
+### Registration & Approval Workflow
+
+#### 📝 **Step 1: User Registration**
+1. **User visits `/register`** and provides:
+   - Email address (unique identifier)
+   - Secure password (minimum 6 characters)
+   - Phone number (optional)
+   - Role selection (Parent, Class Lead, or Administrator)
+
+2. **Class Assignment** (for Parents and Class Leads):
+   - Select from available classes
+   - Provide child's name (required for parents)
+   - System validates class availability
+
+3. **Account Creation**:
+   - User account created with `status: 'pending'`
+   - Cannot access system until approved
+   - Automatic notification sent to approvers
+
+#### ⏳ **Step 2: Pending Approval State**
+- **User Status**: `pending` - cannot log in
+- **Visibility**: Account appears in admin "User Approval" section
+- **Notifications**: Admins and eligible class leads receive notifications
+- **Waiting Period**: No automatic approval - manual review required
+
+#### 👥 **Step 3: Approval Authority Rules**
+
+**WHO CAN APPROVE WHOM:**
+
+| Applicant Role | Can be Approved by | Approval Rules |
+|---|---|---|
+| **Parent** | ✅ Administrator<br>✅ Class Lead | Any admin or class lead can approve parents |
+| **Class Lead** | ✅ Administrator ONLY | **Strict Rule**: Only administrators can approve class leads |
+| **Administrator** | ✅ Administrator ONLY | Only existing admins can create new admins |
+
+**CRITICAL APPROVAL RESTRICTIONS:**
+- 🚫 **Class leads CANNOT approve other class leads**
+- 🚫 **Class leads CANNOT approve administrators** 
+- ✅ **Only administrators have universal approval rights**
+- ⚠️ **Violation attempts are logged and blocked**
+
+#### ✅ **Step 4: Approval Process**
+1. **Approver Reviews Application**:
+   - Views user email, role, and class assignments
+   - Sees child name (for parent applications)
+   - Reviews any additional information
+
+2. **Approval Action**:
+   - Click "Approve" button
+   - System validates approver permissions
+   - User status changed to `approved`
+   - User can immediately log in
+
+3. **Post-Approval Setup**:
+   - User receives approval notification
+   - Access granted based on assigned role
+   - Class assignments activated
+   - Navigation menu updates based on permissions
+
+#### ❌ **Step 5: Rejection Process**
+1. **Rejection Action**:
+   - Click "Reject" button
+   - Optionally provide rejection reason
+   - User receives rejection notification
+
+2. **Post-Rejection**:
+   - User account marked as `rejected`
+   - Cannot log in or reapply with same email
+   - Rejection reason stored for audit
+
+### Class Assignment Change Workflow
+
+#### 📋 **Request Submission** (Parents & Class Leads)
+1. **Navigate to "Request Class Assignment"**
+2. **Select Desired Class** from available options
+3. **Provide Details**:
+   - Child's name (required for parents)
+   - Reason for change (optional but recommended)
+4. **Submit Request** - enters `pending` status
+
+#### 🔍 **Admin Review Process**
+1. **Request Appears** in admin dashboard "Class Assignment Requests" section
+2. **Admin Reviews**:
+   - Current assignment vs. requested assignment
+   - User details and reason provided
+   - Class capacity and availability
+3. **Decision Making**:
+   - **Approve**: User moved to new class, old assignment removed
+   - **Reject**: Request denied with optional reason
+
+#### 📬 **Notification System**
+- **Request Submitted**: Admin receives notification
+- **Request Approved**: User receives approval notification
+- **Request Rejected**: User receives rejection with reason
+- **All Actions**: Logged for audit trail
+
+### Security & Audit Features
+
+#### 🔒 **Enhanced Security Measures**
+- **Role-Based Route Protection**: Pages restricted by user role
+- **API Authorization**: All endpoints verify user permissions AND approval status
+- **Session Management**: JWT-based authentication with expiration
+- **Status-Based Access Control**: Real-time user status validation on every request
+- **Self-Deletion Prevention**: Admins cannot delete their own accounts
+- **Validation**: Server-side validation of all user actions
+- **Security Audit Trail**: All authentication failures and status violations logged
+
+#### 📊 **Audit Logging**
+- **User Actions**: All approvals, rejections, deletions logged
+- **Bulk Operations**: Detailed logs of mass user operations
+- **Class Changes**: Assignment modifications tracked
+- **Admin Actions**: Administrative decisions recorded
+- **Timestamps**: All actions include precise timestamps
+
+#### 🚨 **Error Handling**
+- **Permission Violations**: Logged and blocked with user feedback
+- **Invalid Requests**: Graceful handling with descriptive errors
+- **System Failures**: Automatic error recovery and user notification
+- **Data Consistency**: Transactional operations prevent data corruption
+
+### Best Practices for Administrators
+
+#### ✅ **User Approval Guidelines**
+1. **Verify Identity**: Ensure email addresses are legitimate
+2. **Check Class Capacity**: Confirm class can accommodate new members
+3. **Role Appropriateness**: Verify role selection matches intended function
+4. **Documentation**: Use rejection reasons for record-keeping
+5. **Timely Processing**: Approve/reject within reasonable timeframe
+
+#### ⚠️ **Security Considerations**
+1. **Class Lead Approvals**: Extra scrutiny for class lead applications
+2. **Bulk Operations**: Double-check before mass deletions
+3. **System Access**: Regularly review user access and permissions
+4. **Audit Reviews**: Periodically check system logs
+5. **Password Security**: Enforce strong password requirements
+
+This comprehensive role-based system ensures secure, organized user management while maintaining clear approval workflows and audit trails for accountability.
+
+### 👶 Children Management System
+
+The application includes a comprehensive children management system to streamline booking processes and improve user experience.
+
+#### **Database Structure**
+- **Children Storage**: Dedicated `data/children.json` file stores child information
+- **Child Associations**: Links children to parents and classes for organized tracking
+- **Automatic Population**: Child names auto-populate in booking forms for parents
+
+#### **Children Data Model**
+```typescript
+interface Child {
+  id: string          // Unique identifier
+  name: string        // Child's name
+  parentId: string    // Associated parent user ID
+  classId: string     // Assigned class ID
+  createdAt: string   // Creation timestamp
+}
+```
+
+#### **API Endpoints for Children Management**
+- `GET /auth/children` - List all children (filtered by parent for regular users)
+- `POST /auth/children` - Add new child
+- `PUT /auth/children/:childId` - Update child information
+- `DELETE /auth/children/:childId` - Remove child
+- `GET /auth/children/class/:classId` - Get all children in specific class
+
+#### **Registration Experience Enhancement**
+1. **Existing Children Display**: When selecting a class during registration, existing children for that class are shown as clickable buttons
+2. **Quick Selection**: Parents can click on existing child names instead of typing manually
+3. **New Child Addition**: Text input remains available for adding new children to classes
+4. **Validation**: System prevents duplicate child names within the same class
+
+#### **Booking Experience Enhancement**
+1. **Auto-Population**: Booking forms automatically show parent's children as selectable options
+2. **Quick Selection**: Click buttons to select existing children for appointments
+3. **Manual Entry**: Text input available for entering new child names
+4. **Data Consistency**: Ensures accurate child name recording across all bookings
+
+#### **Benefits**
+- **Reduced Errors**: Eliminates typos in child names through pre-populated options
+- **Faster Booking**: Quick selection from existing children speeds up appointment creation
+- **Better UX**: Parents see familiar names and can easily manage multiple children
+- **Data Integrity**: Consistent child name formatting across the system
 
 ### 📅 Advanced Appointment Management
 - **Flexible Time Slot Creation**: Create multiple time slots in batch using date/time ranges
@@ -84,51 +1419,124 @@ A modern, multi-class appointment booking application built with Vite, React, Ty
 - **CORS Support**: Configurable cross-origin access
 - **JSON Responses**: Consistent response format with error handling
 
-## 🛠️ Tech Stack
+## 🛠️ Technology Stack
 
-### Frontend
-- **React 18**: Modern hooks-based architecture
-- **TypeScript 5.4**: Full type safety and IntelliSense
-- **Vite 7.1**: Lightning-fast HMR and build times
-- **Tailwind CSS 3.4**: Utility-first styling
-- **react-intl & i18next**: Complete internationalization
-- **React Router**: Client-side routing
-- **react-datepicker**: Date/time selection components
+### Frontend Architecture
+- **React 18**: Modern hooks-based architecture with functional components
+- **TypeScript 5.4**: Full type safety, IntelliSense, and compile-time error checking
+- **Vite 7.1**: Lightning-fast development server with Hot Module Replacement (HMR)
+- **Tailwind CSS 3.4**: Utility-first styling with custom design system
+- **React Router**: Client-side routing with role-based route protection
+- **React Context**: State management for authentication and user sessions
+- **react-intl & i18next**: Complete internationalization framework
+- **react-datepicker**: Advanced date/time selection components
 
-### Backend
-- **Express.js**: Fast, minimalist web framework
-- **Node.js**: Server-side JavaScript runtime
-- **File-based Storage**: JSON file database (server/db.js)
-- **ICS Generation**: RFC 5545 compliant calendar files
-- **Swagger UI**: Interactive API documentation
-- **CORS**: Configurable cross-origin resource sharing
+### Backend Architecture
+- **Express.js**: Fast, minimalist web framework for Node.js
+- **Node.js**: Server-side JavaScript runtime environment
+- **JWT Authentication**: JSON Web Token-based security with role-based access control
+- **Passport.js**: Authentication middleware for Node.js
+- **File-based Storage**: JSON database system for rapid development and deployment
+- **ICS Generation**: RFC 5545 compliant calendar file generation
+- **CORS Support**: Configurable cross-origin resource sharing
+- **API Documentation**: Swagger/OpenAPI integration for interactive documentation
 
-### Database Schema
-- **Classes**: `id`, `name`, `description`, `color`, `createdAt`, `updatedAt`
-- **Slots**: `id`, `start`, `end`, `booked`, `removed`, `classId`, `createdAt`, `updatedAt`
-- **Bookings**: `id`, `slotId`, `childName`, `cancelled`, `originalSlotStart`, `createdAt`, `updatedAt`
-- **Config**: `id`, `rdvDurationMinutes`, `createdAt`, `updatedAt`
+### Database Architecture
+- **JSON File Storage**: Lightweight, file-based database system
+- **Data Models**:
+  - **Users**: Authentication, roles, and profile information
+  - **Classes**: Class definitions with colors and descriptions
+  - **Slots**: Time slot management with class associations
+  - **Bookings**: Appointment bookings with child information
+  - **UserRoles**: Role assignments and permissions
+  - **UserClasses**: Class assignment relationships
+  - **ClassAssignmentRequests**: Assignment change request tracking
+  - **Notifications**: User notification system
+  - **Config**: System configuration and settings
 
-## Getting Started
+### Security Implementation
+- **JWT Token Authentication**: Secure, stateless authentication system
+- **Role-Based Authorization**: Granular permission system with three user roles
+- **Password Hashing**: Secure password storage using industry-standard hashing
+- **Session Management**: Automatic token expiration and renewal
+- **Input Validation**: Server-side validation of all user inputs
+- **CORS Protection**: Controlled cross-origin access for security
+- **Audit Logging**: Comprehensive logging of all user actions and system changes
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 14+
-- npm or yarn
+- **Node.js 18+**: Required for running the application
+- **npm or yarn**: Package manager for dependency installation
+- **Modern Web Browser**: Chrome, Firefox, Safari, or Edge
 
-### Installation
+### Quick Start Installation
 
-1. Clone the repository:
+1. **Clone the Repository**:
    ```bash
    git clone https://github.com/kvaksin/rdvapp.git
    cd rdvapp
    ```
 
-2. Install dependencies:
+2. **Install Dependencies**:
    ```bash
    npm install
+   # or
+   yarn install
    ```
 
-3. Initialize the database:
+3. **Environment Configuration**:
+   ```bash
+   # Copy environment template
+   cp .env.example .env
+   
+   # Edit environment variables (optional for development)
+   nano .env
+   ```
+
+4. **Initialize Database** (Optional - auto-created on first run):
+   ```bash
+   # Reset database to default state
+   npm run reset-db
+   ```
+
+5. **Start Development Servers**:
+   ```bash
+   # Start backend server (Terminal 1)
+   npm run start:server
+   
+   # Start frontend development server (Terminal 2)
+   npm run dev
+   ```
+
+6. **Access Application**:
+   - **Frontend**: http://localhost:5174
+   - **Backend API**: http://localhost:4000
+   - **API Documentation**: http://localhost:4000/api/docs/ui
+
+### Default User Accounts
+
+The system creates default accounts for immediate testing:
+
+```bash
+# Administrator Account
+Email: admin@example.com
+Password: Tenbosch@123
+Role: Administrator
+Access: Full system control
+
+# Class Lead Account
+Email: classlead@example.com
+Password: Tenbosch@123
+Role: Class Lead
+Access: Limited admin functions
+
+# Parent Account
+Email: parent@example.com
+Password: Tenbosch@123
+Role: Parent
+Access: Booking and requests only
+```
    ```bash
    npx prisma migrate reset --force
    ```
@@ -149,13 +1557,21 @@ rdvapp/
 │   │   ├── Feed.tsx              # Main content feed component
 │   │   ├── LeftNav.tsx           # Navigation sidebar
 │   │   ├── RightPanel.tsx        # Right sidebar panel
-│   │   └── StreamCard.tsx        # Stream card component
+│   │   ├── StreamCard.tsx        # Stream card component
+│   │   ├── ClassAssignmentRequests.tsx # Class assignment request management
+│   │   └── NotificationBell.tsx  # Smart notification system with click-to-action navigation
 │   ├── pages/                     # Page components
 │   │   ├── Admin.tsx             # Admin dashboard (class & slot management)
 │   │   ├── ApiDocs.tsx           # API documentation viewer
 │   │   ├── BookRdv.tsx           # General booking page
 │   │   ├── ClassSchedule.tsx     # Class-specific schedule & booking
+│   │   ├── ClassRequest.tsx      # Class assignment request page
+│   │   ├── UserApproval.tsx      # User approval management page
+│   │   ├── Login.tsx             # User authentication
+│   │   ├── Register.tsx          # User registration with role selection
 │   │   └── Home.tsx              # Landing page
+│   ├── contexts/                  # React contexts
+│   │   └── AuthContext.tsx       # Authentication context and hooks
 │   ├── translations/              # i18n language files
 │   │   ├── fr.ts                 # French translations (default)
 │   │   ├── en.ts                 # English translations
@@ -169,12 +1585,19 @@ rdvapp/
 │   └── main.tsx                   # React app entry point
 ├── server/                        # Backend Express.js server
 │   ├── index.js                  # Express app & API endpoints
+│   ├── auth.js                   # Authentication logic and user management
+│   ├── authRoutes.js            # Authentication and user management routes
 │   └── db.js                     # File-based database operations
 ├── data/                          # JSON database files
 │   ├── classes.json              # Class data
 │   ├── slots.json                # Time slot data
 │   ├── bookings.json             # Booking data
-│   └── config.json               # App configuration
+│   ├── config.json               # App configuration
+│   ├── users.json                # User accounts
+│   ├── userRoles.json            # User role assignments
+│   ├── userClasses.json          # User class assignments
+│   ├── notifications.json        # User notifications
+│   └── classAssignmentRequests.json # Class assignment change requests
 ├── prisma/                        # Database schema (reference)
 │   └── schema.prisma             # Prisma schema definition
 ├── public/                        # Static assets
@@ -206,6 +1629,21 @@ rdvapp/
 ### Configuration
 - `GET /api/config` - Get current config
 - `PUT /api/config` - Update config (body: `{ rdvDurationMinutes }`)
+
+### Authentication & User Management
+- `POST /auth/register` - Register new user (body: `{ email, password, roles, classAssignments }`)
+- `POST /auth/login` - Login user (body: `{ email, password }`)
+- `GET /auth/profile` - Get current user profile
+- `GET /auth/pending-users` - List pending user registrations (admin/class_lead only)
+- `POST /auth/approve/:userId` - Approve user registration (admin only for class leads)
+- `POST /auth/reject/:userId` - Reject user registration (body: `{ reason? }`)
+- `POST /auth/delete-users` - Bulk delete users (admin only, body: `{ userIds }`)
+
+### Class Assignment Requests
+- `POST /auth/request-class-assignment` - Submit class assignment request
+- `GET /auth/class-assignment-requests` - List all class assignment requests (admin only)
+- `POST /auth/approve-class-assignment/:requestId` - Approve class assignment request (admin only)
+- `POST /auth/reject-class-assignment/:requestId` - Reject class assignment request (admin only, body: `{ reason? }`)
 
 ### Admin
 - `POST /api/reset` - Reset entire database (body: `{ confirm: true }`)
@@ -670,7 +2108,13 @@ The application can be deployed in several ways depending on your needs:
 
 1. **Access Admin Dashboard**: Navigate to `/admin` or click "Admin" in navigation
 
-2. **Create a Class**:
+2. **User Management**:
+   - **Approve New Users**: Navigate to "User Approval" to review pending registrations
+   - **Class Lead Restrictions**: Only administrators can approve class lead users
+   - **Bulk User Deletion**: Select multiple users with checkboxes and delete in bulk
+   - **View Class Assignment Requests**: Review and approve/reject class assignment change requests
+
+3. **Create a Class**:
    - Enter class name (e.g., "Kindergarten A")
    - Choose a color (click the color picker)
    - Click "Add Class"
@@ -691,6 +2135,23 @@ The application can be deployed in several ways depending on your needs:
 5. **Configure Settings**:
    - Set appointment duration (10, 15, 20, or 30 minutes)
    - Changes apply to newly created slots
+
+### For Class Leads
+
+1. **Access Limited Admin Functions**:
+   - Navigate to `/admin` for appointment creation and slot management
+   - Only see classes you are assigned to
+   - Can approve parent users but not other class leads
+
+2. **Manage Class Appointments**:
+   - Create time slots for your assigned classes
+   - View and manage bookings for your classes
+   - Reset schedules for your classes only
+
+3. **Request Class Assignment Changes**:
+   - Navigate to "Request Class Assignment" in the navigation
+   - Submit requests to be assigned to different classes
+   - Track status of your requests
 
 ### For Parents/Users
 
@@ -723,6 +2184,13 @@ The application can be deployed in several ways depending on your needs:
    - Click language selector in navigation
    - Choose from French (🇫🇷), English (🇬🇧), or Dutch (🇳🇱)
    - Language preference is saved in browser
+
+6. **Request Class Assignment Changes**:
+   - Navigate to "Request Class Assignment" in the navigation
+   - Select desired class and provide child's name
+   - Add optional reason for the change request
+   - Track status of your requests (pending/approved/rejected)
+   - View your current class assignment
 
 ## 🔧 Troubleshooting
 
@@ -844,9 +2312,18 @@ The `main` branch is protected:
 ### Recent Updates
 
 **October 2025 - Latest**
+- ✨ **NEW**: Smart notification navigation - clicking notifications opens relevant action pages
+- ✨ **NEW**: Enhanced notification system with actionable vs informational indicators
+- ✨ **NEW**: Complete user management system with role-based authentication
+- ✨ **NEW**: User registration and approval workflow (admin approval for class leads)
+- ✨ **NEW**: Bulk user deletion functionality with checkbox selection
+- ✨ **NEW**: Class assignment request system for parents and class leads
+- ✨ **NEW**: Admin dashboard for managing class assignment requests
+- ✨ **NEW**: Comprehensive notification system for user actions
+- ✨ **NEW**: Role-based navigation and page access control
 - ✨ **NEW**: Delete booking functionality with confirmation dialogs
 - ✨ **NEW**: Automatic slot release when bookings are deleted
-- ✨ Added complete i18n support (French, English, Dutch - 61 translation keys)
+- ✨ Added complete i18n support (French, English, Dutch - 61+ translation keys)
 - ✨ Implemented class-based appointment system
 - ✨ Added ICS calendar export for bookings
 - ✨ Per-class schedule URLs and management
@@ -855,7 +2332,8 @@ The `main` branch is protected:
 - 🐛 Fixed slot duplication issues
 - 🐛 Improved error handling and user feedback
 - 🎨 Enhanced UI with better visual feedback and delete buttons
-- 📚 Updated documentation with comprehensive guides
+- 🔒 Implemented comprehensive security measures and audit logging
+- 📚 Updated documentation with comprehensive guides and new API endpoints
 
 ## License
 

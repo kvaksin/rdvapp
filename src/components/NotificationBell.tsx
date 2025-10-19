@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { FormattedMessage, FormattedDate } from 'react-intl'
+import { useNavigate } from 'react-router-dom'
 import { useAuth, authenticatedFetch } from '../contexts/AuthContext'
 
 interface Notification {
@@ -19,10 +20,16 @@ interface Notification {
   isRead: boolean
   createdAt: string
   status: string
+  metadata?: {
+    requestId?: string
+    userEmail?: string
+    className?: string
+  }
 }
 
 const NotificationBell = () => {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -83,6 +90,35 @@ const NotificationBell = () => {
     }
   }
 
+  const handleNotificationClick = async (notification: Notification) => {
+    // Mark notification as read
+    await markAsRead(notification.id)
+    
+    // Navigate to appropriate page based on notification type
+    switch (notification.type) {
+      case 'user_approval_request':
+        // Navigate to user approval page where admin/class_lead can approve/reject users
+        navigate('/user-approval')
+        break
+      
+      case 'class_assignment_request':
+        // Navigate to admin page where admin can manage class assignment requests
+        navigate('/admin')
+        break
+      
+      case 'user_approved':
+      case 'user_rejected':
+      case 'class_assignment_approved':
+      case 'class_assignment_rejected':
+      default:
+        // For informational notifications, just mark as read (no navigation needed)
+        break
+    }
+    
+    // Close the notification dropdown
+    setIsOpen(false)
+  }
+
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'user_approval_request':
@@ -90,6 +126,12 @@ const NotificationBell = () => {
       case 'user_approved':
         return '✅'
       case 'user_rejected':
+        return '❌'
+      case 'class_assignment_request':
+        return '📋'
+      case 'class_assignment_approved':
+        return '✅'
+      case 'class_assignment_rejected':
         return '❌'
       default:
         return '📢'
@@ -99,14 +141,21 @@ const NotificationBell = () => {
   const getNotificationColor = (type: string) => {
     switch (type) {
       case 'user_approval_request':
+      case 'class_assignment_request':
         return 'text-blue-600'
       case 'user_approved':
+      case 'class_assignment_approved':
         return 'text-green-600'
       case 'user_rejected':
+      case 'class_assignment_rejected':
         return 'text-red-600'
       default:
         return 'text-gray-600'
     }
+  }
+
+  const isActionableNotification = (type: string) => {
+    return ['user_approval_request', 'class_assignment_request'].includes(type)
   }
 
   if (!user) return null
@@ -167,10 +216,17 @@ const NotificationBell = () => {
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors ${
+                  className={`p-4 border-b border-gray-100 transition-colors ${
                     !notification.isRead ? 'bg-blue-50' : ''
-                  }`}
-                  onClick={() => markAsRead(notification.id)}
+                  } ${isActionableNotification(notification.type) 
+                      ? 'hover:bg-gray-50 cursor-pointer' 
+                      : 'hover:bg-gray-25 cursor-default'
+                    }`}
+                  onClick={() => handleNotificationClick(notification)}
+                  title={isActionableNotification(notification.type) 
+                    ? 'Click to go to pending task' 
+                    : 'Informational notification'
+                  }
                 >
                   <div className="flex items-start space-x-3">
                     <span className="text-lg">
@@ -197,6 +253,11 @@ const NotificationBell = () => {
                             defaultMessage="Role: {role}"
                             values={{ role: notification.userRole }}
                           />
+                        </p>
+                      )}
+                      {isActionableNotification(notification.type) && (
+                        <p className="text-xs text-blue-500 mt-1 font-medium">
+                          Click to view pending task →
                         </p>
                       )}
                       {!notification.isRead && (

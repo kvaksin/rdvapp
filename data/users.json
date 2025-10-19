@@ -54,5 +54,33 @@
     "rejectedBy": null,
     "rejectedAt": null,
     "rejectionReason": null
+  },
+  {
+    "id": "1760827452147y9gh7r7rc",
+    "email": "parent@example.com",
+    "password": "$2b$12$GpTekdONDXjeYmnQo2n9z.L1HzX.n7TX/H97J81ZMiRA6dQBZNhvK",
+    "phone": null,
+    "createdAt": "2025-10-18T22:44:12.147Z",
+    "isActive": true,
+    "status": "approved",
+    "approvedBy": "1760773065330af6ru11py",
+    "approvedAt": "2025-10-18T22:44:51.341Z",
+    "rejectedBy": null,
+    "rejectedAt": null,
+    "rejectionReason": null
+  },
+  {
+    "id": "17608276936087zqqug8qj",
+    "email": "security.test@example.com",
+    "password": "$2b$12$/vKfz6VakPcuCA7LPeAtteE8VfzKpPtTp/HEQf3zj7DDDtE8fEyFG",
+    "phone": null,
+    "createdAt": "2025-10-18T22:48:13.608Z",
+    "isActive": true,
+    "status": "approved",
+    "approvedBy": "admin-1",
+    "approvedAt": "2025-10-18T22:55:49.109Z",
+    "rejectedBy": null,
+    "rejectedAt": null,
+    "rejectionReason": null
   }
 ]

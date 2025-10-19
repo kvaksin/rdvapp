@@ -4,6 +4,7 @@ import 'react-datepicker/dist/react-datepicker.css'
 import { fetchConfig, updateConfig, fetchSlots, createTimeframe, deleteSlot, resetAll, createClass, deleteClass, fetchClasses, resetClass } from '../api/client'
 import { useIntl, FormattedMessage } from 'react-intl'
 import { useAuth } from '../contexts/AuthContext'
+import ClassAssignmentRequests from '../components/ClassAssignmentRequests'
 import type { Class, Slot } from '../types/api'
 
 function Admin() {
@@ -181,6 +182,22 @@ function Admin() {
     }
   }
 
+  async function saveDuration(minutes: number) {
+    try {
+      setLoading(true)
+      setError(null)
+      const newConfig = { ...config, rdvDurationMinutes: minutes }
+      setConfig(newConfig)
+      await updateConfig(newConfig)
+      await load()
+    } catch (err) {
+      console.error('Error saving duration:', err)
+      setError(intl.formatMessage({ id: 'admin.failedUpdateConfig' }))
+    } finally {
+      setLoading(false)
+    }
+  }
+
   async function handleCreateTimeframe() {
     if (!selectedDate || !startTime || !endTime || !selectedClass) {
       setError(intl.formatMessage({ id: 'admin.fillAllFields' }))
@@ -282,6 +299,28 @@ function Admin() {
     }
   }
 
+  async function handleResetClassSchedule() {
+    if (!selectedClass) {
+      setError(intl.formatMessage({ id: 'admin.selectClassToReset' }))
+      return
+    }
+    
+    const selectedClassName = getAccessibleClasses().find(cls => cls.id === selectedClass)?.name || selectedClass
+    if (!confirm(intl.formatMessage({ id: 'admin.confirmResetClassSchedule' }, { className: selectedClassName }))) return
+    
+    try {
+      setLoading(true)
+      setError(null)
+      await resetClass(selectedClass)
+      await load()
+    } catch (err) {
+      console.error('Error resetting class schedule:', err)
+      setError(intl.formatMessage({ id: 'admin.failedResetClassSchedule' }))
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-6">
@@ -294,82 +333,405 @@ function Admin() {
         </div>
       )}
 
-      <div className="bg-gray-800 p-4 sm:p-6 rounded-lg mb-6 shadow-sm">
-        <h3 className="text-lg font-semibold mb-4">{intl.formatMessage({ id: 'admin.classManagement' })}</h3>
-        <div className="space-y-4">
-          <div className="flex flex-col gap-3">
-            <input
-              type="text"
-              value={newClassName}
-              onChange={(e) => setNewClassName(e.target.value)}
-              placeholder={intl.formatMessage({ id: 'admin.className' })}
-              className="w-full bg-gray-700 px-4 py-2 rounded-md text-white"
-            />
-            <textarea
-              value={newClassDescription}
-              onChange={(e) => setNewClassDescription(e.target.value)}
-              placeholder={intl.formatMessage({ id: 'admin.classDescription' })}
-              rows={3}
-              className="w-full bg-gray-700 px-4 py-2 rounded-md text-white resize-none"
-            />
+      {/* Configuration Section - Admin Only */}
+      {isAdmin && (
+        <div className="bg-gray-800 p-4 sm:p-6 rounded-lg mb-6 shadow-sm">
+          <h3 className="text-lg font-semibold mb-4 text-white">Appointment Duration</h3>
+          <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <label className="flex items-center gap-2 text-sm text-gray-300">
-                <span className="whitespace-nowrap">Color:</span>
-                <input
-                  type="color"
-                  value={newClassColor}
-                  onChange={(e) => setNewClassColor(e.target.value)}
-                  className="w-12 h-10 rounded-md bg-gray-700 cursor-pointer flex-shrink-0"
-                />
+              <label className="text-sm text-gray-300 min-w-[80px]">
+                Duration:
               </label>
-              <button
-                onClick={handleCreateClass}
-                disabled={loading || !newClassName}
-                className={`flex-1 px-4 py-2 rounded-md font-medium ${
-                  loading || !newClassName
-                    ? 'bg-gray-600 cursor-not-allowed'
-                    : 'bg-green-600 hover:bg-green-700'
-                }`}
-              >
-                {intl.formatMessage({ id: 'admin.addClass' })}
-              </button>
+              <div className="flex flex-wrap gap-3">
+                {[10, 15, 20, 30].map(duration => (
+                  <button
+                    key={duration}
+                    onClick={() => saveDuration(duration)}
+                    disabled={loading}
+                    className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 min-w-[120px] ${
+                      loading
+                        ? 'opacity-50 cursor-not-allowed'
+                        : config.rdvDurationMinutes === duration
+                        ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg transform scale-105'
+                        : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white'
+                    }`}
+                  >
+                    {duration} minutes
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
+        </div>
+      )}
 
-          <div className="mt-4 space-y-2">
-            {classes.map(cls => (
-              <div 
-                key={cls.id}
-                className="flex items-start justify-between gap-2 p-3 rounded-md"
-                style={{ backgroundColor: cls.color + '20' }}
-              >
-                <div className="flex items-start gap-3 flex-1 min-w-0">
-                  <div
-                    className="w-4 h-4 rounded-full flex-shrink-0 mt-1"
-                    style={{ backgroundColor: cls.color }}
+      {/* Class Management Section - Admin Only */}
+      {isAdmin && (
+        <div className="bg-gray-800 p-4 sm:p-6 rounded-lg mb-6 shadow-sm">
+          <h3 className="text-lg font-semibold mb-4">{intl.formatMessage({ id: 'admin.classManagement' })}</h3>
+          <div className="space-y-4">
+            <div className="flex flex-col gap-3">
+              <input
+                type="text"
+                value={newClassName}
+                onChange={(e) => setNewClassName(e.target.value)}
+                placeholder={intl.formatMessage({ id: 'admin.className' })}
+                className="w-full bg-gray-700 px-4 py-2 rounded-md text-white"
+              />
+              <textarea
+                value={newClassDescription}
+                onChange={(e) => setNewClassDescription(e.target.value)}
+                placeholder={intl.formatMessage({ id: 'admin.classDescription' })}
+                rows={3}
+                className="w-full bg-gray-700 px-4 py-2 rounded-md text-white resize-none"
+              />
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2 text-sm text-gray-300">
+                  <span className="whitespace-nowrap">Color:</span>
+                  <input
+                    type="color"
+                    value={newClassColor}
+                    onChange={(e) => setNewClassColor(e.target.value)}
+                    className="w-12 h-10 rounded-md bg-gray-700 cursor-pointer flex-shrink-0"
                   />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-white font-medium truncate">{cls.name}</div>
-                    {cls.description && (
-                      <div className="text-gray-300 text-sm mt-1">{cls.description}</div>
-                    )}
-                  </div>
-                </div>
+                </label>
                 <button
-                  disabled={loading}
-                  className={`px-3 py-1 rounded-md text-sm whitespace-nowrap flex-shrink-0 ${
-                    loading
+                  onClick={handleCreateClass}
+                  disabled={loading || !newClassName}
+                  className={`flex-1 px-4 py-2 rounded-md font-medium ${
+                    loading || !newClassName
                       ? 'bg-gray-600 cursor-not-allowed'
-                      : 'bg-red-600 hover:bg-red-700'
+                      : 'bg-green-600 hover:bg-green-700'
                   }`}
                 >
-                  {intl.formatMessage({ id: 'admin.deleteClass' })}
+                  {intl.formatMessage({ id: 'admin.addClass' })}
                 </button>
               </div>
-            ))}
+            </div>
+
+            <div className="mt-4 space-y-2">
+              {classes.map(cls => (
+                <div 
+                  key={cls.id}
+                  className="flex items-start justify-between gap-2 p-3 rounded-md"
+                  style={{ backgroundColor: cls.color + '20' }}
+                >
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <div
+                      className="w-4 h-4 rounded-full flex-shrink-0 mt-1"
+                      style={{ backgroundColor: cls.color }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-white font-medium truncate">{cls.name}</div>
+                      {cls.description && (
+                        <div className="text-gray-300 text-sm mt-1">{cls.description}</div>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteClass(cls.id)}
+                    disabled={loading}
+                    className={`px-3 py-1 rounded-md text-sm whitespace-nowrap flex-shrink-0 ${
+                      loading
+                        ? 'bg-gray-600 cursor-not-allowed'
+                        : 'bg-red-600 hover:bg-red-700'
+                    }`}
+                  >
+                    {intl.formatMessage({ id: 'admin.deleteClass' })}
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Class Assignment Requests Section - Admin Only */}
+      {isAdmin && (
+        <div className="bg-green-500/20 border border-green-500 text-green-300 p-4 rounded-lg mb-4">
+          ✅ Debug: Admin user detected - ClassAssignmentRequests component should render below
+        </div>
+      )}
+      {isAdmin && <ClassAssignmentRequests />}
+
+      {/* Appointment Creation Section - Admin and Class Leads */}
+      {(isAdmin || isClassLead) && (
+        <div className="bg-gray-800 p-4 sm:p-6 rounded-lg mb-6 shadow-sm">
+          <h3 className="text-lg font-semibold mb-4">{intl.formatMessage({ id: 'admin.createAppointments' })}</h3>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Class Selection */}
+              <div>
+                <label className="block text-sm text-gray-300 mb-2">
+                  {intl.formatMessage({ id: 'admin.selectClass' })}
+                </label>
+                <select
+                  value={selectedClass}
+                  onChange={(e) => setSelectedClass(e.target.value)}
+                  className="w-full bg-gray-700 px-3 py-2 rounded-md text-white"
+                >
+                  <option value="">{intl.formatMessage({ id: 'admin.selectClass' })}</option>
+                  {getAccessibleClasses().map(cls => (
+                    <option key={cls.id} value={cls.id}>{cls.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Date Selection */}
+              <div>
+                <label className="block text-sm text-gray-300 mb-2">
+                  {intl.formatMessage({ id: 'admin.selectDate' })}
+                </label>
+                <DatePicker
+                  selected={selectedDate}
+                  onChange={(date) => setSelectedDate(date)}
+                  minDate={new Date()}
+                  className="w-full bg-gray-700 px-3 py-2 rounded-md text-white"
+                  placeholderText={intl.formatMessage({ id: 'admin.selectDate' })}
+                />
+              </div>
+
+              {/* Start Time */}
+              <div>
+                <label className="block text-sm text-gray-300 mb-2">
+                  {intl.formatMessage({ id: 'admin.startTime' })}
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={startTime}
+                    onChange={(e) => validateAndUpdateTime(e.target.value, true)}
+                    onKeyDown={(e) => handleTimeKeyDown(e, true)}
+                    placeholder="HH:MM"
+                    className="w-full bg-gray-700 px-3 py-2 rounded-md text-white"
+                  />
+                  <div className="absolute right-2 top-2 flex flex-col">
+                    <button
+                      type="button"
+                      onClick={() => adjustTime(true, 'hours', true)}
+                      className="text-xs text-gray-400 hover:text-white"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => adjustTime(true, 'hours', false)}
+                      className="text-xs text-gray-400 hover:text-white"
+                    >
+                      ▼
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* End Time */}
+              <div>
+                <label className="block text-sm text-gray-300 mb-2">
+                  {intl.formatMessage({ id: 'admin.endTime' })}
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={endTime}
+                    onChange={(e) => validateAndUpdateTime(e.target.value, false)}
+                    onKeyDown={(e) => handleTimeKeyDown(e, false)}
+                    placeholder="HH:MM"
+                    className="w-full bg-gray-700 px-3 py-2 rounded-md text-white"
+                  />
+                  <div className="absolute right-2 top-2 flex flex-col">
+                    <button
+                      type="button"
+                      onClick={() => adjustTime(false, 'hours', true)}
+                      className="text-xs text-gray-400 hover:text-white"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => adjustTime(false, 'hours', false)}
+                      className="text-xs text-gray-400 hover:text-white"
+                    >
+                      ▼
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleCreateTimeframe}
+              disabled={loading || !selectedDate || !startTime || !endTime || !selectedClass}
+              className={`w-full px-4 py-3 rounded-md font-medium ${
+                loading || !selectedDate || !startTime || !endTime || !selectedClass
+                  ? 'bg-gray-600 cursor-not-allowed'
+                  : 'bg-purple-600 hover:bg-purple-700'
+              }`}
+            >
+              {intl.formatMessage({ id: 'admin.createTimeframe' })}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Slot Management Section - Admin and Class Leads */}
+      {(isAdmin || isClassLead) && (
+        <div className="bg-gray-800 p-4 sm:p-6 rounded-lg mb-6 shadow-sm">
+          <h3 className="text-lg font-semibold mb-4">{intl.formatMessage({ id: 'admin.manageSlots' })}</h3>
+          <div className="space-y-4">
+            {/* Class Filter */}
+            <div className="flex items-center gap-4">
+              <select
+                value={selectedClass}
+                onChange={(e) => {
+                  setSelectedClass(e.target.value)
+                  load()
+                }}
+                className="bg-gray-700 px-3 py-2 rounded-md text-white"
+              >
+                <option value="">{intl.formatMessage({ id: 'admin.allClasses' })}</option>
+                {getAccessibleClasses().map(cls => (
+                  <option key={cls.id} value={cls.id}>{cls.name}</option>
+                ))}
+              </select>
+              <button
+                onClick={load}
+                disabled={loading}
+                className={`px-4 py-2 rounded-md font-medium ${
+                  loading
+                    ? 'bg-gray-600 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                }`}
+              >
+                {intl.formatMessage({ id: 'admin.refresh' })}
+              </button>
+            </div>
+
+            {/* Slots List */}
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {slots.length === 0 ? (
+                <p className="text-gray-400 text-center py-8">
+                  {intl.formatMessage({ id: 'admin.noSlots' })}
+                </p>
+              ) : (
+                slots.map(slot => {
+                  const slotClass = classes.find(c => c.id === slot.classId)
+                  return (
+                    <div
+                      key={slot.id}
+                      className="flex items-center justify-between p-3 rounded-md bg-gray-700"
+                    >
+                      <div className="flex items-center gap-3">
+                        {slotClass && (
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: slotClass.color }}
+                          />
+                        )}
+                        <div>
+                          <div className="text-white font-medium">
+                            {new Date(slot.start).toLocaleDateString()} - {new Date(slot.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                          <div className="text-gray-400 text-sm">
+                            {slotClass?.name || slot.classId} 
+                            {slot.booked && <span className="text-orange-400 ml-2">({intl.formatMessage({ id: 'admin.booked' })})</span>}
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteSlot(slot.id)}
+                        disabled={loading || slot.booked}
+                        className={`px-3 py-1 rounded-md text-sm ${
+                          loading || slot.booked
+                            ? 'bg-gray-600 cursor-not-allowed text-gray-400'
+                            : 'bg-red-600 hover:bg-red-700 text-white'
+                        }`}
+                      >
+                        {intl.formatMessage({ id: 'admin.delete' })}
+                      </button>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Schedule Section - Class Leads Only */}
+      {isClassLead && !isAdmin && (
+        <div className="bg-gray-800 p-4 sm:p-6 rounded-lg mb-6 shadow-sm">
+          <h3 className="text-lg font-semibold mb-4 text-orange-300">{intl.formatMessage({ id: 'admin.resetSchedule' })}</h3>
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4 items-start">
+              <div className="flex-1">
+                <label className="block text-sm text-gray-300 mb-2">
+                  {intl.formatMessage({ id: 'admin.selectClassToReset' })}
+                </label>
+                <select
+                  value={selectedClass}
+                  onChange={(e) => setSelectedClass(e.target.value)}
+                  className="w-full bg-gray-700 px-3 py-2 rounded-md text-white"
+                >
+                  <option value="">{intl.formatMessage({ id: 'admin.selectClass' })}</option>
+                  {getAccessibleClasses().map(cls => (
+                    <option key={cls.id} value={cls.id}>{cls.name}</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                onClick={handleResetClassSchedule}
+                disabled={loading || !selectedClass}
+                className={`px-4 py-2 rounded-md font-medium whitespace-nowrap ${
+                  loading || !selectedClass
+                    ? 'bg-gray-600 cursor-not-allowed'
+                    : 'bg-orange-600 hover:bg-orange-700'
+                }`}
+              >
+                {intl.formatMessage({ id: 'admin.resetSchedule' })}
+              </button>
+            </div>
+            <p className="text-gray-400 text-sm">
+              {intl.formatMessage({ id: 'admin.resetScheduleWarning' })}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Section - Admin Only */}
+      {isAdmin && (
+        <div className="bg-gray-800 p-4 sm:p-6 rounded-lg shadow-sm">
+          <h3 className="text-lg font-semibold mb-4 text-red-300">{intl.formatMessage({ id: 'admin.dangerZone' })}</h3>
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={handleResetClass}
+                disabled={loading || !selectedClass}
+                className={`px-4 py-2 rounded-md font-medium ${
+                  loading || !selectedClass
+                    ? 'bg-gray-600 cursor-not-allowed'
+                    : 'bg-orange-600 hover:bg-orange-700'
+                }`}
+              >
+                {intl.formatMessage({ id: 'admin.resetSelectedClass' })}
+              </button>
+              <button
+                onClick={handleResetAll}
+                disabled={loading}
+                className={`px-4 py-2 rounded-md font-medium ${
+                  loading
+                    ? 'bg-gray-600 cursor-not-allowed'
+                    : 'bg-red-600 hover:bg-red-700'
+                }`}
+              >
+                {intl.formatMessage({ id: 'admin.resetAll' })}
+              </button>
+            </div>
+            <p className="text-gray-400 text-sm">
+              {intl.formatMessage({ id: 'admin.resetWarning' })}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

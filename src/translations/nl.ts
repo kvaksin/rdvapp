@@ -4,13 +4,12 @@ export default {
   'home.welcome': 'Welkom bij RDV Planning',
   'home.parentMessage': 'Selecteer een klas hierboven om afspraken te bekijken en te boeken',
   'home.loggedInAs': 'Ingelogd als:',
-  'nav.home': 'Home',
-  'nav.book': 'Reserveren',
+  'nav.home': 'Startpagina',
+  'nav.book': 'Boeken',
     // Navigation
-  'nav.admin': 'Beheerder Toegang',
+  'nav.admin': 'Admin Toegang',
   'nav.userApproval': 'Gebruiker Goedkeuring',
-  
-  'bookings.title': 'Afspraken',
+  'nav.classRequest': 'Klassindeling aanvragen',  'bookings.title': 'Afspraken',
   'bookings.count': '{count} afspraken',
   'bookings.countSingular': 'Eén afspraak',
   'bookings.countPlural': '{count} afspraken',
@@ -98,6 +97,7 @@ export default {
   
   'bookRdv.title': 'RDV boeken',
   'bookRdv.enterChildName': 'Voer de naam van het kind in',
+  'bookRdv.yourChildren': 'Uw kinderen:',
   
   // Authentication
   'auth.signIn': 'Inloggen',
@@ -129,7 +129,8 @@ export default {
   'auth.roleParent': 'Ouder',
   'auth.roleParentDesc': 'Afspraken boeken voor uw kinderen',
   'auth.childNameForClass': 'Naam van het kind voor {className}:',
-  'auth.enterChildName': 'Voer de naam van het kind in',
+    'auth.enterChildName': 'Voer naam van het kind in',
+  'auth.existingChildrenInClass': 'Bestaande kinderen in deze klas:',
   'auth.noClassesAvailable': 'Geen klassen beschikbaar',
   'auth.passwordMismatch': 'Wachtwoorden komen niet overeen',
   'auth.passwordTooShort': 'Wachtwoord moet minimaal 6 tekens lang zijn',
@@ -173,4 +174,57 @@ export default {
   'notifications.empty': 'Geen meldingen',
   'notifications.role': 'Rol: {role}',
   'notifications.refresh': 'Vernieuwen',
+  
+  // Admin gebruikersbeheer
+  'admin.users.selectAll': 'Alles selecteren',
+  'admin.users.selected': '{count, plural, one {# gebruiker geselecteerd} other {# gebruikers geselecteerd}}',
+  'admin.users.clearSelection': 'Selectie wissen',
+  'admin.users.deleteSelected': 'Geselecteerde verwijderen ({count})',
+  'admin.users.delete.confirm.bulk': 'Weet je zeker dat je {count, plural, one {# gebruiker} other {# gebruikers}} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.',
+  'admin.users.delete.success': '{count, plural, one {# gebruiker} other {# gebruikers}} succesvol verwijderd.',
+  
+  // Admin interface translations
+  'admin.createAppointments': 'Afspraken maken',
+  'admin.selectClass': 'Selecteer klas',
+  'admin.manageSlots': 'Tijdslots beheren',
+  'admin.allClasses': 'Alle klassen',
+  'admin.refresh': 'Vernieuwen',
+  'admin.createTimeframe': 'Tijdskader maken',
+  'admin.dangerZone': 'Gevaarzone',
+  'admin.resetSelectedClass': 'Geselecteerde klas resetten',
+  'admin.resetAll': 'Alles resetten',
+  'admin.resetWarning': 'Waarschuwing: Deze actie is onomkeerbaar',
+  'admin.resetSchedule': 'Planning resetten',
+  'admin.resetScheduleWarning': 'Dit zal alle afspraken en tijdslots voor de geselecteerde klas verwijderen. Deze actie kan niet ongedaan worden gemaakt.',
+  'admin.confirmResetClassSchedule': 'Weet je zeker dat je de planning voor "{className}" wilt resetten? Alle afspraken en tijdslots worden permanent verwijderd.',
+  'admin.failedResetClassSchedule': 'Mislukt om klasplanning te resetten. Probeer opnieuw.',
+  
+  // Klasopdracht verzoeken
+  'admin.classRequests.title': 'Klasopdracht Verzoeken',
+  'admin.classRequests.description': 'Bekijk en keur klasopdracht wijzigingsverzoeken goed',
+  'admin.classRequests.noRequests': 'Geen openstaande klasopdracht verzoeken',
+  'admin.classRequests.approve': 'Verzoek goedkeuren',
+  'admin.classRequests.reject': 'Verzoek afwijzen',
+  'admin.classRequests.requestedBy': 'Verzocht door',
+  'admin.classRequests.requestedClass': 'Gevraagde klas',
+  'admin.classRequests.currentClass': 'Huidige klas',
+  'admin.classRequests.reason': 'Reden',
+
+  // Class request page
+  'classRequest.description': 'Vraag een nieuwe klasopdracht aan of wijzig je huidige opdracht',
+  'classRequest.currentAssignment': 'Huidige Opdracht',
+  'classRequest.newRequest': 'Nieuwe Klasopdracht Verzoek',
+  'classRequest.selectClass': 'Selecteer Klas',
+  'classRequest.chooseClass': 'Kies een klas...',
+  'classRequest.enterClassName': 'Voer klasnaam of ID in...',
+  'classRequest.childName': 'Naam van het Kind',
+  'classRequest.childNamePlaceholder': 'Voer de naam van je kind in',
+  'classRequest.reasonPlaceholder': 'Leg uit waarom je deze klasopdracht wijziging nodig hebt...',
+  'classRequest.submitRequest': 'Verzoek Indienen',
+  'classRequest.yourRequests': 'Jouw Verzoeken',
+  'classRequest.noRequests': 'Je hebt geen klasopdracht verzoeken.',
+  'classRequest.requestedOn': 'Aangevraagd op',
+  'classRequest.status.pending': 'In behandeling',
+  'classRequest.status.approved': 'Goedgekeurd',
+  'classRequest.status.rejected': 'Afgewezen',
 }
