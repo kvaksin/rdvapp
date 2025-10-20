@@ -1,17 +1,18 @@
 services:
   - type: web
-    name: rdvapp
+    name: rdvapp-booking-system
     env: node
     plan: free
     region: frankfurt
-    branch: main
+    branch: authentication
     buildCommand: |
       npm ci --include=dev
       npm run build
+      echo "Build completed successfully"
     startCommand: node server/index.js
     envVars:
       - key: NODE_VERSION
-        value: 20
+        value: 24
       - key: NODE_ENV
         value: production
       - key: PORT
@@ -20,9 +21,33 @@ services:
         value: /api
       - key: BASE_URL
         generateValue: true
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        value: admin@rdvapp.com
+      - key: DEFAULT_ADMIN_PASSWORD
+        generateValue: true
+      - key: APP_NAME
+        value: RDV Booking System
+      - key: NOTIFICATION_CLEANUP_INTERVAL
+        value: "24"
+      - key: MAX_BOOKING_DAYS_AHEAD
+        value: "30"
     healthCheckPath: /api/health
     autoDeploy: true
     disk:
-      name: rdvapp-data
+      name: rdvapp-persistent-data
       mountPath: /opt/render/project/src/data
-      sizeGB: 1
+      sizeGB: 2
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin

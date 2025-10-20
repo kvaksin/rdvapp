@@ -1,23 +1,2 @@
 [
-  {
-    "id": "17609021514918d4fgs576",
-    "name": "Lora Vaksin",
-    "firstName": "Lora",
-    "lastName": "Vaksin",
-    "parentId": "1760902151489f4az5xulh",
-    "classId": "2e3ff20d-d759-481a-bd9e-1f4ebdc8b782",
-    "createdAt": "2025-10-19T19:29:11.491Z",
-    "updatedAt": "2025-10-19T22:27:48.200Z",
-    "birthday": "2020-03-13"
-  },
-  {
-    "id": "17609690780354mdv33tjl",
-    "name": "Gabriel Vaksin",
-    "firstName": "Gabriel",
-    "lastName": "Vaksin",
-    "birthday": "2015-12-09",
-    "classId": "90e56e45-47b2-46ea-8636-ecee1b8f9acd",
-    "createdAt": "2025-10-20T14:04:38.035Z",
-    "updatedAt": "2025-10-20T14:04:38.035Z"
-  }
 ]
