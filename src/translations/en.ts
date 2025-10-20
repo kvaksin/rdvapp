@@ -101,6 +101,8 @@ export default {
   'admin.failedResetAll': 'Failed to reset all data',
   'admin.fillAllFields': 'Please fill all required fields',
   'admin.confirmResetAll': 'Are you sure you want to reset all data? This action cannot be undone.',
+  'admin.confirmResetClass': 'Are you sure you want to reset this class? This action cannot be undone.',
+  'admin.loading': 'Loading...',
   
   'schedule.title': 'Class Schedule',
   'schedule.bookAppointment': 'Book Appointment',
@@ -330,10 +332,13 @@ export default {
   // Children Management
   'childrenManagement.title': 'Children Management',
   'childrenManagement.subtitle': 'Manage children and their class enrollments',
+  'childrenManagement.filters': 'Filters & Search',
   'childrenManagement.addChild': 'Add Child',
   'childrenManagement.search': 'Search by name',
   'childrenManagement.filterByClass': 'Filter by class',
+  'childrenManagement.filterByParent': 'Filter by parent',
   'childrenManagement.allClasses': 'All classes',
+  'childrenManagement.allParents': 'All parents',
   'childrenManagement.addNew': 'Add New Child',
   'childrenManagement.editChild': 'Edit Child',
   'childrenManagement.childName': 'Child Name',

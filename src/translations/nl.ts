@@ -146,6 +146,8 @@ export default {
   'auth.childNameForClass': 'Naam van het kind voor {className}:',
     'auth.enterChildName': 'Voer naam van het kind in',
   'auth.existingChildrenInClass': 'Bestaande kinderen in deze klas:',
+  'auth.invalidClassSelection': 'Sommige geselecteerde klassen zijn niet meer beschikbaar. Vernieuw de pagina en probeer opnieuw.',
+  'auth.noClassesHint': 'Probeer te vernieuwen of neem contact op met een beheerder',
   'auth.noClassesAvailable': 'Geen klassen beschikbaar',
   'auth.passwordMismatch': 'Wachtwoorden komen niet overeen',
   'auth.passwordTooShort': 'Wachtwoord moet minimaal 6 tekens lang zijn',
@@ -159,6 +161,7 @@ export default {
   'common.loading': 'Laden...',
   'common.error': 'Fout',
   'common.success': 'Succes',
+  'common.refresh': 'Vernieuwen',
   'language.select': 'Selecteer taal',
   'language.current': 'Huidige taal',
   
@@ -213,6 +216,14 @@ export default {
   'admin.resetScheduleWarning': 'Dit zal alle afspraken en tijdslots voor de geselecteerde klas verwijderen. Deze actie kan niet ongedaan worden gemaakt.',
   'admin.confirmResetClassSchedule': 'Weet je zeker dat je de planning voor "{className}" wilt resetten? Alle afspraken en tijdslots worden permanent verwijderd.',
   'admin.failedResetClassSchedule': 'Mislukt om klasplanning te resetten. Probeer opnieuw.',
+  'admin.failedUpdateConfig': 'Configuratie bijwerken mislukt',
+  'admin.failedCreateTimeframe': 'Tijdskader maken mislukt',
+  'admin.failedDeleteSlot': 'Tijdslot verwijderen mislukt',
+  'admin.failedResetAll': 'Alles resetten mislukt',
+  'admin.fillAllFields': 'Vul alle vereiste velden in',
+  'admin.confirmResetAll': 'Weet je zeker dat je alle gegevens wilt resetten? Deze actie kan niet ongedaan worden gemaakt.',
+  'admin.confirmResetClass': 'Weet je zeker dat je deze klas wilt resetten? Deze actie kan niet ongedaan worden gemaakt.',
+  'admin.loading': 'Laden...',
   
   // Klasopdracht verzoeken
   'admin.classRequests.title': 'Klasopdracht Verzoeken',
@@ -224,6 +235,14 @@ export default {
   'admin.classRequests.requestedClass': 'Gevraagde klas',
   'admin.classRequests.currentClass': 'Huidige klas',
   'admin.classRequests.reason': 'Reden',
+  'admin.classRequests.pending': 'Openstaande verzoeken',
+  'admin.classRequests.processed': 'Recent verwerkte verzoeken',
+  'admin.classRequests.status.pending': 'In behandeling',
+  'admin.classRequests.status.approved': 'Goedgekeurd',
+  'admin.classRequests.status.rejected': 'Afgewezen',
+  'admin.classRequests.rejectionReasonPrompt': 'Reden voor afwijzing (optioneel):',
+  'admin.refreshRequests': 'Vernieuwen',
+  'admin.loadingRequests': 'Verzoeken laden...',
 
   // Class request page
   'classRequest.description': 'Vraag een nieuwe klasopdracht aan of wijzig je huidige opdracht',
@@ -242,6 +261,10 @@ export default {
   'classRequest.status.pending': 'In behandeling',
   'classRequest.status.approved': 'Goedgekeurd',
   'classRequest.status.rejected': 'Afgewezen',
+  'classRequest.rejectionReason': 'Reden voor afwijzing',
+  'classRequest.submittedOn': 'Ingediend op {date}',
+  'common.optional': 'optioneel',
+  'common.submitting': 'Indienen...',
   
   // Gebruikersbeheer
   'userManagement.title': 'Gebruikersbeheer',
@@ -306,10 +329,13 @@ export default {
   // Kinderenbeheer
   'childrenManagement.title': 'Kinderenbeheer',
   'childrenManagement.subtitle': 'Beheer kinderen en hun klasinschrijvingen',
+  'childrenManagement.filters': 'Filters en Zoeken',
   'childrenManagement.addChild': 'Kind Toevoegen',
   'childrenManagement.search': 'Zoeken op naam',
   'childrenManagement.filterByClass': 'Filteren op klas',
+  'childrenManagement.filterByParent': 'Filteren op ouder',
   'childrenManagement.allClasses': 'Alle klassen',
+  'childrenManagement.allParents': 'Alle ouders',
   'childrenManagement.addNew': 'Nieuw Kind Toevoegen',
   'childrenManagement.editChild': 'Kind Bewerken',
   'childrenManagement.childName': 'Naam Kind',
