@@ -24,6 +24,7 @@ interface Child {
   name?: string; // Legacy field
   firstName?: string;
   lastName?: string;
+  birthday?: string; // Date string (YYYY-MM-DD format)
   parentId?: string;
   classId: string;
   createdAt: string;

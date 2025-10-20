@@ -370,7 +370,12 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
     console.log('Authentication failed, clearing session')
     localStorage.removeItem('auth_token')
     localStorage.removeItem('auth_user')
-    window.location.href = '/login'
+    
+    // Don't redirect to login if we're already on register or login page
+    const currentPath = window.location.pathname
+    if (currentPath !== '/login' && currentPath !== '/register') {
+      window.location.href = '/login'
+    }
   }
 
   return response

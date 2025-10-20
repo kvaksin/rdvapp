@@ -149,6 +149,7 @@ A **secure, comprehensive class-based appointment booking application** with adv
 - **Booking Restrictions**: Parents can only book appointments for their registered children in their enrolled classes
 - **Child Data Management**:
   - Add, edit, and delete children with proper authorization
+  - **Birthday Support**: Store and manage child birthdates with date picker interface
   - Class assignment validation and enforcement
   - Automatic cleanup when parents are deleted
   - Search and filtering capabilities by name, class, and parent
@@ -1703,10 +1704,14 @@ The application includes a comprehensive children management system to streamlin
 ```typescript
 interface Child {
   id: string          // Unique identifier
-  name: string        // Child's name
+  name?: string       // Legacy field for backward compatibility
+  firstName: string   // Child's first name
+  lastName: string    // Child's last name
+  birthday?: string   // Child's birthday (optional, YYYY-MM-DD format)
   parentId: string    // Associated parent user ID
   classId: string     // Assigned class ID
   createdAt: string   // Creation timestamp
+  updatedAt?: string  // Last modification timestamp
 }
 ```
 

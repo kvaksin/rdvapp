@@ -103,7 +103,7 @@
     "recipientId": "admin-1",
     "senderId": "1760773065330af6ru11py",
     "message": "New class assignment request from teacher@example.com for class M3C",
-    "isRead": false,
+    "isRead": true,
     "createdAt": "2025-10-18T11:46:39.176Z",
     "status": "sent",
     "metadata": {
@@ -232,7 +232,7 @@
     "recipientId": "admin-1",
     "senderId": "system",
     "message": "Test recent notification - should be kept",
-    "isRead": false,
+    "isRead": true,
     "createdAt": "2025-10-04T19:50:58.185Z",
     "status": "sent"
   },
@@ -244,6 +244,88 @@
     "message": "Your account has been rejected. Reason: unknown",
     "isRead": false,
     "createdAt": "2025-10-19T20:15:46.990Z",
+    "status": "sent"
+  },
+  {
+    "id": "1760953469811fdetl1egp",
+    "type": "user_approval_request",
+    "recipientId": "admin-1",
+    "senderId": "1760953469807yiszbtf8f",
+    "senderEmail": "vl@ex.com",
+    "senderName": "V L",
+    "userRole": "parent",
+    "classAssignments": [
+      {
+        "classId": "2e3ff20d-d759-481a-bd9e-1f4ebdc8b782",
+        "childName": "Lora Vaksin"
+      }
+    ],
+    "message": "New parent registration: V L (vl@ex.com)",
+    "isRead": false,
+    "createdAt": "2025-10-20T09:44:29.811Z",
+    "status": "pending"
+  },
+  {
+    "id": "1760953491283rgouxevvk",
+    "type": "user_approved",
+    "recipientId": "1760953469807yiszbtf8f",
+    "senderId": "1760773065330af6ru11py",
+    "message": "Your account has been approved. You can now log in.",
+    "isRead": true,
+    "createdAt": "2025-10-20T09:44:51.283Z",
+    "status": "sent"
+  },
+  {
+    "id": "17609641881897kh2m4arw",
+    "type": "user_approval_request",
+    "recipientId": "admin-1",
+    "senderId": "1760964188187rpwsigfiw",
+    "senderEmail": "p5b@ex.com",
+    "senderName": "p5b p5b",
+    "userRole": "class_lead",
+    "classAssignments": [
+      {
+        "classId": "ae940e33-bb4e-4124-b970-d07d79fd07ec"
+      }
+    ],
+    "message": "New class_lead registration: p5b p5b (p5b@ex.com)",
+    "isRead": true,
+    "createdAt": "2025-10-20T12:43:08.189Z",
+    "status": "pending"
+  },
+  {
+    "id": "1760964200544jmnvpn11a",
+    "type": "user_approved",
+    "recipientId": "1760964188187rpwsigfiw",
+    "senderId": "admin-1",
+    "message": "Your account has been approved. You can now log in.",
+    "isRead": true,
+    "createdAt": "2025-10-20T12:43:20.544Z",
+    "status": "sent"
+  },
+  {
+    "id": "1760969206761ridcfzvhp",
+    "type": "class_assignment_request",
+    "recipientId": "admin-1",
+    "senderId": "1760964188187rpwsigfiw",
+    "message": "New class assignment request from p5b@ex.com for class p5b",
+    "isRead": false,
+    "createdAt": "2025-10-20T14:06:46.761Z",
+    "status": "sent",
+    "metadata": {
+      "requestId": "17609692067602w31oswqz",
+      "userEmail": "p5b@ex.com",
+      "className": "p5b"
+    }
+  },
+  {
+    "id": "1760969219938m6hhib6ux",
+    "type": "class_assignment_approved",
+    "recipientId": "1760964188187rpwsigfiw",
+    "senderId": "admin-1",
+    "message": "Your class assignment request for p5b has been approved",
+    "isRead": false,
+    "createdAt": "2025-10-20T14:06:59.938Z",
     "status": "sent"
   }
 ]

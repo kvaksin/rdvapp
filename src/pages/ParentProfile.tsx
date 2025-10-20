@@ -7,6 +7,7 @@ interface Child {
   name?: string // Legacy field
   firstName: string
   lastName: string
+  birthday?: string // Date string (YYYY-MM-DD format)
   parentId: string
   classId: string
   createdAt: string
@@ -145,7 +146,9 @@ const ParentProfile: React.FC = () => {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phone: editForm.phone
+          phone: editForm.phone,
+          firstName: editForm.firstName,
+          lastName: editForm.lastName
         })
       })
       
@@ -297,6 +300,30 @@ const ParentProfile: React.FC = () => {
                   <FormattedMessage id="profile.emailNotEditable" defaultMessage="Email cannot be changed" />
                 </p>
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <FormattedMessage id="profile.firstName" defaultMessage="First Name" />
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.firstName}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, firstName: e.target.value }))}
+                    className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <FormattedMessage id="profile.lastName" defaultMessage="Last Name" />
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.lastName}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, lastName: e.target.value }))}
+                    className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-700 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   <FormattedMessage id="profile.phone" defaultMessage="Phone" />
@@ -394,7 +421,14 @@ const ParentProfile: React.FC = () => {
                     <p className="font-medium text-white">
                       {child.firstName && child.lastName ? `${child.firstName} ${child.lastName}` : child.name || 'Unnamed Child'}
                     </p>
-                    <p className="text-sm text-gray-300">{getClassName(child.classId)}</p>
+                    <div className="text-sm text-gray-300 space-y-1">
+                      <p>{getClassName(child.classId)}</p>
+                      {child.birthday && (
+                        <p>
+                          <FormattedMessage id="childrenManagement.birthday" defaultMessage="Birthday" />: {new Date(child.birthday).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}

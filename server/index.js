@@ -128,6 +128,18 @@ app.use(express.static(validDistPath, {
   fallthrough: true // Continue to next middleware if file not found
 }))
 
+// Public API routes for registration (before auth routes)
+app.get('/api/children/class/:classId', (req, res) => {
+  try {
+    const { classId } = req.params
+    const children = auth.getChildrenByClass(classId)
+    res.json(children)
+  } catch (error) {
+    console.error('Error getting children by class:', error)
+    res.status(500).json({ error: 'Failed to get children' })
+  }
+})
+
 // Authentication routes - must come before catch-all route
 app.use('/auth', authRoutes)
 
@@ -295,20 +307,44 @@ app.get('/api/ping', (req, res) => {
 // API docs JSON + simple HTML tester
 app.get('/api/docs', (req, res) => {
   const docs = {
-    info: 'Simple RDV API',
-    base: '/api',
-    endpoints: [
-      { method: 'GET', path: '/slots', desc: 'List slots (query from,to optional)' },
-      { method: 'POST', path: '/slots/timeframe', desc: 'Create slots between start and end (ISO strings)' },
-      { method: 'DELETE', path: '/slots/:id', desc: 'Remove a slot (soft remove) if not booked' },
-      { method: 'GET', path: '/bookings', desc: 'List bookings' },
-      { method: 'POST', path: '/bookings', desc: 'Create a booking (slotId, childName) transactional' },
-      { method: 'PUT', path: '/bookings/:id', desc: 'Reschedule a booking to a different slot' },
-      { method: 'DELETE', path: '/bookings/:id', desc: 'Cancel a booking' },
-      { method: 'GET', path: '/bookings/:id/ics', desc: 'Download .ics for a booking' },
-      { method: 'GET', path: '/config', desc: 'Get configuration (rdvDurationMinutes)' },
-      { method: 'PUT', path: '/config', desc: 'Update configuration (rdvDurationMinutes)' },
-      { method: 'POST', path: '/reset', desc: 'Reset schedule (confirm: true required)' }
+    info: 'RDV API with Authentication & Children Management',
+    version: '2.0.0',
+    endpoints: {
+      'Authentication (/auth)': [
+        { method: 'POST', path: '/auth/register', desc: 'Register new user with firstName/lastName' },
+        { method: 'POST', path: '/auth/login', desc: 'User login (returns JWT token)' },
+        { method: 'GET', path: '/auth/profile', desc: 'Get user profile (requires auth)' },
+        { method: 'PUT', path: '/auth/profile', desc: 'Update user profile (firstName/lastName/phone)' }
+      ],
+      'Children Management (/api)': [
+        { method: 'GET', path: '/children', desc: 'List children (filtered by role, optional classId query)' },
+        { method: 'POST', path: '/children', desc: 'Create child (firstName/lastName or legacy name)' },
+        { method: 'GET', path: '/children/:id', desc: 'Get specific child' },
+        { method: 'PUT', path: '/children/:id', desc: 'Update child (firstName/lastName support)' },
+        { method: 'DELETE', path: '/children/:id', desc: 'Delete child' }
+      ],
+      'Slots & Bookings (/api)': [
+        { method: 'GET', path: '/slots', desc: 'List slots (query from,to optional)' },
+        { method: 'POST', path: '/slots/timeframe', desc: 'Create slots between start and end (ISO strings)' },
+        { method: 'DELETE', path: '/slots/:id', desc: 'Remove a slot (soft remove) if not booked' },
+        { method: 'GET', path: '/bookings', desc: 'List bookings' },
+        { method: 'POST', path: '/bookings', desc: 'Create booking (slotId + childId or childName)' },
+        { method: 'PUT', path: '/bookings/:id', desc: 'Reschedule a booking to a different slot' },
+        { method: 'DELETE', path: '/bookings/:id', desc: 'Cancel a booking' },
+        { method: 'GET', path: '/bookings/:id/ics', desc: 'Download .ics calendar file for booking' }
+      ],
+      'System (/api)': [
+        { method: 'GET', path: '/config', desc: 'Get configuration (rdvDurationMinutes)' },
+        { method: 'PUT', path: '/config', desc: 'Update configuration (rdvDurationMinutes)' },
+        { method: 'POST', path: '/reset', desc: 'Reset schedule (confirm: true required)' },
+        { method: 'GET', path: '/ping', desc: 'Health check endpoint' }
+      ]
+    },
+    notes: [
+      'Authentication required for most endpoints (JWT Bearer token)',
+      'Children API supports both firstName/lastName and legacy name fields',
+      'Bookings support both childId (preferred) and childName (legacy)',
+      'Full API documentation with examples: /api/docs/ui (Swagger UI)'
     ]
   }
 
@@ -533,7 +569,7 @@ app.post('/api/bookings', auth.authenticateToken, async (req, res) => {
       }
 
       // Check if this child already has a booking for any slot
-      const existingBookings = db.getBookings()
+      const existingBookings = await db.getBookings()
       const childHasBooking = existingBookings.find(booking => 
         booking.childId === selectedChild.id && !booking.cancelled
       )
@@ -574,7 +610,7 @@ app.post('/api/bookings', auth.authenticateToken, async (req, res) => {
         }
 
         // Check if this child already has a booking for any slot
-        const existingBookings = db.getBookings()
+        const existingBookings = await db.getBookings()
         const childHasBooking = existingBookings.find(booking => 
           booking.childId === child.id && !booking.cancelled
         )

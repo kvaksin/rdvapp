@@ -7,6 +7,8 @@ import type { Class } from '../types/api'
 interface User {
   id: string
   email: string
+  firstName?: string
+  lastName?: string
   phone?: string
   createdAt: string
   isActive: boolean
@@ -104,8 +106,12 @@ const UserManagement: React.FC = () => {
   // Apply filters
   useEffect(() => {
     let filtered = users.filter(user => {
+      const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim().toLowerCase()
       const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           (user.phone && user.phone.includes(searchTerm))
+                           (user.phone && user.phone.includes(searchTerm)) ||
+                           fullName.includes(searchTerm.toLowerCase()) ||
+                           (user.firstName && user.firstName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                           (user.lastName && user.lastName.toLowerCase().includes(searchTerm.toLowerCase()))
       const matchesStatus = statusFilter === 'all' || user.status === statusFilter
       const matchesRole = roleFilter === 'all' || user.roles.includes(roleFilter)
       
@@ -330,6 +336,8 @@ const UserManagement: React.FC = () => {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          firstName: editingUser.firstName,
+          lastName: editingUser.lastName,
           email: editingUser.email,
           phone: editingUser.phone,
           isActive: editingUser.isActive
@@ -612,7 +620,13 @@ const UserManagement: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div>
-                        <div className="text-sm font-medium text-white">{user.email}</div>
+                        <div className="text-sm font-medium text-white">
+                          {user.firstName || user.lastName ? 
+                            `${user.firstName || ''} ${user.lastName || ''}`.trim() : 
+                            user.email
+                          }
+                        </div>
+                        <div className="text-sm text-gray-400">{user.email}</div>
                         {user.phone && (
                           <div className="text-sm text-gray-400">{user.phone}</div>
                         )}
@@ -726,6 +740,32 @@ const UserManagement: React.FC = () => {
             </h3>
             
             <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <FormattedMessage id="userManagement.firstName" defaultMessage="First Name" />
+                  </label>
+                  <input
+                    type="text"
+                    value={editingUser.firstName || ''}
+                    onChange={(e) => setEditingUser({ ...editingUser, firstName: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <FormattedMessage id="userManagement.lastName" defaultMessage="Last Name" />
+                  </label>
+                  <input
+                    type="text"
+                    value={editingUser.lastName || ''}
+                    onChange={(e) => setEditingUser({ ...editingUser, lastName: e.target.value })}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   <FormattedMessage id="userManagement.email" defaultMessage="Email" />

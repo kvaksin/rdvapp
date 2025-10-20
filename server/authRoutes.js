@@ -195,7 +195,7 @@ router.get('/profile', auth.authenticateToken, (req, res) => {
 // Update user profile
 router.put('/profile', auth.authenticateToken, async (req, res) => {
   try {
-    const { phone } = req.body
+    const { phone, firstName, lastName } = req.body
     const users = auth.getUsers()
     const userIndex = users.findIndex(u => u.id === req.user.id)
     
@@ -206,6 +206,12 @@ router.put('/profile', auth.authenticateToken, async (req, res) => {
     // Update allowed fields
     if (phone !== undefined) {
       users[userIndex].phone = phone
+    }
+    if (firstName !== undefined) {
+      users[userIndex].firstName = firstName
+    }
+    if (lastName !== undefined) {
+      users[userIndex].lastName = lastName
     }
 
     users[userIndex].updatedAt = new Date().toISOString()
@@ -237,20 +243,6 @@ router.get('/classes', (req, res) => {
 // Logout (client-side should remove token)
 router.post('/logout', (req, res) => {
   res.json({ message: 'Logout successful' })
-})
-
-// Admin routes for user management
-router.get('/users', auth.authenticateToken, auth.requireRole(['administrator']), (req, res) => {
-  try {
-    const users = auth.getUsers().map(user => {
-      const userWithRoles = auth.getUserWithRolesAndClasses(user.id)
-      return userWithRoles
-    })
-    res.json(users)
-  } catch (error) {
-    console.error('Error fetching users:', error)
-    res.status(500).json({ error: 'Failed to fetch users' })
-  }
 })
 
 // Update user roles/classes (admin only)
@@ -649,10 +641,10 @@ router.get('/users', passport.authenticate('jwt', { session: false }), auth.requ
 router.put('/users/:userId', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator', 'class_lead']), async (req, res) => {
   try {
     const { userId } = req.params
-    const { email, phone, isActive } = req.body
+    const { firstName, lastName, email, phone, isActive } = req.body
     const currentUser = req.user
     
-    const updatedUser = auth.updateUser(userId, { email, phone, isActive }, currentUser)
+    const updatedUser = auth.updateUser(userId, { firstName, lastName, email, phone, isActive }, currentUser)
     res.json({ message: 'User updated successfully', user: updatedUser })
   } catch (error) {
     console.error('Error updating user:', error)
@@ -744,6 +736,53 @@ router.post('/users/bulk-delete', passport.authenticate('jwt', { session: false 
   } catch (error) {
     console.error('Error bulk deleting users:', error)
     res.status(400).json({ error: error.message })
+  }
+})
+
+// Get parent-child relationships (admin/class lead only)
+router.get('/parent-child-relationships', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator', 'class_lead']), async (req, res) => {
+  try {
+    const relationships = auth.getParentChildRelationships()
+    res.json(relationships)
+  } catch (error) {
+    console.error('Error getting parent-child relationships:', error)
+    res.status(500).json({ error: 'Failed to get parent-child relationships' })
+  }
+})
+
+// Update parent relationships for a child (admin/class lead only)
+router.put('/children/:childId/parents', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator', 'class_lead']), async (req, res) => {
+  try {
+    const { childId } = req.params
+    const { parentIds } = req.body
+
+    if (!Array.isArray(parentIds)) {
+      return res.status(400).json({ error: 'parentIds must be an array' })
+    }
+
+    // Validate that all parent IDs exist and are parents
+    const users = auth.getUsers()
+    const validParents = parentIds.every(parentId => {
+      const user = users.find(u => u.id === parentId)
+      return user && auth.hasRole(parentId, 'parent')
+    })
+
+    if (!validParents) {
+      return res.status(400).json({ error: 'One or more parent IDs are invalid' })
+    }
+
+    // Remove existing relationships for this child
+    auth.removeParentChildRelationships(childId)
+
+    // Add new relationships
+    parentIds.forEach(parentId => {
+      auth.addParentChildRelationship(parentId, childId, 'parent')
+    })
+
+    res.json({ message: 'Parent relationships updated successfully' })
+  } catch (error) {
+    console.error('Error updating parent relationships:', error)
+    res.status(500).json({ error: 'Failed to update parent relationships' })
   }
 })
 

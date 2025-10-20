@@ -1,0 +1,1498 @@
+
+> rdvapp@0.1.0 start:server
+> node server/index.js
+
+[dotenv@17.2.3] injecting env (3) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
+Environment: undefined
+Current directory: /Users/kvaksin/Documents/Documents - kvaksin M1 pro/GitHub/rdvapp
+Dist path: /Users/kvaksin/Documents/Documents - kvaksin M1 pro/GitHub/rdvapp/dist
+Directory contents: [
+  '.DS_Store',
+  '.env',
+  '.env.example',
+  '.git',
+  '.github',
+  '.gitignore',
+  '.nvmrc',
+  '.vscode',
+  'API_DOCS_UPDATE_SUMMARY.md',
+  'CHILDREN_NAMES_IMPLEMENTATION.md',
+  'Dockerfile',
+  'NOTIFICATION_CLEANUP_SUMMARY.md',
+  'PARENT_CHILD_IMPLEMENTATION.md',
+  'PROFILE_NAME_EDIT_SUMMARY.md',
+  'README.md',
+  'README_UPDATE_SUMMARY.md',
+  'admin_token.txt',
+  'data',
+  'debug_password.js',
+  'dist',
+  'docker-compose.yml',
+  'ecosystem.config.js',
+  'frontend.log',
+  'frontend.pid',
+  'index.html',
+  'monitoring',
+  'nginx',
+  'node_modules',
+  'openapi.yaml',
+  'package-lock.json',
+  'package.json',
+  'postcss.config.cjs',
+  'render.yaml',
+  'scripts',
+  'server',
+  'server.log',
+  'src',
+  'tailwind.config.cjs',
+  'test-api.js',
+  'test-api.mjs',
+  'test-booking-restriction.cjs',
+  'test-children-names.js',
+  'test-comprehensive.js',
+  'test-enhanced-registration.cjs',
+  'test-manual-cleanup-api.js',
+  'test-multiple-parents-simple.js',
+  'test-multiple-parents.js',
+  'test-notification-cleanup.js',
+  'test-parent-child-system.js',
+  'test-profile-name-edit.js',
+  'test-registration-children-fix.js',
+  'test-signup-navigation.js',
+  'test-user-security.mjs',
+  'test_token.txt',
+  'tsconfig.json',
+  'tsconfig.node.json',
+  'vite.config.ts'
+]
+Contents of /Users/kvaksin/Documents/Documents - kvaksin M1 pro/GitHub/rdvapp/dist: [ 'assets', 'index.html' ]
+Contents of /Users/kvaksin/Documents/Documents - kvaksin M1 pro/GitHub/rdvapp: [
+  '.DS_Store',
+  '.env',
+  '.env.example',
+  '.git',
+  '.github',
+  '.gitignore',
+  '.nvmrc',
+  '.vscode',
+  'API_DOCS_UPDATE_SUMMARY.md',
+  'CHILDREN_NAMES_IMPLEMENTATION.md',
+  'Dockerfile',
+  'NOTIFICATION_CLEANUP_SUMMARY.md',
+  'PARENT_CHILD_IMPLEMENTATION.md',
+  'PROFILE_NAME_EDIT_SUMMARY.md',
+  'README.md',
+  'README_UPDATE_SUMMARY.md',
+  'admin_token.txt',
+  'data',
+  'debug_password.js',
+  'dist',
+  'docker-compose.yml',
+  'ecosystem.config.js',
+  'frontend.log',
+  'frontend.pid',
+  'index.html',
+  'monitoring',
+  'nginx',
+  'node_modules',
+  'openapi.yaml',
+  'package-lock.json',
+  'package.json',
+  'postcss.config.cjs',
+  'render.yaml',
+  'scripts',
+  'server',
+  'server.log',
+  'src',
+  'tailwind.config.cjs',
+  'test-api.js',
+  'test-api.mjs',
+  'test-booking-restriction.cjs',
+  'test-children-names.js',
+  'test-comprehensive.js',
+  'test-enhanced-registration.cjs',
+  'test-manual-cleanup-api.js',
+  'test-multiple-parents-simple.js',
+  'test-multiple-parents.js',
+  'test-notification-cleanup.js',
+  'test-parent-child-system.js',
+  'test-profile-name-edit.js',
+  'test-registration-children-fix.js',
+  'test-signup-navigation.js',
+  'test-user-security.mjs',
+  'test_token.txt',
+  'tsconfig.json',
+  'tsconfig.node.json',
+  'vite.config.ts'
+]
+Contents of /Users/kvaksin/Documents/Documents - kvaksin M1 pro/GitHub: [
+  '.DS_Store',
+  '.github',
+  'desktop-tutorial',
+  'ipccjbot',
+  'kvaksin.github.io',
+  'mykola_labs',
+  'rdvapp'
+]
+Contents of /Users/kvaksin/Documents/Documents - kvaksin M1 pro: [ '.DS_Store', '.localized', 'GitHub', 'ff recorey.rtf' ]
+Contents of /Users/kvaksin/Documents: [
+  '.DS_Store',
+  '.localized',
+  'Amazon Connect Instance Fundamentals Course Summary.pdf',
+  'Documents - kvaksin M1 pro',
+  'IMG_7391.jpg',
+  'IMG_7392.jpg',
+  'Konstantin Vaksin_2024.pdf',
+  'Konstantin_Vaksin_CV_SA.pdf',
+  'MyConnectFiles',
+  'Smiddle',
+  'Ulla-border control',
+  'ViberDownloads',
+  'Zoom',
+  'c2027757-6a20-48ed-bf08-836180ad192e.pdf',
+  'certificat_medical_fr.pdf',
+  'f61022aece5890d180feb83c9bb88c7d (1).jpg',
+  'job search',
+  'medleave.jpg',
+  'medleave.pdf',
+  'workbooth',
+  'отчет_практика_2023.docx',
+  'отчет_практика_2023.pdf',
+  'справка.pdf'
+]
+Contents of /Users/kvaksin: [
+  '.CFUserTextEncoding', '.DS_Store',
+  '.Trash',              '.X-VPN',
+  '.anaconda',           '.aws',
+  '.bash_profile',       '.cache',
+  '.conda',              '.condarc',
+  '.config',             '.continuum',
+  '.cups',               '.gitconfig',
+  '.ipython',            '.junie',
+  '.lesshst',            '.local',
+  '.npm',                '.tcshrc',
+  '.viminfo',            '.vscode',
+  '.xonshrc',            '.zprofile',
+  '.zsh_history',        '.zsh_sessions',
+  '.zshrc',              'Applications',
+  'Desktop',             'Documents',
+  'Downloads',           'Library',
+  'Movies',              'Music',
+  'Pictures',            'Public',
+  'PycharmProjects',     'anaconda_projects',
+  'cisco bootcamps',     'vscode projects'
+]
+Contents of /Users: [ '.localized', 'Shared', 'kvaksin' ]
+Using dist path: /Users/kvaksin/Documents/Documents - kvaksin M1 pro/GitHub/rdvapp/dist
+API server listening on 4000
+Environment: development
+Data directory: /Users/kvaksin/Documents/Documents - kvaksin M1 pro/GitHub/rdvapp/data
+📅 Next notification cleanup scheduled for: 10/21/2025, 2:00:00 AM
+Retrieved slots: [
+  {
+    id: '1dbdc650-ebeb-44b5-8ac3-b49d7a3ff7c0',
+    start: '2025-10-29T10:00:00.000Z',
+    end: '2025-10-29T10:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.957Z',
+    removed: false,
+    booked: true
+  },
+  {
+    id: 'c984c42e-4ebc-4d3f-82b2-544da771d73b',
+    start: '2025-10-29T10:15:00.000Z',
+    end: '2025-10-29T10:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.962Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'fdfb54fd-ddb8-49bd-8bdd-8d76dbb4bd91',
+    start: '2025-10-29T10:30:00.000Z',
+    end: '2025-10-29T10:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.968Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'b85c1f82-5e3b-4971-9544-e7ebe70d1aba',
+    start: '2025-10-29T10:45:00.000Z',
+    end: '2025-10-29T11:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.972Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '707e884e-a447-43b7-a8b8-67282f3eb447',
+    start: '2025-10-29T11:00:00.000Z',
+    end: '2025-10-29T11:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.976Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'fb2caae5-40fc-4edf-80aa-c3d8cbfbf601',
+    start: '2025-10-29T11:15:00.000Z',
+    end: '2025-10-29T11:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.980Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '72a90855-6387-450c-b296-92497c815470',
+    start: '2025-10-29T11:30:00.000Z',
+    end: '2025-10-29T11:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.984Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'abcfe5ac-3ccc-4605-8e6a-d8c8893d7def',
+    start: '2025-10-29T11:45:00.000Z',
+    end: '2025-10-29T12:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.989Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'cf069b2b-c766-40e3-801c-609783073fe3',
+    start: '2025-10-29T12:00:00.000Z',
+    end: '2025-10-29T12:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.994Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '40510251-af77-41ab-bd91-9e1c3f02da81',
+    start: '2025-10-29T12:15:00.000Z',
+    end: '2025-10-29T12:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.999Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'ebc6c847-6e43-41d7-b1a5-9de4efafb651',
+    start: '2025-10-29T12:30:00.000Z',
+    end: '2025-10-29T12:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.006Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '307344aa-7763-45f7-9a31-09d76bb337f3',
+    start: '2025-10-29T12:45:00.000Z',
+    end: '2025-10-29T13:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.074Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '2cb24960-bcf1-46ec-88d0-4c3b666bc5a5',
+    start: '2025-10-29T13:00:00.000Z',
+    end: '2025-10-29T13:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.101Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '995730ad-07f6-4d32-ae7e-6cb3537dfd79',
+    start: '2025-10-29T13:15:00.000Z',
+    end: '2025-10-29T13:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.105Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '6bf785aa-3c44-437d-b36b-1e6039174c78',
+    start: '2025-10-29T13:30:00.000Z',
+    end: '2025-10-29T13:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.127Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '255d0488-585c-4147-8b9e-e8d8784a7ba6',
+    start: '2025-10-29T13:45:00.000Z',
+    end: '2025-10-29T14:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.134Z',
+    removed: false,
+    booked: false
+  }
+]
+Retrieved slots: [
+  {
+    id: '1dbdc650-ebeb-44b5-8ac3-b49d7a3ff7c0',
+    start: '2025-10-29T10:00:00.000Z',
+    end: '2025-10-29T10:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.957Z',
+    removed: false,
+    booked: true
+  },
+  {
+    id: 'c984c42e-4ebc-4d3f-82b2-544da771d73b',
+    start: '2025-10-29T10:15:00.000Z',
+    end: '2025-10-29T10:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.962Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'fdfb54fd-ddb8-49bd-8bdd-8d76dbb4bd91',
+    start: '2025-10-29T10:30:00.000Z',
+    end: '2025-10-29T10:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.968Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'b85c1f82-5e3b-4971-9544-e7ebe70d1aba',
+    start: '2025-10-29T10:45:00.000Z',
+    end: '2025-10-29T11:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.972Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '707e884e-a447-43b7-a8b8-67282f3eb447',
+    start: '2025-10-29T11:00:00.000Z',
+    end: '2025-10-29T11:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.976Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'fb2caae5-40fc-4edf-80aa-c3d8cbfbf601',
+    start: '2025-10-29T11:15:00.000Z',
+    end: '2025-10-29T11:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.980Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '72a90855-6387-450c-b296-92497c815470',
+    start: '2025-10-29T11:30:00.000Z',
+    end: '2025-10-29T11:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.984Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'abcfe5ac-3ccc-4605-8e6a-d8c8893d7def',
+    start: '2025-10-29T11:45:00.000Z',
+    end: '2025-10-29T12:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.989Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'cf069b2b-c766-40e3-801c-609783073fe3',
+    start: '2025-10-29T12:00:00.000Z',
+    end: '2025-10-29T12:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.994Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '40510251-af77-41ab-bd91-9e1c3f02da81',
+    start: '2025-10-29T12:15:00.000Z',
+    end: '2025-10-29T12:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.999Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'ebc6c847-6e43-41d7-b1a5-9de4efafb651',
+    start: '2025-10-29T12:30:00.000Z',
+    end: '2025-10-29T12:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.006Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '307344aa-7763-45f7-9a31-09d76bb337f3',
+    start: '2025-10-29T12:45:00.000Z',
+    end: '2025-10-29T13:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.074Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '2cb24960-bcf1-46ec-88d0-4c3b666bc5a5',
+    start: '2025-10-29T13:00:00.000Z',
+    end: '2025-10-29T13:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.101Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '995730ad-07f6-4d32-ae7e-6cb3537dfd79',
+    start: '2025-10-29T13:15:00.000Z',
+    end: '2025-10-29T13:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.105Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '6bf785aa-3c44-437d-b36b-1e6039174c78',
+    start: '2025-10-29T13:30:00.000Z',
+    end: '2025-10-29T13:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.127Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '255d0488-585c-4147-8b9e-e8d8784a7ba6',
+    start: '2025-10-29T13:45:00.000Z',
+    end: '2025-10-29T14:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.134Z',
+    removed: false,
+    booked: false
+  }
+]
+🔍 Admin requesting class assignment requests, user: admin@example.com
+📋 Found requests: 2
+🔥 Requests data: [
+  {
+    "id": "1760900756901fvike8frs",
+    "userId": "1760827452147y9gh7r7rc",
+    "classId": "2e3ff20d-d759-481a-bd9e-1f4ebdc8b782",
+    "reason": "",
+    "childName": "Lora",
+    "status": "approved",
+    "createdAt": "2025-10-19T19:05:56.901Z",
+    "updatedAt": "2025-10-19T19:20:34.980Z",
+    "approverId": "admin-1",
+    "userEmail": "Unknown",
+    "className": "M3C",
+    "classColor": "#10B981"
+  },
+  {
+    "id": "17607879991755guu2oa5n",
+    "userId": "1760773065330af6ru11py",
+    "classId": "2e3ff20d-d759-481a-bd9e-1f4ebdc8b782",
+    "reason": "",
+    "childName": null,
+    "status": "approved",
+    "createdAt": "2025-10-18T11:46:39.175Z",
+    "updatedAt": "2025-10-18T22:40:53.189Z",
+    "approverId": "admin-1",
+    "userEmail": "teacher@example.com",
+    "className": "M3C",
+    "classColor": "#10B981"
+  }
+]
+Retrieved slots: [
+  {
+    id: '1dbdc650-ebeb-44b5-8ac3-b49d7a3ff7c0',
+    start: '2025-10-29T10:00:00.000Z',
+    end: '2025-10-29T10:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.957Z',
+    removed: false,
+    booked: true
+  },
+  {
+    id: 'c984c42e-4ebc-4d3f-82b2-544da771d73b',
+    start: '2025-10-29T10:15:00.000Z',
+    end: '2025-10-29T10:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.962Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'fdfb54fd-ddb8-49bd-8bdd-8d76dbb4bd91',
+    start: '2025-10-29T10:30:00.000Z',
+    end: '2025-10-29T10:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.968Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'b85c1f82-5e3b-4971-9544-e7ebe70d1aba',
+    start: '2025-10-29T10:45:00.000Z',
+    end: '2025-10-29T11:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.972Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '707e884e-a447-43b7-a8b8-67282f3eb447',
+    start: '2025-10-29T11:00:00.000Z',
+    end: '2025-10-29T11:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.976Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'fb2caae5-40fc-4edf-80aa-c3d8cbfbf601',
+    start: '2025-10-29T11:15:00.000Z',
+    end: '2025-10-29T11:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.980Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '72a90855-6387-450c-b296-92497c815470',
+    start: '2025-10-29T11:30:00.000Z',
+    end: '2025-10-29T11:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.984Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'abcfe5ac-3ccc-4605-8e6a-d8c8893d7def',
+    start: '2025-10-29T11:45:00.000Z',
+    end: '2025-10-29T12:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.989Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'cf069b2b-c766-40e3-801c-609783073fe3',
+    start: '2025-10-29T12:00:00.000Z',
+    end: '2025-10-29T12:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.994Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '40510251-af77-41ab-bd91-9e1c3f02da81',
+    start: '2025-10-29T12:15:00.000Z',
+    end: '2025-10-29T12:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.999Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'ebc6c847-6e43-41d7-b1a5-9de4efafb651',
+    start: '2025-10-29T12:30:00.000Z',
+    end: '2025-10-29T12:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.006Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '307344aa-7763-45f7-9a31-09d76bb337f3',
+    start: '2025-10-29T12:45:00.000Z',
+    end: '2025-10-29T13:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.074Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '2cb24960-bcf1-46ec-88d0-4c3b666bc5a5',
+    start: '2025-10-29T13:00:00.000Z',
+    end: '2025-10-29T13:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.101Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '995730ad-07f6-4d32-ae7e-6cb3537dfd79',
+    start: '2025-10-29T13:15:00.000Z',
+    end: '2025-10-29T13:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.105Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '6bf785aa-3c44-437d-b36b-1e6039174c78',
+    start: '2025-10-29T13:30:00.000Z',
+    end: '2025-10-29T13:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.127Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '255d0488-585c-4147-8b9e-e8d8784a7ba6',
+    start: '2025-10-29T13:45:00.000Z',
+    end: '2025-10-29T14:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.134Z',
+    removed: false,
+    booked: false
+  }
+]
+Retrieved slots: [
+  {
+    id: '1dbdc650-ebeb-44b5-8ac3-b49d7a3ff7c0',
+    start: '2025-10-29T10:00:00.000Z',
+    end: '2025-10-29T10:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.957Z',
+    removed: false,
+    booked: true
+  },
+  {
+    id: 'c984c42e-4ebc-4d3f-82b2-544da771d73b',
+    start: '2025-10-29T10:15:00.000Z',
+    end: '2025-10-29T10:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.962Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'fdfb54fd-ddb8-49bd-8bdd-8d76dbb4bd91',
+    start: '2025-10-29T10:30:00.000Z',
+    end: '2025-10-29T10:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.968Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'b85c1f82-5e3b-4971-9544-e7ebe70d1aba',
+    start: '2025-10-29T10:45:00.000Z',
+    end: '2025-10-29T11:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.972Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '707e884e-a447-43b7-a8b8-67282f3eb447',
+    start: '2025-10-29T11:00:00.000Z',
+    end: '2025-10-29T11:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.976Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'fb2caae5-40fc-4edf-80aa-c3d8cbfbf601',
+    start: '2025-10-29T11:15:00.000Z',
+    end: '2025-10-29T11:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.980Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '72a90855-6387-450c-b296-92497c815470',
+    start: '2025-10-29T11:30:00.000Z',
+    end: '2025-10-29T11:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.984Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'abcfe5ac-3ccc-4605-8e6a-d8c8893d7def',
+    start: '2025-10-29T11:45:00.000Z',
+    end: '2025-10-29T12:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.989Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'cf069b2b-c766-40e3-801c-609783073fe3',
+    start: '2025-10-29T12:00:00.000Z',
+    end: '2025-10-29T12:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.994Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '40510251-af77-41ab-bd91-9e1c3f02da81',
+    start: '2025-10-29T12:15:00.000Z',
+    end: '2025-10-29T12:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.999Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'ebc6c847-6e43-41d7-b1a5-9de4efafb651',
+    start: '2025-10-29T12:30:00.000Z',
+    end: '2025-10-29T12:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.006Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '307344aa-7763-45f7-9a31-09d76bb337f3',
+    start: '2025-10-29T12:45:00.000Z',
+    end: '2025-10-29T13:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.074Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '2cb24960-bcf1-46ec-88d0-4c3b666bc5a5',
+    start: '2025-10-29T13:00:00.000Z',
+    end: '2025-10-29T13:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.101Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '995730ad-07f6-4d32-ae7e-6cb3537dfd79',
+    start: '2025-10-29T13:15:00.000Z',
+    end: '2025-10-29T13:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.105Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '6bf785aa-3c44-437d-b36b-1e6039174c78',
+    start: '2025-10-29T13:30:00.000Z',
+    end: '2025-10-29T13:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.127Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '255d0488-585c-4147-8b9e-e8d8784a7ba6',
+    start: '2025-10-29T13:45:00.000Z',
+    end: '2025-10-29T14:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.134Z',
+    removed: false,
+    booked: false
+  }
+]
+🔍 Admin requesting class assignment requests, user: admin@example.com
+📋 Found requests: 2
+🔥 Requests data: [
+  {
+    "id": "1760900756901fvike8frs",
+    "userId": "1760827452147y9gh7r7rc",
+    "classId": "2e3ff20d-d759-481a-bd9e-1f4ebdc8b782",
+    "reason": "",
+    "childName": "Lora",
+    "status": "approved",
+    "createdAt": "2025-10-19T19:05:56.901Z",
+    "updatedAt": "2025-10-19T19:20:34.980Z",
+    "approverId": "admin-1",
+    "userEmail": "Unknown",
+    "className": "M3C",
+    "classColor": "#10B981"
+  },
+  {
+    "id": "17607879991755guu2oa5n",
+    "userId": "1760773065330af6ru11py",
+    "classId": "2e3ff20d-d759-481a-bd9e-1f4ebdc8b782",
+    "reason": "",
+    "childName": null,
+    "status": "approved",
+    "createdAt": "2025-10-18T11:46:39.175Z",
+    "updatedAt": "2025-10-18T22:40:53.189Z",
+    "approverId": "admin-1",
+    "userEmail": "teacher@example.com",
+    "className": "M3C",
+    "classColor": "#10B981"
+  }
+]
+🔍 Admin requesting class assignment requests, user: admin@example.com
+📋 Found requests: 2
+🔥 Requests data: [
+  {
+    "id": "1760900756901fvike8frs",
+    "userId": "1760827452147y9gh7r7rc",
+    "classId": "2e3ff20d-d759-481a-bd9e-1f4ebdc8b782",
+    "reason": "",
+    "childName": "Lora",
+    "status": "approved",
+    "createdAt": "2025-10-19T19:05:56.901Z",
+    "updatedAt": "2025-10-19T19:20:34.980Z",
+    "approverId": "admin-1",
+    "userEmail": "Unknown",
+    "className": "M3C",
+    "classColor": "#10B981"
+  },
+  {
+    "id": "17607879991755guu2oa5n",
+    "userId": "1760773065330af6ru11py",
+    "classId": "2e3ff20d-d759-481a-bd9e-1f4ebdc8b782",
+    "reason": "",
+    "childName": null,
+    "status": "approved",
+    "createdAt": "2025-10-18T11:46:39.175Z",
+    "updatedAt": "2025-10-18T22:40:53.189Z",
+    "approverId": "admin-1",
+    "userEmail": "teacher@example.com",
+    "className": "M3C",
+    "classColor": "#10B981"
+  }
+]
+Retrieved slots: [
+  {
+    id: '1dbdc650-ebeb-44b5-8ac3-b49d7a3ff7c0',
+    start: '2025-10-29T10:00:00.000Z',
+    end: '2025-10-29T10:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.957Z',
+    removed: false,
+    booked: true
+  },
+  {
+    id: 'c984c42e-4ebc-4d3f-82b2-544da771d73b',
+    start: '2025-10-29T10:15:00.000Z',
+    end: '2025-10-29T10:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.962Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'fdfb54fd-ddb8-49bd-8bdd-8d76dbb4bd91',
+    start: '2025-10-29T10:30:00.000Z',
+    end: '2025-10-29T10:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.968Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'b85c1f82-5e3b-4971-9544-e7ebe70d1aba',
+    start: '2025-10-29T10:45:00.000Z',
+    end: '2025-10-29T11:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.972Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '707e884e-a447-43b7-a8b8-67282f3eb447',
+    start: '2025-10-29T11:00:00.000Z',
+    end: '2025-10-29T11:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.976Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'fb2caae5-40fc-4edf-80aa-c3d8cbfbf601',
+    start: '2025-10-29T11:15:00.000Z',
+    end: '2025-10-29T11:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.980Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '72a90855-6387-450c-b296-92497c815470',
+    start: '2025-10-29T11:30:00.000Z',
+    end: '2025-10-29T11:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.984Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'abcfe5ac-3ccc-4605-8e6a-d8c8893d7def',
+    start: '2025-10-29T11:45:00.000Z',
+    end: '2025-10-29T12:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.989Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'cf069b2b-c766-40e3-801c-609783073fe3',
+    start: '2025-10-29T12:00:00.000Z',
+    end: '2025-10-29T12:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.994Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '40510251-af77-41ab-bd91-9e1c3f02da81',
+    start: '2025-10-29T12:15:00.000Z',
+    end: '2025-10-29T12:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.999Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'ebc6c847-6e43-41d7-b1a5-9de4efafb651',
+    start: '2025-10-29T12:30:00.000Z',
+    end: '2025-10-29T12:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.006Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '307344aa-7763-45f7-9a31-09d76bb337f3',
+    start: '2025-10-29T12:45:00.000Z',
+    end: '2025-10-29T13:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.074Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '2cb24960-bcf1-46ec-88d0-4c3b666bc5a5',
+    start: '2025-10-29T13:00:00.000Z',
+    end: '2025-10-29T13:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.101Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '995730ad-07f6-4d32-ae7e-6cb3537dfd79',
+    start: '2025-10-29T13:15:00.000Z',
+    end: '2025-10-29T13:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.105Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '6bf785aa-3c44-437d-b36b-1e6039174c78',
+    start: '2025-10-29T13:30:00.000Z',
+    end: '2025-10-29T13:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.127Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '255d0488-585c-4147-8b9e-e8d8784a7ba6',
+    start: '2025-10-29T13:45:00.000Z',
+    end: '2025-10-29T14:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.134Z',
+    removed: false,
+    booked: false
+  }
+]
+Retrieved slots: [
+  {
+    id: '1dbdc650-ebeb-44b5-8ac3-b49d7a3ff7c0',
+    start: '2025-10-29T10:00:00.000Z',
+    end: '2025-10-29T10:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.957Z',
+    removed: false,
+    booked: true
+  },
+  {
+    id: 'c984c42e-4ebc-4d3f-82b2-544da771d73b',
+    start: '2025-10-29T10:15:00.000Z',
+    end: '2025-10-29T10:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.962Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'fdfb54fd-ddb8-49bd-8bdd-8d76dbb4bd91',
+    start: '2025-10-29T10:30:00.000Z',
+    end: '2025-10-29T10:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.968Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'b85c1f82-5e3b-4971-9544-e7ebe70d1aba',
+    start: '2025-10-29T10:45:00.000Z',
+    end: '2025-10-29T11:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.972Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '707e884e-a447-43b7-a8b8-67282f3eb447',
+    start: '2025-10-29T11:00:00.000Z',
+    end: '2025-10-29T11:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.976Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'fb2caae5-40fc-4edf-80aa-c3d8cbfbf601',
+    start: '2025-10-29T11:15:00.000Z',
+    end: '2025-10-29T11:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.980Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '72a90855-6387-450c-b296-92497c815470',
+    start: '2025-10-29T11:30:00.000Z',
+    end: '2025-10-29T11:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.984Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'abcfe5ac-3ccc-4605-8e6a-d8c8893d7def',
+    start: '2025-10-29T11:45:00.000Z',
+    end: '2025-10-29T12:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.989Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'cf069b2b-c766-40e3-801c-609783073fe3',
+    start: '2025-10-29T12:00:00.000Z',
+    end: '2025-10-29T12:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.994Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '40510251-af77-41ab-bd91-9e1c3f02da81',
+    start: '2025-10-29T12:15:00.000Z',
+    end: '2025-10-29T12:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.999Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'ebc6c847-6e43-41d7-b1a5-9de4efafb651',
+    start: '2025-10-29T12:30:00.000Z',
+    end: '2025-10-29T12:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.006Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '307344aa-7763-45f7-9a31-09d76bb337f3',
+    start: '2025-10-29T12:45:00.000Z',
+    end: '2025-10-29T13:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.074Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '2cb24960-bcf1-46ec-88d0-4c3b666bc5a5',
+    start: '2025-10-29T13:00:00.000Z',
+    end: '2025-10-29T13:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.101Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '995730ad-07f6-4d32-ae7e-6cb3537dfd79',
+    start: '2025-10-29T13:15:00.000Z',
+    end: '2025-10-29T13:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.105Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '6bf785aa-3c44-437d-b36b-1e6039174c78',
+    start: '2025-10-29T13:30:00.000Z',
+    end: '2025-10-29T13:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.127Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '255d0488-585c-4147-8b9e-e8d8784a7ba6',
+    start: '2025-10-29T13:45:00.000Z',
+    end: '2025-10-29T14:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.134Z',
+    removed: false,
+    booked: false
+  }
+]
+🔍 Admin requesting class assignment requests, user: admin@example.com
+📋 Found requests: 2
+🔥 Requests data: [
+  {
+    "id": "1760900756901fvike8frs",
+    "userId": "1760827452147y9gh7r7rc",
+    "classId": "2e3ff20d-d759-481a-bd9e-1f4ebdc8b782",
+    "reason": "",
+    "childName": "Lora",
+    "status": "approved",
+    "createdAt": "2025-10-19T19:05:56.901Z",
+    "updatedAt": "2025-10-19T19:20:34.980Z",
+    "approverId": "admin-1",
+    "userEmail": "Unknown",
+    "className": "M3C",
+    "classColor": "#10B981"
+  },
+  {
+    "id": "17607879991755guu2oa5n",
+    "userId": "1760773065330af6ru11py",
+    "classId": "2e3ff20d-d759-481a-bd9e-1f4ebdc8b782",
+    "reason": "",
+    "childName": null,
+    "status": "approved",
+    "createdAt": "2025-10-18T11:46:39.175Z",
+    "updatedAt": "2025-10-18T22:40:53.189Z",
+    "approverId": "admin-1",
+    "userEmail": "teacher@example.com",
+    "className": "M3C",
+    "classColor": "#10B981"
+  }
+]
+Login error: Error: Invalid credentials
+    at Module.authenticateUser (file:///Users/kvaksin/Documents/Documents%20-%20kvaksin%20M1%20pro/GitHub/rdvapp/server/auth.js:157:11)
+    at async file:///Users/kvaksin/Documents/Documents%20-%20kvaksin%20M1%20pro/GitHub/rdvapp/server/authRoutes.js:172:18
+Login error: Error: Invalid credentials
+    at Module.authenticateUser (file:///Users/kvaksin/Documents/Documents%20-%20kvaksin%20M1%20pro/GitHub/rdvapp/server/auth.js:157:11)
+    at async file:///Users/kvaksin/Documents/Documents%20-%20kvaksin%20M1%20pro/GitHub/rdvapp/server/authRoutes.js:172:18
+Login error: Error: Invalid credentials
+    at Module.authenticateUser (file:///Users/kvaksin/Documents/Documents%20-%20kvaksin%20M1%20pro/GitHub/rdvapp/server/auth.js:157:11)
+    at async file:///Users/kvaksin/Documents/Documents%20-%20kvaksin%20M1%20pro/GitHub/rdvapp/server/authRoutes.js:172:18
+Login error: Error: Invalid credentials
+    at Module.authenticateUser (file:///Users/kvaksin/Documents/Documents%20-%20kvaksin%20M1%20pro/GitHub/rdvapp/server/auth.js:157:11)
+    at async file:///Users/kvaksin/Documents/Documents%20-%20kvaksin%20M1%20pro/GitHub/rdvapp/server/authRoutes.js:172:18
+Retrieved slots: [
+  {
+    id: '1dbdc650-ebeb-44b5-8ac3-b49d7a3ff7c0',
+    start: '2025-10-29T10:00:00.000Z',
+    end: '2025-10-29T10:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.957Z',
+    removed: false,
+    booked: true
+  },
+  {
+    id: 'c984c42e-4ebc-4d3f-82b2-544da771d73b',
+    start: '2025-10-29T10:15:00.000Z',
+    end: '2025-10-29T10:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.962Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'fdfb54fd-ddb8-49bd-8bdd-8d76dbb4bd91',
+    start: '2025-10-29T10:30:00.000Z',
+    end: '2025-10-29T10:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.968Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'b85c1f82-5e3b-4971-9544-e7ebe70d1aba',
+    start: '2025-10-29T10:45:00.000Z',
+    end: '2025-10-29T11:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.972Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '707e884e-a447-43b7-a8b8-67282f3eb447',
+    start: '2025-10-29T11:00:00.000Z',
+    end: '2025-10-29T11:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.976Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'fb2caae5-40fc-4edf-80aa-c3d8cbfbf601',
+    start: '2025-10-29T11:15:00.000Z',
+    end: '2025-10-29T11:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.980Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '72a90855-6387-450c-b296-92497c815470',
+    start: '2025-10-29T11:30:00.000Z',
+    end: '2025-10-29T11:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.984Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'abcfe5ac-3ccc-4605-8e6a-d8c8893d7def',
+    start: '2025-10-29T11:45:00.000Z',
+    end: '2025-10-29T12:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.989Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'cf069b2b-c766-40e3-801c-609783073fe3',
+    start: '2025-10-29T12:00:00.000Z',
+    end: '2025-10-29T12:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.994Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '40510251-af77-41ab-bd91-9e1c3f02da81',
+    start: '2025-10-29T12:15:00.000Z',
+    end: '2025-10-29T12:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.999Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'ebc6c847-6e43-41d7-b1a5-9de4efafb651',
+    start: '2025-10-29T12:30:00.000Z',
+    end: '2025-10-29T12:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.006Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '307344aa-7763-45f7-9a31-09d76bb337f3',
+    start: '2025-10-29T12:45:00.000Z',
+    end: '2025-10-29T13:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.074Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '2cb24960-bcf1-46ec-88d0-4c3b666bc5a5',
+    start: '2025-10-29T13:00:00.000Z',
+    end: '2025-10-29T13:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.101Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '995730ad-07f6-4d32-ae7e-6cb3537dfd79',
+    start: '2025-10-29T13:15:00.000Z',
+    end: '2025-10-29T13:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.105Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '6bf785aa-3c44-437d-b36b-1e6039174c78',
+    start: '2025-10-29T13:30:00.000Z',
+    end: '2025-10-29T13:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.127Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '255d0488-585c-4147-8b9e-e8d8784a7ba6',
+    start: '2025-10-29T13:45:00.000Z',
+    end: '2025-10-29T14:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.134Z',
+    removed: false,
+    booked: false
+  }
+]
+Retrieved slots: [
+  {
+    id: '1dbdc650-ebeb-44b5-8ac3-b49d7a3ff7c0',
+    start: '2025-10-29T10:00:00.000Z',
+    end: '2025-10-29T10:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.957Z',
+    removed: false,
+    booked: true
+  },
+  {
+    id: 'c984c42e-4ebc-4d3f-82b2-544da771d73b',
+    start: '2025-10-29T10:15:00.000Z',
+    end: '2025-10-29T10:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.962Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'fdfb54fd-ddb8-49bd-8bdd-8d76dbb4bd91',
+    start: '2025-10-29T10:30:00.000Z',
+    end: '2025-10-29T10:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.968Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'b85c1f82-5e3b-4971-9544-e7ebe70d1aba',
+    start: '2025-10-29T10:45:00.000Z',
+    end: '2025-10-29T11:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.972Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '707e884e-a447-43b7-a8b8-67282f3eb447',
+    start: '2025-10-29T11:00:00.000Z',
+    end: '2025-10-29T11:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.976Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'fb2caae5-40fc-4edf-80aa-c3d8cbfbf601',
+    start: '2025-10-29T11:15:00.000Z',
+    end: '2025-10-29T11:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.980Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '72a90855-6387-450c-b296-92497c815470',
+    start: '2025-10-29T11:30:00.000Z',
+    end: '2025-10-29T11:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.984Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'abcfe5ac-3ccc-4605-8e6a-d8c8893d7def',
+    start: '2025-10-29T11:45:00.000Z',
+    end: '2025-10-29T12:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.989Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'cf069b2b-c766-40e3-801c-609783073fe3',
+    start: '2025-10-29T12:00:00.000Z',
+    end: '2025-10-29T12:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.994Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '40510251-af77-41ab-bd91-9e1c3f02da81',
+    start: '2025-10-29T12:15:00.000Z',
+    end: '2025-10-29T12:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:54.999Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: 'ebc6c847-6e43-41d7-b1a5-9de4efafb651',
+    start: '2025-10-29T12:30:00.000Z',
+    end: '2025-10-29T12:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.006Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '307344aa-7763-45f7-9a31-09d76bb337f3',
+    start: '2025-10-29T12:45:00.000Z',
+    end: '2025-10-29T13:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.074Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '2cb24960-bcf1-46ec-88d0-4c3b666bc5a5',
+    start: '2025-10-29T13:00:00.000Z',
+    end: '2025-10-29T13:15:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.101Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '995730ad-07f6-4d32-ae7e-6cb3537dfd79',
+    start: '2025-10-29T13:15:00.000Z',
+    end: '2025-10-29T13:30:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.105Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '6bf785aa-3c44-437d-b36b-1e6039174c78',
+    start: '2025-10-29T13:30:00.000Z',
+    end: '2025-10-29T13:45:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.127Z',
+    removed: false,
+    booked: false
+  },
+  {
+    id: '255d0488-585c-4147-8b9e-e8d8784a7ba6',
+    start: '2025-10-29T13:45:00.000Z',
+    end: '2025-10-29T14:00:00.000Z',
+    classId: '2e3ff20d-d759-481a-bd9e-1f4ebdc8b782',
+    createdAt: '2025-10-18T22:41:55.134Z',
+    removed: false,
+    booked: false
+  }
+]

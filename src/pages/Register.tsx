@@ -18,6 +18,7 @@ interface Child {
   name?: string // Legacy field
   firstName: string
   lastName: string
+  birthday?: string // Date string (YYYY-MM-DD format)
   parentId: string
   classId: string
   createdAt: string
@@ -33,7 +34,7 @@ interface ClassAssignment {
 
 const Register: React.FC = () => {
   const intl = useIntl()
-  const { register, error, loading, clearError } = useAuth()
+  const { register, error, loading, clearError, user, logout } = useAuth()
   const [classes, setClasses] = useState<Class[]>([])
   const [childrenByClass, setChildrenByClass] = useState<{[classId: string]: Child[]}>({})
   const [allChildren, setAllChildren] = useState<Child[]>([])
@@ -72,11 +73,14 @@ const Register: React.FC = () => {
           
           for (const cls of classData) {
             try {
-              const childrenResponse = await authenticatedFetch(`/auth/children/class/${cls.id}`)
+              // Use public API endpoint for children data (doesn't require authentication)
+              const childrenResponse = await fetch(`/api/children/class/${cls.id}`)
               if (childrenResponse.ok) {
                 const children = await childrenResponse.json()
                 childrenData[cls.id] = children
                 allChildrenData = [...allChildrenData, ...children]
+              } else {
+                childrenData[cls.id] = []
               }
             } catch (error) {
               console.warn(`Failed to load children for class ${cls.id}:`, error)
@@ -240,7 +244,7 @@ const Register: React.FC = () => {
     }
   }
 
-  const handleChildSelectionChange = (selectedChildren: string[], newChildData?: {firstName: string, lastName: string}) => {
+  const handleChildSelectionChange = (selectedChildren: string[], newChildrenData?: {firstName: string, lastName: string}[]) => {
     if (selectedClassForModal) {
       const classId = selectedClassForModal.id
       
@@ -278,17 +282,24 @@ const Register: React.FC = () => {
           })
         )
         
-        // Handle new child creation
-        if (newChildData) {
-          updatedAssignments.push({
-            classId,
-            childFirstName: newChildData.firstName,
-            childLastName: newChildData.lastName,
-            childName: `${newChildData.firstName} ${newChildData.lastName}`
+        // Handle new child creation with firstName/lastName
+        if (newChildrenData && newChildrenData.length > 0) {
+          newChildrenData.forEach(newChildData => {
+            updatedAssignments.push({
+              classId,
+              childFirstName: newChildData.firstName,
+              childLastName: newChildData.lastName,
+              childName: `${newChildData.firstName} ${newChildData.lastName}`
+            })
           })
         } else {
-          // Handle legacy new children (just names)
-          newChildren.forEach(childName => {
+          // Handle legacy new children (just names) - fallback for children that don't have structured data
+          const unmatchedNewChildren = newChildren.filter(childName => {
+            // Check if this child name is not already covered by newChildrenData
+            return !newChildrenData?.some(data => `${data.firstName} ${data.lastName}` === childName)
+          })
+          
+          unmatchedNewChildren.forEach(childName => {
             updatedAssignments.push({
               classId,
               childName
@@ -340,6 +351,45 @@ const Register: React.FC = () => {
           </div>
           
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+            {user && (
+              <div className="bg-blue-600 text-white p-4 rounded-md shadow-sm" role="alert">
+                <div className="flex items-center justify-between">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-blue-200" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <div className="text-blue-100 text-sm">
+                        <FormattedMessage 
+                          id="auth.alreadyLoggedIn" 
+                          defaultMessage="You are already logged in as {email}. You can logout to register a new account or go home." 
+                          values={{ email: user.email }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => window.location.href = '/'}
+                      className="px-3 py-1 text-xs bg-blue-500 hover:bg-blue-400 text-white rounded-md transition-colors"
+                    >
+                      <FormattedMessage id="nav.home" defaultMessage="Home" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={logout}
+                      className="px-3 py-1 text-xs bg-red-600 hover:bg-red-500 text-white rounded-md transition-colors"
+                    >
+                      <FormattedMessage id="auth.logout" defaultMessage="Logout" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {error && (
               <div id="error-message" className="bg-red-600 text-white p-4 rounded-md shadow-sm" role="alert" aria-live="polite">
                 <div className="flex">

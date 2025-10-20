@@ -837,6 +837,41 @@ const saveParentChildRelationships = (relationships) => {
   }
 }
 
+// Export parent-child relationship functions
+export { getParentChildRelationships, saveParentChildRelationships }
+
+// Add new parent-child relationship functions
+export const addParentChildRelationship = (parentId, childId, relationship = 'parent') => {
+  const relationships = getParentChildRelationships()
+  
+  // Check if relationship already exists
+  const existingRelationship = relationships.find(
+    rel => rel.parentId === parentId && rel.childId === childId
+  )
+  
+  if (!existingRelationship) {
+    const newRelationship = {
+      id: `${Date.now()}${Math.random().toString(36).substring(2)}`,
+      parentId,
+      childId,
+      relationship,
+      createdAt: new Date().toISOString()
+    }
+    
+    relationships.push(newRelationship)
+    saveParentChildRelationships(relationships)
+  }
+  
+  return relationships
+}
+
+export const removeParentChildRelationships = (childId) => {
+  const relationships = getParentChildRelationships()
+  const filteredRelationships = relationships.filter(rel => rel.childId !== childId)
+  saveParentChildRelationships(filteredRelationships)
+  return filteredRelationships
+}
+
 // Alias for backward compatibility
 const saveChildrenData = saveChildren
 
@@ -875,7 +910,7 @@ export const getParentsByChild = (childId) => {
   return users.filter(user => parentIds.includes(user.id))
 }
 
-export const addChild = ({ parentId, name, firstName, lastName, classId }) => {
+export const addChild = ({ parentId, name, firstName, lastName, birthday, classId }) => {
   const children = getChildrenData()
   const relationships = getParentChildRelationships()
   
@@ -929,6 +964,7 @@ export const addChild = ({ parentId, name, firstName, lastName, classId }) => {
       name: fullName, // Keep for backward compatibility
       firstName: childFirstName,
       lastName: childLastName,
+      birthday: birthday || null,
       classId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()

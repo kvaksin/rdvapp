@@ -85,11 +85,12 @@ router.get('/:childId', auth.authenticateToken, async (req, res) => {
 // Create a new child
 router.post('/', auth.authenticateToken, async (req, res) => {
   try {
-    const { name, classId, parentId } = req.body
+    const { name, firstName, lastName, birthday, classId, parentId } = req.body
     const currentUser = req.user
     
-    if (!name || !classId) {
-      return res.status(400).json({ error: 'Name and classId are required' })
+    // Support both old format (name) and new format (firstName/lastName)
+    if ((!name && (!firstName || !lastName)) || !classId) {
+      return res.status(400).json({ error: 'Child name (firstName/lastName or name) and classId are required' })
     }
     
     let targetParentId = parentId || currentUser.id
@@ -102,10 +103,9 @@ router.post('/', auth.authenticateToken, async (req, res) => {
       }
       targetParentId = currentUser.id
       
-      // Check if parent has access to this class
-      if (!auth.hasAccessToClass(currentUser.id, classId)) {
-        return res.status(403).json({ error: 'Access denied to this class' })
-      }
+      // Parents can request enrollment in any available class
+      // Access validation will be handled by administrators/class leads
+      // No class access restriction for parents creating their own children
     } else if (currentUser.roles.includes('class_lead')) {
       // Class leads can create children for parents in their classes
       const userAccessibleClasses = auth.getUserAccessibleClasses(currentUser.id)
@@ -135,11 +135,31 @@ router.post('/', auth.authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Invalid parent ID' })
     }
     
-    const newChild = auth.addChild({
+    // Prepare child data
+    const childData = {
       parentId: targetParentId,
-      name: name.trim(),
       classId
-    })
+    }
+    
+    // Support both old and new formats
+    if (firstName && lastName) {
+      childData.firstName = firstName.trim()
+      childData.lastName = lastName.trim()
+      childData.name = `${firstName.trim()} ${lastName.trim()}` // Keep legacy name field
+    } else if (name) {
+      childData.name = name.trim()
+      // Try to split legacy name into firstName/lastName
+      const nameParts = name.trim().split(' ')
+      childData.firstName = nameParts[0] || ''
+      childData.lastName = nameParts.slice(1).join(' ') || ''
+    }
+    
+    // Add birthday if provided
+    if (birthday) {
+      childData.birthday = birthday
+    }
+    
+    const newChild = auth.addChild(childData)
     
     res.status(201).json(newChild)
   } catch (error) {
@@ -156,7 +176,7 @@ router.post('/', auth.authenticateToken, async (req, res) => {
 router.put('/:childId', auth.authenticateToken, async (req, res) => {
   try {
     const { childId } = req.params
-    const { name, classId } = req.body
+    const { name, firstName, lastName, birthday, classId } = req.body
     const currentUser = req.user
     
     const children = auth.getChildren()
@@ -197,7 +217,25 @@ router.put('/:childId', auth.authenticateToken, async (req, res) => {
     }
     
     const updates = {}
-    if (name !== undefined) updates.name = name.trim()
+    
+    // Handle name updates - support both old and new formats
+    if (firstName !== undefined && lastName !== undefined) {
+      updates.firstName = firstName.trim()
+      updates.lastName = lastName.trim()
+      updates.name = `${firstName.trim()} ${lastName.trim()}` // Keep legacy name field
+    } else if (name !== undefined) {
+      updates.name = name.trim()
+      // Try to split legacy name into firstName/lastName
+      const nameParts = name.trim().split(' ')
+      updates.firstName = nameParts[0] || ''
+      updates.lastName = nameParts.slice(1).join(' ') || ''
+    }
+    
+    // Handle birthday update
+    if (birthday !== undefined) {
+      updates.birthday = birthday
+    }
+    
     if (classId !== undefined) updates.classId = classId
     
     const updatedChild = auth.updateChild(childId, updates)

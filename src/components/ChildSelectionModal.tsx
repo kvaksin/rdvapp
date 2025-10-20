@@ -6,6 +6,7 @@ interface Child {
   name?: string // Legacy field
   firstName: string
   lastName: string
+  birthday?: string
   classId: string
   createdAt?: string
   updatedAt?: string
@@ -24,7 +25,7 @@ interface ChildSelectionModalProps {
   classId: string
   className: string
   selectedChildren: string[]
-  onSelectionChange: (selectedChildren: string[], newChildData?: {firstName: string, lastName: string}) => void
+  onSelectionChange: (selectedChildren: string[], newChildrenData?: {firstName: string, lastName: string}[]) => void
   existingChildren: Child[]
 }
 
@@ -42,6 +43,7 @@ const ChildSelectionModal: React.FC<ChildSelectionModalProps> = ({
   const [newChildFirstName, setNewChildFirstName] = useState('')
   const [newChildLastName, setNewChildLastName] = useState('')
   const [isCreatingNew, setIsCreatingNew] = useState(false)
+  const [newlyCreatedChildren, setNewlyCreatedChildren] = useState<{firstName: string, lastName: string}[]>([])
 
   useEffect(() => {
     setLocalSelectedChildren(selectedChildren)
@@ -57,8 +59,19 @@ const ChildSelectionModal: React.FC<ChildSelectionModalProps> = ({
   const handleCreateNew = () => {
     if (newChildFirstName.trim() && newChildLastName.trim()) {
       const fullName = `${newChildFirstName.trim()} ${newChildLastName.trim()}`
+      const newChildData = {
+        firstName: newChildFirstName.trim(),
+        lastName: newChildLastName.trim()
+      }
+      
+      // Add to selected children
       const updated = [...localSelectedChildren, fullName]
       setLocalSelectedChildren(updated)
+      
+      // Track newly created children
+      setNewlyCreatedChildren(prev => [...prev, newChildData])
+      
+      // Clear form
       setNewChildFirstName('')
       setNewChildLastName('')
       setIsCreatingNew(false)
@@ -66,12 +79,8 @@ const ChildSelectionModal: React.FC<ChildSelectionModalProps> = ({
   }
 
   const handleConfirm = () => {
-    // Pass both individual child names and create structured data for new children
-    const newChildData = (newChildFirstName.trim() && newChildLastName.trim()) ? {
-      firstName: newChildFirstName.trim(),
-      lastName: newChildLastName.trim()
-    } : undefined
-    onSelectionChange(localSelectedChildren, newChildData)
+    // Pass back selected children and all newly created children data
+    onSelectionChange(localSelectedChildren, newlyCreatedChildren.length > 0 ? newlyCreatedChildren : undefined)
     onClose()
   }
 
@@ -80,6 +89,7 @@ const ChildSelectionModal: React.FC<ChildSelectionModalProps> = ({
     setNewChildFirstName('')
     setNewChildLastName('')
     setIsCreatingNew(false)
+    setNewlyCreatedChildren([])
     onClose()
   }
 
@@ -231,24 +241,47 @@ const ChildSelectionModal: React.FC<ChildSelectionModalProps> = ({
                       />
                     </h4>
                     <div className="flex flex-wrap gap-2">
-                      {localSelectedChildren.map((childName) => (
-                        <span
-                          key={childName}
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-600 text-white"
-                        >
-                          {childName}
-                          <button
-                            type="button"
-                            onClick={() => handleChildToggle(childName)}
-                            className="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-blue-700"
+                      {localSelectedChildren.map((childName) => {
+                        const isNewlyCreated = newlyCreatedChildren.some(child => 
+                          `${child.firstName} ${child.lastName}` === childName
+                        )
+                        return (
+                          <span
+                            key={childName}
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              isNewlyCreated 
+                                ? 'bg-green-600 text-white border border-green-500' 
+                                : 'bg-blue-600 text-white'
+                            }`}
                           >
-                            <span className="sr-only">Remove</span>
-                            <svg className="w-2 h-2" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                          </button>
-                        </span>
-                      ))}
+                            {childName}
+                            {isNewlyCreated && (
+                              <span className="ml-1 text-xs opacity-75">(new)</span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                // Remove from selected children
+                                handleChildToggle(childName)
+                                // Also remove from newly created if it's a new child
+                                if (isNewlyCreated) {
+                                  setNewlyCreatedChildren(prev => 
+                                    prev.filter(child => `${child.firstName} ${child.lastName}` !== childName)
+                                  )
+                                }
+                              }}
+                              className={`ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full ${
+                                isNewlyCreated ? 'hover:bg-green-700' : 'hover:bg-blue-700'
+                              }`}
+                            >
+                              <span className="sr-only">Remove</span>
+                              <svg className="w-2 h-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                              </svg>
+                            </button>
+                          </span>
+                        )
+                      })}
                     </div>
                   </div>
                 )}

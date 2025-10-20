@@ -345,7 +345,7 @@ function ProtectedClassSchedule() {
   );
 }
 
-function PublicRoute({ children }: { children: React.ReactNode }) {
+function PublicRoute({ children, allowWhenAuthenticated = false }: { children: React.ReactNode; allowWhenAuthenticated?: boolean }) {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -356,7 +356,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (user) {
+  if (user && !allowWhenAuthenticated) {
     return <Navigate to="/" replace />;
   }
 
@@ -387,7 +387,7 @@ const router = createBrowserRouter([
   {
     path: '/register',
     element: (
-      <PublicRoute>
+      <PublicRoute allowWhenAuthenticated={true}>
         <ErrorBoundary>
           <Register />
         </ErrorBoundary>

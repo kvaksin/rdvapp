@@ -1,15 +1,397 @@
 openapi: 3.0.0
 info:
   title: RDV API
-  description: Teacher Meeting Scheduler API
-  version: 1.0.0
+  description: Teacher Meeting Scheduler API with Authentication and Children Management
+  version: 2.0.0
 servers:
   - url: http://localhost:4000/api
-    description: Development server
+    description: Development server - API endpoints
+  - url: http://localhost:4000/auth
+    description: Development server - Authentication endpoints
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+            enum: [administrator, class_lead, parent]
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        createdAt:
+          type: string
+          format: date-time
+    Child:
+      type: object
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        name:
+          type: string
+          description: Legacy name field (for backward compatibility)
+        birthday:
+          type: string
+          format: date
+          description: Child's birthday (YYYY-MM-DD format)
+        parentId:
+          type: string
+        classId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    Class:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        color:
+          type: string
+    Slot:
+      type: object
+      properties:
+        id:
+          type: string
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        removed:
+          type: boolean
+        booked:
+          type: boolean
+    Booking:
+      type: object
+      properties:
+        id:
+          type: string
+        slotId:
+          type: string
+        childId:
+          type: string
+        childName:
+          type: string
+          description: Legacy field (for backward compatibility)
+        parentId:
+          type: string
+        bookedAt:
+          type: string
+          format: date-time
+        cancelled:
+          type: boolean
+        originalSlotStart:
+          type: string
+          format: date-time
+    Config:
+      type: object
+      properties:
+        id:
+          type: string
+        rdvDurationMinutes:
+          type: integer
+          enum: [10, 15, 20, 30]
+
+security:
+  - bearerAuth: []
+
 paths:
+  # Authentication Endpoints
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, firstName, lastName]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                phone:
+                  type: string
+                classAssignments:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      classId:
+                        type: string
+                      reason:
+                        type: string
+                      childName:
+                        type: string
+      responses:
+        '201':
+          description: User registered successfully
+        '400':
+          description: Invalid input or user already exists
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials
+  /auth/profile:
+    get:
+      tags:
+        - Authentication
+      summary: Get user profile
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+    put:
+      tags:
+        - Authentication
+      summary: Update user profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                phone:
+                  type: string
+      responses:
+        '200':
+          description: Profile updated successfully
+
+  # Children Management Endpoints
+  /children:
+    get:
+      tags:
+        - Children Management
+      summary: List children (filtered by user role)
+      parameters:
+        - name: classId
+          in: query
+          schema:
+            type: string
+          description: Filter by class ID
+      responses:
+        '200':
+          description: List of children
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Child'
+    post:
+      tags:
+        - Children Management
+      summary: Create a new child
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [classId]
+              properties:
+                firstName:
+                  type: string
+                  description: Child's first name (preferred)
+                lastName:
+                  type: string
+                  description: Child's last name (preferred)
+                name:
+                  type: string
+                  description: Full name (legacy format, will be split into firstName/lastName)
+                birthday:
+                  type: string
+                  format: date
+                  description: Child's birthday (YYYY-MM-DD format, optional)
+                classId:
+                  type: string
+                parentId:
+                  type: string
+                  description: Required for administrators and class leads
+      responses:
+        '201':
+          description: Child created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Child'
+        '400':
+          description: Invalid input
+        '403':
+          description: Insufficient permissions
+  /children/{childId}:
+    get:
+      tags:
+        - Children Management
+      summary: Get a specific child
+      parameters:
+        - name: childId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Child details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Child'
+        '404':
+          description: Child not found
+        '403':
+          description: Access denied
+    put:
+      tags:
+        - Children Management
+      summary: Update a child
+      parameters:
+        - name: childId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                name:
+                  type: string
+                  description: Legacy name field
+                birthday:
+                  type: string
+                  format: date
+                  description: Child's birthday (YYYY-MM-DD format)
+                classId:
+                  type: string
+      responses:
+        '200':
+          description: Child updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Child'
+        '404':
+          description: Child not found
+        '403':
+          description: Access denied
+    delete:
+      tags:
+        - Children Management
+      summary: Delete a child
+      parameters:
+        - name: childId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Child deleted successfully
+        '404':
+          description: Child not found
+        '403':
+          description: Access denied
+
+  # API Endpoints
   /ping:
     get:
+      tags:
+        - Health Check
       summary: Health check endpoint
+      security: []
       responses:
         '200':
           description: Server is healthy
@@ -25,6 +407,8 @@ paths:
                     format: date-time
   /slots:
     get:
+      tags:
+        - Slots Management
       summary: List available slots
       parameters:
         - name: from
@@ -48,6 +432,8 @@ paths:
                   $ref: '#/components/schemas/Slot'
   /slots/timeframe:
     post:
+      tags:
+        - Slots Management
       summary: Create slots in a timeframe
       requestBody:
         required: true
@@ -77,6 +463,8 @@ paths:
                       $ref: '#/components/schemas/Slot'
   /slots/{id}:
     delete:
+      tags:
+        - Slots Management
       summary: Remove a slot
       parameters:
         - name: id
@@ -87,8 +475,14 @@ paths:
       responses:
         '200':
           description: Slot removed
+        '404':
+          description: Slot not found
+        '409':
+          description: Cannot remove booked slot
   /bookings:
     get:
+      tags:
+        - Bookings Management
       summary: List all bookings
       responses:
         '200':
@@ -100,6 +494,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/Booking'
     post:
+      tags:
+        - Bookings Management
       summary: Create a booking
       requestBody:
         required: true
@@ -107,12 +503,16 @@ paths:
           application/json:
             schema:
               type: object
-              required: [slotId, childName]
+              required: [slotId]
               properties:
                 slotId:
                   type: string
+                childId:
+                  type: string
+                  description: Child ID (preferred method)
                 childName:
                   type: string
+                  description: Child name (legacy method, will be resolved to childId)
       responses:
         '201':
           description: Booking created
@@ -123,11 +523,15 @@ paths:
                 properties:
                   booking:
                     $ref: '#/components/schemas/Booking'
+        '400':
+          description: Invalid input or child not found
         '409':
           description: Slot unavailable
   /bookings/{id}:
     put:
-      summary: Modify booking
+      tags:
+        - Bookings Management
+      summary: Modify booking (reschedule)
       parameters:
         - name: id
           in: path
@@ -144,12 +548,17 @@ paths:
               properties:
                 slotId:
                   type: string
-                childName:
-                  type: string
+                  description: New slot ID to reschedule to
       responses:
         '200':
           description: Booking updated
+        '404':
+          description: Booking not found
+        '409':
+          description: New slot unavailable
     delete:
+      tags:
+        - Bookings Management
       summary: Cancel booking
       parameters:
         - name: id
@@ -160,9 +569,13 @@ paths:
       responses:
         '200':
           description: Booking cancelled
+        '404':
+          description: Booking not found
   /bookings/{id}/ics:
     get:
-      summary: Get booking ICS file
+      tags:
+        - Bookings Management
+      summary: Get booking ICS calendar file
       parameters:
         - name: id
           in: path
@@ -171,14 +584,18 @@ paths:
             type: string
       responses:
         '200':
-          description: ICS file
+          description: ICS calendar file
           content:
             text/calendar:
               schema:
                 type: string
+        '404':
+          description: Booking not found
   /config:
     get:
-      summary: Get configuration
+      tags:
+        - Configuration
+      summary: Get system configuration
       responses:
         '200':
           description: Current configuration
@@ -187,7 +604,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Config'
     put:
-      summary: Update configuration
+      tags:
+        - Configuration
+      summary: Update system configuration
       requestBody:
         required: true
         content:
@@ -199,12 +618,17 @@ paths:
                 rdvDurationMinutes:
                   type: integer
                   enum: [10, 15, 20, 30]
+                  description: Meeting duration in minutes
       responses:
         '200':
-          description: Updated configuration
+          description: Configuration updated successfully
+        '400':
+          description: Invalid configuration values
   /reset:
     post:
-      summary: Reset schedule
+      tags:
+        - System Management
+      summary: Reset schedule (removes all slots and bookings)
       requestBody:
         required: true
         content:
@@ -215,51 +639,9 @@ paths:
               properties:
                 confirm:
                   type: boolean
+                  description: Must be true to confirm the reset
       responses:
         '200':
-          description: Schedule reset
-components:
-  schemas:
-    Slot:
-      type: object
-      properties:
-        id:
-          type: string
-        start:
-          type: string
-          format: date-time
-        end:
-          type: string
-          format: date-time
-        createdAt:
-          type: string
-          format: date-time
-        removed:
-          type: boolean
-        booked:
-          type: boolean
-    Booking:
-      type: object
-      properties:
-        id:
-          type: string
-        slotId:
-          type: string
-        childName:
-          type: string
-        bookedAt:
-          type: string
-          format: date-time
-        cancelled:
-          type: boolean
-        originalSlotStart:
-          type: string
-          format: date-time
-    Config:
-      type: object
-      properties:
-        id:
-          type: string
-        rdvDurationMinutes:
-          type: integer
-          enum: [10, 15, 20, 30]
+          description: Schedule reset successfully
+        '400':
+          description: Confirmation required
