@@ -106,7 +106,7 @@ export const createUser = async (userData) => {
     saveUserClasses(userClasses)
   }
 
-  // Create approval notification for admins
+  // Create approval notification for admins and class leads
   const notifications = getNotifications()
   const userRoles = userData.roles || []
   const isParent = userRoles.includes('parent')
@@ -119,6 +119,25 @@ export const createUser = async (userData) => {
     .filter(ur => ur.role === 'administrator')
     .map(ur => allUsers.find(u => u.id === ur.userId))
     .filter(u => u && u.status === 'approved')
+
+  // Get class leads for the classes this parent is registering for (if parent)
+  let relevantClassLeads = []
+  if (isParent && userData.classAssignments && userData.classAssignments.length > 0) {
+    const userClasses = getUserClasses()
+    const classIds = userData.classAssignments.map(ca => ca.classId)
+    
+    // Find class leads for these classes
+    const classLeadUsers = allUserRoles
+      .filter(ur => ur.role === 'class_lead')
+      .map(ur => allUsers.find(u => u.id === ur.userId))
+      .filter(u => u && u.status === 'approved')
+    
+    // Filter class leads who have access to the relevant classes
+    relevantClassLeads = classLeadUsers.filter(classLead => {
+      const classLeadClasses = userClasses.filter(uc => uc.userId === classLead.id)
+      return classLeadClasses.some(clc => classIds.includes(clc.classId))
+    })
+  }
 
   // Create notifications for admins
   adminUsers.forEach(admin => {
@@ -138,6 +157,27 @@ export const createUser = async (userData) => {
       status: 'pending'
     })
   })
+
+  // Create notifications for relevant class leads (when parent registers)
+  if (isParent) {
+    relevantClassLeads.forEach(classLead => {
+      const fullName = `${newUser.firstName || ''} ${newUser.lastName || ''}`.trim() || 'Unknown Name'
+      notifications.push({
+        id: generateId(),
+        type: 'user_approval_request',
+        recipientId: classLead.id,
+        senderId: newUser.id,
+        senderEmail: newUser.email,
+        senderName: fullName,
+        userRole: userRoles.join(', '),
+        classAssignments: userData.classAssignments || [],
+        message: `New ${userRoles.join(', ')} registration: ${fullName} (${newUser.email})`,
+        isRead: false,
+        createdAt: new Date().toISOString(),
+        status: 'pending'
+      })
+    })
+  }
   
   saveNotifications(notifications)
 

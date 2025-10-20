@@ -1,1 +1,88 @@
-[]
+[
+  {
+    "id": "17609870519175lpgz524r",
+    "type": "user_approval_request",
+    "recipientId": "admin-1",
+    "senderId": "1760987051915h0hmoo3i7",
+    "senderEmail": "m3c@ex.com",
+    "senderName": "m3c m3c",
+    "userRole": "class_lead",
+    "classAssignments": [
+      {
+        "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4"
+      }
+    ],
+    "message": "New class_lead registration: m3c m3c (m3c@ex.com)",
+    "isRead": false,
+    "createdAt": "2025-10-20T19:04:11.917Z",
+    "status": "pending"
+  },
+  {
+    "id": "1760987085870c29fhrkgq",
+    "type": "user_approved",
+    "recipientId": "1760987051915h0hmoo3i7",
+    "senderId": "admin-1",
+    "message": "Your account has been approved. You can now log in.",
+    "isRead": true,
+    "createdAt": "2025-10-20T19:04:45.870Z",
+    "status": "sent"
+  },
+  {
+    "id": "1760987412902riqdz0gnv",
+    "type": "user_approval_request",
+    "recipientId": "admin-1",
+    "senderId": "17609874129012qwwngohj",
+    "senderEmail": "kv@ex.com",
+    "senderName": "K V",
+    "userRole": "parent",
+    "classAssignments": [
+      {
+        "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
+        "childName": "L V"
+      }
+    ],
+    "message": "New parent registration: K V (kv@ex.com)",
+    "isRead": false,
+    "createdAt": "2025-10-20T19:10:12.902Z",
+    "status": "pending"
+  },
+  {
+    "id": "1760987420071hokl16l83",
+    "type": "user_approved",
+    "recipientId": "17609874129012qwwngohj",
+    "senderId": "1760987051915h0hmoo3i7",
+    "message": "Your account has been approved. You can now log in.",
+    "isRead": true,
+    "createdAt": "2025-10-20T19:10:20.071Z",
+    "status": "sent"
+  },
+  {
+    "id": "17609874854306veibai15",
+    "type": "user_approval_request",
+    "recipientId": "admin-1",
+    "senderId": "1760987485428lsqelciy6",
+    "senderEmail": "vl@ex.com",
+    "senderName": "v l",
+    "userRole": "parent",
+    "classAssignments": [
+      {
+        "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
+        "childName": "L V"
+      }
+    ],
+    "message": "New parent registration: v l (vl@ex.com)",
+    "isRead": false,
+    "createdAt": "2025-10-20T19:11:25.430Z",
+    "status": "pending"
+  },
+  {
+    "id": "1760987495705anhfm4en9",
+    "type": "user_approved",
+    "recipientId": "1760987485428lsqelciy6",
+    "senderId": "1760987051915h0hmoo3i7",
+    "message": "Your account has been approved. You can now log in.",
+    "isRead": true,
+    "createdAt": "2025-10-20T19:11:35.705Z",
+    "status": "sent"
+  }
+]

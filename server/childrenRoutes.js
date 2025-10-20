@@ -67,8 +67,13 @@ router.get('/:childId', auth.authenticateToken, async (req, res) => {
         return res.status(403).json({ error: 'Access denied to this child' })
       }
     } else if (currentUser.roles.includes('parent')) {
-      // Parents can only see their own children
-      if (child.parentId !== currentUser.id) {
+      // Parents can only see their own children - check parent-child relationships
+      const parentChildRelationships = auth.getParentChildRelationships()
+      const isParentOfChild = parentChildRelationships.some(rel => 
+        rel.parentId === currentUser.id && rel.childId === childId
+      )
+      
+      if (!isParentOfChild) {
         return res.status(403).json({ error: 'Access denied to this child' })
       }
     } else {
@@ -188,8 +193,13 @@ router.put('/:childId', auth.authenticateToken, async (req, res) => {
     
     // Permission checks
     if (currentUser.roles.includes('parent')) {
-      // Parents can only update their own children
-      if (child.parentId !== currentUser.id) {
+      // Parents can only update their own children - check parent-child relationships
+      const parentChildRelationships = auth.getParentChildRelationships()
+      const isParentOfChild = parentChildRelationships.some(rel => 
+        rel.parentId === currentUser.id && rel.childId === childId
+      )
+      
+      if (!isParentOfChild) {
         return res.status(403).json({ error: 'Access denied to this child' })
       }
       
@@ -261,8 +271,13 @@ router.delete('/:childId', auth.authenticateToken, async (req, res) => {
     
     // Permission checks
     if (currentUser.roles.includes('parent')) {
-      // Parents can only delete their own children
-      if (child.parentId !== currentUser.id) {
+      // Parents can only delete their own children - check parent-child relationships
+      const parentChildRelationships = auth.getParentChildRelationships()
+      const isParentOfChild = parentChildRelationships.some(rel => 
+        rel.parentId === currentUser.id && rel.childId === childId
+      )
+      
+      if (!isParentOfChild) {
         return res.status(403).json({ error: 'Access denied to this child' })
       }
     } else if (currentUser.roles.includes('class_lead')) {

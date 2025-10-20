@@ -739,10 +739,18 @@ router.post('/users/bulk-delete', passport.authenticate('jwt', { session: false 
   }
 })
 
-// Get parent-child relationships (admin/class lead only)
-router.get('/parent-child-relationships', passport.authenticate('jwt', { session: false }), auth.requireRole(['administrator', 'class_lead']), async (req, res) => {
+// Get parent-child relationships (all authenticated users)
+router.get('/parent-child-relationships', passport.authenticate('jwt', { session: false }), async (req, res) => {
   try {
     const relationships = auth.getParentChildRelationships()
+    
+    // If user is a parent, filter to only show their own relationships
+    if (req.user.roles.includes('parent') && !req.user.roles.includes('administrator') && !req.user.roles.includes('class_lead')) {
+      const filteredRelationships = relationships.filter(rel => rel.parentId === req.user.id)
+      return res.json(filteredRelationships)
+    }
+    
+    // Admins and class leads can see all relationships
     res.json(relationships)
   } catch (error) {
     console.error('Error getting parent-child relationships:', error)

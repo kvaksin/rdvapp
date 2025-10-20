@@ -374,8 +374,8 @@ function Admin() {
         </div>
       )}
 
-      {/* Configuration Section - Admin Only */}
-      {isAdmin && (
+      {/* Configuration Section - Admin and Class Lead */}
+      {(isAdmin || isClassLead) && (
         <div className="bg-gray-800 p-4 sm:p-6 rounded-lg mb-6 shadow-sm">
           <h3 className="text-lg font-semibold mb-4 text-white">Appointment Duration</h3>
           <div className="space-y-4">

@@ -1,1 +1,146 @@
-[]
+[
+  {
+    "id": "44ba33c3-4b5e-4cdf-bcbd-c13a67cd0af7",
+    "start": "2025-10-29T09:00:00.000Z",
+    "end": "2025-10-29T09:15:00.000Z",
+    "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
+    "createdAt": "2025-10-20T19:09:23.964Z",
+    "removed": false,
+    "booked": false
+  },
+  {
+    "id": "7d051431-a782-41c8-811f-40473f2e7f36",
+    "start": "2025-10-29T09:15:00.000Z",
+    "end": "2025-10-29T09:30:00.000Z",
+    "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
+    "createdAt": "2025-10-20T19:09:23.974Z",
+    "removed": false,
+    "booked": true
+  },
+  {
+    "id": "4981622a-c74c-4a33-a8b3-0073e3e70db3",
+    "start": "2025-10-29T09:30:00.000Z",
+    "end": "2025-10-29T09:45:00.000Z",
+    "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
+    "createdAt": "2025-10-20T19:09:23.981Z",
+    "removed": false,
+    "booked": false
+  },
+  {
+    "id": "030e4f2b-d763-4be0-9d11-00d44cd58cf0",
+    "start": "2025-10-29T09:45:00.000Z",
+    "end": "2025-10-29T10:00:00.000Z",
+    "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
+    "createdAt": "2025-10-20T19:09:23.987Z",
+    "removed": false,
+    "booked": false
+  },
+  {
+    "id": "3d0243ff-0405-40c6-8366-322d1ac9ab4e",
+    "start": "2025-10-29T10:00:00.000Z",
+    "end": "2025-10-29T10:15:00.000Z",
+    "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
+    "createdAt": "2025-10-20T19:09:23.995Z",
+    "removed": false,
+    "booked": false
+  },
+  {
+    "id": "0bc5e4a2-617c-4236-8c82-739674de0a26",
+    "start": "2025-10-29T10:15:00.000Z",
+    "end": "2025-10-29T10:30:00.000Z",
+    "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
+    "createdAt": "2025-10-20T19:09:24.003Z",
+    "removed": false,
+    "booked": false
+  },
+  {
+    "id": "f975425e-020a-4332-bc72-bed5b9df13d4",
+    "start": "2025-10-29T10:30:00.000Z",
+    "end": "2025-10-29T10:45:00.000Z",
+    "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
+    "createdAt": "2025-10-20T19:09:24.010Z",
+    "removed": false,
+    "booked": false
+  },
+  {
+    "id": "e711e740-81ff-4e16-938a-243f43eb35cc",
+    "start": "2025-10-29T10:45:00.000Z",
+    "end": "2025-10-29T11:00:00.000Z",
+    "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
+    "createdAt": "2025-10-20T19:09:24.018Z",
+    "removed": false,
+    "booked": false
+  },
+  {
+    "id": "ac129bb4-4332-4cbc-b5bd-5be07d984e7f",
+    "start": "2025-10-29T11:00:00.000Z",
+    "end": "2025-10-29T11:15:00.000Z",
+    "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
+    "createdAt": "2025-10-20T19:09:24.025Z",
+    "removed": false,
+    "booked": false
+  },
+  {
+    "id": "19558403-1b1b-4d8d-810c-b34eb182e68c",
+    "start": "2025-10-29T11:15:00.000Z",
+    "end": "2025-10-29T11:30:00.000Z",
+    "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
+    "createdAt": "2025-10-20T19:09:24.031Z",
+    "removed": false,
+    "booked": false
+  },
+  {
+    "id": "2a5f02cc-5746-4b33-8bf0-2566f98abb38",
+    "start": "2025-10-29T11:30:00.000Z",
+    "end": "2025-10-29T11:45:00.000Z",
+    "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
+    "createdAt": "2025-10-20T19:09:24.038Z",
+    "removed": false,
+    "booked": false
+  },
+  {
+    "id": "ef274481-f5e4-48e6-998c-e0c5f122ebc3",
+    "start": "2025-10-29T11:45:00.000Z",
+    "end": "2025-10-29T12:00:00.000Z",
+    "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
+    "createdAt": "2025-10-20T19:09:24.045Z",
+    "removed": false,
+    "booked": false
+  },
+  {
+    "id": "e64b921e-5320-4eb1-a6f4-e2417aa30c69",
+    "start": "2025-10-29T12:00:00.000Z",
+    "end": "2025-10-29T12:15:00.000Z",
+    "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
+    "createdAt": "2025-10-20T19:09:24.050Z",
+    "removed": false,
+    "booked": false
+  },
+  {
+    "id": "5ee4d9a9-7de5-4ae7-a7af-616b62952a04",
+    "start": "2025-10-29T12:15:00.000Z",
+    "end": "2025-10-29T12:30:00.000Z",
+    "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
+    "createdAt": "2025-10-20T19:09:24.056Z",
+    "removed": false,
+    "booked": false
+  },
+  {
+    "id": "609db748-14eb-48b5-96a5-302c520dc456",
+    "start": "2025-10-29T12:30:00.000Z",
+    "end": "2025-10-29T12:45:00.000Z",
+    "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
+    "createdAt": "2025-10-20T19:09:24.062Z",
+    "removed": false,
+    "booked": false
+  },
+  {
+    "id": "68c4a48d-0ce8-4f92-929d-314c8053c9d6",
+    "start": "2025-10-29T12:45:00.000Z",
+    "end": "2025-10-29T13:00:00.000Z",
+    "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
+    "createdAt": "2025-10-20T19:09:24.068Z",
+    "removed": false,
+    "booked": false
+  }
+]

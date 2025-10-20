@@ -199,10 +199,8 @@ const ChildrenManagement: React.FC = () => {
         fetch(`${baseUrl}/api/classes/public`) // Use public endpoint to see all classes
       ]
       
-      // Only admins and class leads can fetch parent-child relationships
-      if (user?.roles.includes('administrator') || user?.roles.includes('class_lead')) {
-        fetchPromises.push(authenticatedFetch(`${baseUrl}/auth/parent-child-relationships`))
-      }
+      // All authenticated users need parent-child relationships to determine permissions
+      fetchPromises.push(authenticatedFetch(`${baseUrl}/auth/parent-child-relationships`))
       
       const responses = await Promise.all(fetchPromises)
       
@@ -210,18 +208,11 @@ const ChildrenManagement: React.FC = () => {
       
       if (!childrenRes.ok) throw new Error('Failed to load children')
       if (!classesRes.ok) throw new Error('Failed to load classes')
-      if (relationshipsRes && !relationshipsRes.ok) throw new Error('Failed to load parent-child relationships')
+      if (!relationshipsRes.ok) throw new Error('Failed to load parent-child relationships')
       
       setChildren(await childrenRes.json())
       setClasses(await classesRes.json())
-      
-      // Set relationships only if we fetched them
-      if (relationshipsRes) {
-        setParentChildRelationships(await relationshipsRes.json())
-      } else {
-        // For parent users, clear relationships as they don't need them
-        setParentChildRelationships([])
-      }
+      setParentChildRelationships(await relationshipsRes.json())
 
       // Load parents for admins and class leads
       if (user?.roles.includes('administrator') || user?.roles.includes('class_lead')) {
@@ -409,7 +400,10 @@ const ChildrenManagement: React.FC = () => {
       return true // TODO: Check if class lead has access to child's class
     }
     if (user?.roles.includes('parent')) {
-      return child.parentId === user.id
+      // Check if current user is a parent of this child using parent-child relationships
+      return parentChildRelationships.some(rel => 
+        rel.parentId === user.id && rel.childId === child.id
+      )
     }
     return false
   }
