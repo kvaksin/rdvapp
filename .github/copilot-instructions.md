@@ -1,7 +1,7 @@
 # Copilot Instructions for rdvapp
 
 ## Project Overview
-RDV (Rendez-vous) application built with Vite + React + TypeScript + Tailwind, featuring a booking system with an Express.js backend and Prisma ORM.
+RDV (Rendez-vous) application built with Vite + React + TypeScript + Tailwind, featuring a booking system with an Express.js backend and JSON file-based data storage.
 
 ## Key Architecture Components
 
@@ -14,18 +14,21 @@ RDV (Rendez-vous) application built with Vite + React + TypeScript + Tailwind, f
 
 ### Backend (`server/`)
 - Express.js API server (port 4000 by default)
-- Prisma ORM with SQLite database
-- Key models (`prisma/schema.prisma`):
-  - `Slot`: Available time slots
-  - `Booking`: Reservations linked to slots
-  - `Config`: System configuration (e.g., appointment duration)
+- JSON file-based data storage in `data/` directory
+- Key data files:
+  - `users.json`: User accounts and profiles
+  - `children.json`: Child records
+  - `parentChildRelationships.json`: Parent-child associations
+  - `bookings.json`: Appointment bookings
+  - `slots.json`: Available time slots
+  - `classes.json`: Class definitions
+  - `userClasses.json`: User-class assignments
 
 ## Development Workflow
 
 ### Setup
 ```bash
 npm install
-npx prisma migrate reset --force  # Reset database
 npm run dev                       # Start dev server
 ```
 
@@ -64,14 +67,14 @@ POST /api/slots/timeframe
 }
 ```
 
-### Making Database Changes
-1. Edit `prisma/schema.prisma`
-2. Run `npx prisma migrate dev --name migration_name`
-3. Reset with `npx prisma migrate reset --force` if needed
+### Managing Data Files
+1. Data stored in `data/` directory as JSON files
+2. Backup data files before making changes
+3. Restart server after manual data modifications
 
 ## File Organization
 - Frontend routes/pages in `src/pages/`
 - API client utilities in `src/api/`
 - Shared types in `src/types/`
 - Backend API in `server/index.js`
-- Database schema in `prisma/schema.prisma`
+- Data storage in `data/` directory

@@ -22,24 +22,13 @@ jobs:
     - name: Install dependencies
       run: npm ci
     
+    - name: Setup data directory
+      run: mkdir -p data
+    
     - name: Build
       run: npm run build
       env:
-        DATABASE_PROVIDER: sqlite
-        DATABASE_URL: file:./dev.db
         BASE_URL: ${{ secrets.BASE_URL }}
-    
-    - name: Generate Prisma Client
-      run: npx prisma generate
-      env:
-        DATABASE_PROVIDER: sqlite
-        DATABASE_URL: file:./dev.db
-    
-    - name: Run Migrations
-      if: github.ref == 'refs/heads/main'
-      run: npx prisma migrate deploy
-      env:
-        DATABASE_URL: file:./dev.db
     
     # Add your deployment steps here
     # Example for GitHub Pages:

@@ -7,6 +7,7 @@ services:
     branch: authentication
     buildCommand: |
       npm ci --include=dev
+      mkdir -p data
       npm run build
       echo "Build completed successfully"
     startCommand: node server/index.js
