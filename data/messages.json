@@ -67,7 +67,8 @@
     "createdAt": "2025-10-20T21:27:43.376Z",
     "readBy": [
       "17609874129012qwwngohj",
-      "176099539937579fx059if"
+      "176099539937579fx059if",
+      "1760987051915h0hmoo3i7"
     ]
   },
   {
@@ -91,7 +92,8 @@
     "createdAt": "2025-10-20T21:28:27.905Z",
     "readBy": [
       "17609874129012qwwngohj",
-      "176099539937579fx059if"
+      "176099539937579fx059if",
+      "1760987051915h0hmoo3i7"
     ]
   },
   {
@@ -113,6 +115,50 @@
     "createdAt": "2025-10-20T21:29:03.498Z",
     "readBy": [
       "17609874129012qwwngohj",
+      "1760987051915h0hmoo3i7"
+    ]
+  },
+  {
+    "id": "176099652992574aapxjwr",
+    "senderId": "1760987051915h0hmoo3i7",
+    "senderName": "m3c m3c",
+    "senderRole": "class_lead",
+    "type": "class_lead_to_parents",
+    "subject": "sara",
+    "message": "ssara",
+    "classIds": [
+      "71779d11-0f9b-4dd7-bece-75560921b5b4"
+    ],
+    "childIds": [
+      "1760995399380nqxzap4o7"
+    ],
+    "recipients": [
+      "176099539937579fx059if"
+    ],
+    "createdAt": "2025-10-20T21:42:09.925Z",
+    "readBy": [
+      "176099539937579fx059if",
+      "1760987051915h0hmoo3i7"
+    ]
+  },
+  {
+    "id": "1760996556292g1ly0d69u",
+    "senderId": "176099539937579fx059if",
+    "senderName": "Val Val",
+    "senderRole": "parent",
+    "type": "parent_to_class_lead",
+    "subject": "sa",
+    "message": "sa",
+    "classIds": [
+      "71779d11-0f9b-4dd7-bece-75560921b5b4"
+    ],
+    "childIds": [],
+    "recipients": [
+      "1760987051915h0hmoo3i7",
+      "admin-1"
+    ],
+    "createdAt": "2025-10-20T21:42:36.292Z",
+    "readBy": [
       "1760987051915h0hmoo3i7"
     ]
   }

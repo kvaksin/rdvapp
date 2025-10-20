@@ -15,6 +15,7 @@ import * as auth from './auth.js'
 import authRoutes from './authRoutes.js'
 import childrenRoutes from './childrenRoutes.js'
 import messageRoutes from './messageRoutes.js'
+import uploadRoutes from './uploadRoutes.js'
 
 // Load environment variables
 dotenv.config()
@@ -175,6 +176,9 @@ app.use('/api/children', childrenRoutes)
 
 // Message routes
 app.use('/api/messages', messageRoutes)
+
+// Upload routes  
+app.use('/api/uploads', uploadRoutes)
 
 // SPA routing - this should be the last middleware
 app.get('*', (req, res, next) => {

@@ -24,7 +24,7 @@ router.get('/', auth.authenticateToken, async (req, res) => {
 router.post('/admin-to-class', auth.authenticateToken, async (req, res) => {
   try {
     const currentUser = req.user
-    const { subject, message, classIds } = req.body
+    const { subject, message, classIds, attachments } = req.body
     
     // Only administrators can send admin-to-class messages
     if (!currentUser.roles.includes('administrator')) {
@@ -62,7 +62,8 @@ router.post('/admin-to-class', auth.authenticateToken, async (req, res) => {
       subject,
       message,
       classIds,
-      recipients: allRecipients
+      recipients: allRecipients,
+      attachments: attachments || []
     }
     
     const newMessage = auth.addMessage(messageData)
@@ -103,7 +104,7 @@ router.post('/admin-to-class', auth.authenticateToken, async (req, res) => {
 router.post('/class-lead-to-parents', auth.authenticateToken, async (req, res) => {
   try {
     const currentUser = req.user
-    const { subject, message, childIds, classIds } = req.body
+    const { subject, message, childIds, classIds, attachments } = req.body
     
     // Only class leads can send messages to parents
     if (!currentUser.roles.includes('class_lead') && !currentUser.roles.includes('administrator')) {
@@ -157,7 +158,8 @@ router.post('/class-lead-to-parents', auth.authenticateToken, async (req, res) =
       message,
       classIds: targetClassIds,
       childIds: childIds || [],
-      recipients
+      recipients,
+      attachments: attachments || []
     }
     
     const newMessage = auth.addMessage(messageData)
@@ -196,7 +198,7 @@ router.post('/class-lead-to-parents', auth.authenticateToken, async (req, res) =
 router.post('/parent-to-class-lead', auth.authenticateToken, async (req, res) => {
   try {
     const currentUser = req.user
-    const { subject, message, classIds } = req.body
+    const { subject, message, classIds, attachments } = req.body
     
     // Only parents can send messages to class leads
     if (!currentUser.roles.includes('parent')) {
@@ -233,7 +235,8 @@ router.post('/parent-to-class-lead', auth.authenticateToken, async (req, res) =>
       subject,
       message,
       classIds,
-      recipients: allRecipients
+      recipients: allRecipients,
+      attachments: attachments || []
     }
     
     const newMessage = auth.addMessage(messageData)
@@ -337,6 +340,130 @@ router.get('/children-for-messaging', auth.authenticateToken, async (req, res) =
   } catch (error) {
     console.error('Error getting children for messaging:', error)
     res.status(500).json({ error: 'Failed to get children' })
+  }
+})
+
+// Get comments for a specific message
+router.get('/:messageId/comments', auth.authenticateToken, async (req, res) => {
+  try {
+    const { messageId } = req.params
+    const currentUser = req.user
+    
+    // First check if user has access to this message
+    const userClasses = auth.getUserClasses().filter(uc => uc.userId === currentUser.id)
+    const messages = auth.getMessagesForUser(currentUser.id, currentUser.roles, userClasses, 1000)
+    const message = messages.find(m => m.id === messageId)
+    
+    if (!message) {
+      return res.status(404).json({ error: 'Message not found or access denied' })
+    }
+    
+    const comments = auth.getCommentsForMessage(messageId)
+    res.json(comments)
+  } catch (error) {
+    console.error('Error getting comments:', error)
+    res.status(500).json({ error: 'Failed to get comments' })
+  }
+})
+
+// Add comment to a message
+router.post('/:messageId/comments', auth.authenticateToken, async (req, res) => {
+  try {
+    const { messageId } = req.params
+    const { comment } = req.body
+    const currentUser = req.user
+    
+    if (!comment || !comment.trim()) {
+      return res.status(400).json({ error: 'Comment is required' })
+    }
+    
+    // Check if user has access to this message
+    const userClasses = auth.getUserClasses().filter(uc => uc.userId === currentUser.id)
+    const messages = auth.getMessagesForUser(currentUser.id, currentUser.roles, userClasses, 1000)
+    const message = messages.find(m => m.id === messageId)
+    
+    if (!message) {
+      return res.status(404).json({ error: 'Message not found or access denied' })
+    }
+    
+    const commentData = {
+      messageId,
+      senderId: currentUser.id,
+      senderName: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim(),
+      senderRole: currentUser.roles.includes('administrator') ? 'administrator' : 
+                  currentUser.roles.includes('class_lead') ? 'class_lead' : 'parent',
+      comment: comment.trim()
+    }
+    
+    const newComment = auth.addComment(commentData)
+    
+    // Create notifications for message recipients (except the comment author)
+    const notifications = auth.getNotifications()
+    const classes = await auth.getClasses()
+    const classNames = classes.filter(c => message.classIds.includes(c.id)).map(c => c.name).join(', ')
+    
+    message.recipients.forEach(recipientId => {
+      if (recipientId !== currentUser.id) { // Don't notify the comment author
+        notifications.push({
+          id: auth.generateId(),
+          type: 'new_message', // Reuse the same notification type
+          recipientId,
+          senderId: currentUser.id,
+          senderName: commentData.senderName,
+          message: `New comment on message: ${comment.substring(0, 50)}${comment.length > 50 ? '...' : ''}`,
+          messageId: messageId, // Link back to the original message
+          classNames,
+          isRead: false,
+          createdAt: new Date().toISOString(),
+          status: 'pending'
+        })
+      }
+    })
+    
+    auth.saveNotifications(notifications)
+    
+    res.json(newComment)
+  } catch (error) {
+    console.error('Error adding comment:', error)
+    res.status(500).json({ error: 'Failed to add comment' })
+  }
+})
+
+// Delete comment
+router.delete('/comments/:commentId', auth.authenticateToken, async (req, res) => {
+  try {
+    const { commentId } = req.params
+    const currentUser = req.user
+    
+    const deletedComment = auth.deleteComment(commentId, currentUser.id)
+    
+    if (!deletedComment) {
+      return res.status(404).json({ error: 'Comment not found or access denied' })
+    }
+    
+    res.json({ message: 'Comment deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting comment:', error)
+    res.status(500).json({ error: 'Failed to delete comment' })
+  }
+})
+
+// Delete message
+router.delete('/:messageId', auth.authenticateToken, async (req, res) => {
+  try {
+    const { messageId } = req.params
+    const currentUser = req.user
+    
+    const deletedMessage = auth.deleteMessage(messageId, currentUser.id)
+    
+    if (!deletedMessage) {
+      return res.status(404).json({ error: 'Message not found or access denied' })
+    }
+    
+    res.json({ message: 'Message and associated comments deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting message:', error)
+    res.status(500).json({ error: 'Failed to delete message' })
   }
 })
 

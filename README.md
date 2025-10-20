@@ -54,6 +54,52 @@ A **secure, comprehensive class-based appointment booking application** with adv
 - **Enhanced Workflow**: Integrated notifications direct users to relevant communication requiring attention
 - **Multi-Role Support**: Single interface supporting all communication patterns (admin↔class, class_lead↔parents, parent↔class_lead)
 
+### ✅ **File Attachment System (v2.7.0)**
+**New Feature**: Complete file attachment functionality for the messaging system with secure upload, validation, and download capabilities.
+
+**File Upload Features**:
+- ✅ **File Selection Interface**: Drag-and-drop or click-to-select file upload with visual preview
+- ✅ **Multiple File Support**: Attach up to 5 files per message with individual 5MB size limit
+- ✅ **File Type Validation**: Supports documents (PDF, DOC, DOCX), images (JPG, PNG, GIF), and text files
+- ✅ **Real-Time File Preview**: Shows selected files with name, size, and type before sending
+- ✅ **Upload Progress**: Visual feedback during file upload process with error handling
+- ✅ **File Size Limits**: 5MB maximum per file with clear error messages for oversized files
+
+**Message Integration**:
+- ✅ **Attachment Display**: Attached files shown in message threads with download links
+- ✅ **File Information**: Displays original filename, file size, and upload timestamp
+- ✅ **Secure Downloads**: Protected download endpoints requiring proper authentication
+- ✅ **Message Enhancement**: Attachments seamlessly integrated into all message types (admin-to-class, class-lead-to-parents, parent-to-class-lead)
+
+**Security & Storage**:
+- ✅ **Secure File Storage**: Files stored in protected server directory with unique identifiers
+- ✅ **Access Control**: Only message recipients can download attached files
+- ✅ **File Validation**: Server-side validation of file types, sizes, and content
+- ✅ **Malware Protection**: File type restrictions prevent execution of dangerous file types
+- ✅ **Organized Storage**: Files organized by upload date with automatic directory creation
+
+**Backend Architecture**:
+- ✅ **Multer Integration**: Professional file upload handling with configurable limits
+- ✅ **RESTful Upload API**: Dedicated endpoints for file upload and serving
+- ✅ **Database Integration**: Attachment metadata stored with message data
+- ✅ **Error Handling**: Comprehensive error handling for all file operations
+- ✅ **Clean Architecture**: Modular file handling system with separation of concerns
+
+**User Experience**:
+- ✅ **Intuitive Interface**: Simple file selection with clear visual feedback
+- ✅ **Progress Indicators**: Upload status and completion notifications
+- ✅ **Error Recovery**: Clear error messages with guidance for resolution
+- ✅ **Mobile Support**: Touch-friendly file selection for mobile devices
+- ✅ **Accessibility**: Screen reader compatible with proper ARIA labels
+
+**Benefits**:
+- **Enhanced Communication**: Share important documents, images, and files directly in messages
+- **Secure Sharing**: Protected file access ensures only intended recipients can download attachments
+- **Professional Workflow**: Eliminates need for external file sharing services
+- **Data Integrity**: Robust validation ensures file safety and system stability
+- **User-Friendly**: Intuitive interface makes file sharing accessible to all users
+- **Compliance Ready**: Secure file handling meets data protection requirements
+
 ### ✅ **Enhanced Child Selection & Booking Policy (v2.5.0)**
 **New Features**: Advanced child selection system with modal interface, comprehensive booking restrictions, and enhanced user identification for streamlined registration and professional presentation.
 
@@ -749,7 +795,10 @@ rdvapp/
 │   ├── index.js                  # Main server file with API endpoints
 │   ├── auth.js                   # Authentication logic and user management
 │   ├── authRoutes.js            # Authentication and user routes
+│   ├── uploadRoutes.js          # File upload and serving routes
 │   └── db.js                     # Database operations and file management
+├── uploads/                       # File attachment storage (auto-generated)
+│   └── YYYY-MM-DD/               # Files organized by upload date
 ├── data/                          # JSON database files (auto-generated)
 │   ├── users.json                # User accounts and authentication
 │   ├── userRoles.json            # User role assignments
@@ -1174,6 +1223,50 @@ Response:
 - **Automatic Cleanup**: Messages older than 2 weeks are automatically deleted
 - **Daily Cleanup Schedule**: Cleanup runs every day at 2:00 AM server time
 - **Performance Optimization**: Prevents message accumulation for optimal system performance
+
+### File Upload Management Endpoints
+
+#### Upload Files
+```http
+POST /api/uploads
+Authorization: Bearer jwt-token-here
+Content-Type: multipart/form-data
+
+Form Data:
+files: [File objects] (up to 5 files, 5MB each)
+
+Response:
+{
+  "files": [
+    {
+      "id": "upload-id-1",
+      "originalName": "document.pdf",
+      "filename": "unique-filename.pdf",
+      "mimetype": "application/pdf",
+      "size": 1024000,
+      "uploadedAt": "2025-10-19T14:30:00Z"
+    }
+  ]
+}
+```
+
+#### Download File
+```http
+GET /api/uploads/unique-filename.pdf
+Authorization: Bearer jwt-token-here
+
+Response: File download (requires proper authentication)
+```
+
+**File Upload Validation:**
+- **File Types**: PDF, DOC, DOCX, JPG, JPEG, PNG, GIF, TXT, CSV
+- **Size Limit**: 5MB per file maximum
+- **Quantity Limit**: Maximum 5 files per upload
+- **Security**: File type validation and sanitization
+- **Storage**: Organized by date with unique filenames
+
+**Integration with Messages:**
+All message endpoints (admin-to-class, class-lead-to-parents, parent-to-class-lead) accept an optional `attachments` array containing attachment objects returned from the upload endpoint.
 
 #### Mark Notification as Read
 ```http

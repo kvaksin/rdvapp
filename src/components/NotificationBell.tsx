@@ -2,30 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { FormattedMessage, FormattedDate } from 'react-intl'
 import { useNavigate } from 'react-router-dom'
 import { useAuth, authenticatedFetch } from '../contexts/AuthContext'
-
-interface Notification {
-  id: string
-  type: string
-  recipientId: string
-  senderId: string
-  senderEmail?: string
-  userRole?: string
-  classAssignments?: Array<{
-    id: string
-    classId: string
-    childName?: string
-    createdAt: string
-  }>
-  message: string
-  isRead: boolean
-  createdAt: string
-  status: string
-  metadata?: {
-    requestId?: string
-    userEmail?: string
-    className?: string
-  }
-}
+import { Notification } from '../types/api'
 
 const NotificationBell = () => {
   const { user } = useAuth()
@@ -104,6 +81,15 @@ const NotificationBell = () => {
       case 'class_assignment_request':
         // Navigate to admin page where admin can manage class assignment requests
         navigate('/admin')
+        break
+      
+      case 'new_message':
+        // Navigate to communication page and highlight the specific message
+        if (notification.messageId) {
+          navigate(`/communication?messageId=${notification.messageId}`)
+        } else {
+          navigate('/communication')
+        }
         break
       
       case 'user_approved':

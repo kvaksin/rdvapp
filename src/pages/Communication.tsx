@@ -1,7 +1,17 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
+import { useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { authenticatedFetch } from '../contexts/AuthContext'
+
+interface Attachment {
+  id: string
+  originalName: string
+  filename: string
+  mimetype: string
+  size: number
+  uploadedAt: string
+}
 
 interface Message {
   id: string
@@ -16,6 +26,17 @@ interface Message {
   recipients: string[]
   createdAt: string
   readBy: string[]
+  attachments?: Attachment[]
+}
+
+interface Comment {
+  id: string
+  messageId: string
+  senderId: string
+  senderName: string
+  senderRole: string
+  comment: string
+  createdAt: string
 }
 
 interface Class {
@@ -41,6 +62,9 @@ interface Child {
 const Communication: React.FC = () => {
   const { user } = useAuth()
   const intl = useIntl()
+  const [searchParams] = useSearchParams()
+  const highlightedMessageId = searchParams.get('messageId')
+  const messageRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
   const [messages, setMessages] = useState<Message[]>([])
   const [classes, setClasses] = useState<Class[]>([])
   const [children, setChildren] = useState<Child[]>([])
@@ -48,6 +72,13 @@ const Communication: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [showSendMessage, setShowSendMessage] = useState(false)
   const [sendingMessage, setSendingMessage] = useState(false)
+  const [comments, setComments] = useState<{ [messageId: string]: Comment[] }>({})
+  const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set())
+  const [newComments, setNewComments] = useState<{ [messageId: string]: string }>({})
+  const [loadingComments, setLoadingComments] = useState<Set<string>>(new Set())
+  const [submittingComment, setSubmittingComment] = useState<Set<string>>(new Set())
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [uploadingFiles, setUploadingFiles] = useState(false)
 
   // Get default message type based on user role
   const getDefaultMessageType = (): 'admin_to_class' | 'class_lead_to_parents' | 'parent_to_class_lead' => {
@@ -75,6 +106,26 @@ const Communication: React.FC = () => {
     loadData()
   }, [])
 
+  // Scroll to highlighted message after messages load
+  useEffect(() => {
+    if (highlightedMessageId && messages.length > 0) {
+      const messageElement = messageRefs.current[highlightedMessageId]
+      if (messageElement) {
+        // Scroll to the message with some offset
+        messageElement.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        })
+        
+        // Mark as read if it's unread
+        const message = messages.find(m => m.id === highlightedMessageId)
+        if (message && !message.readBy?.includes(user?.id || '')) {
+          markAsRead(highlightedMessageId)
+        }
+      }
+    }
+  }, [highlightedMessageId, messages, user?.id])
+
   const loadData = async () => {
     try {
       setLoading(true)
@@ -83,7 +134,11 @@ const Communication: React.FC = () => {
       // Load messages
       const messagesRes = await authenticatedFetch(`${baseUrl}/api/messages`)
       if (messagesRes.ok) {
-        setMessages(await messagesRes.json())
+        const loadedMessages = await messagesRes.json()
+        setMessages(loadedMessages)
+        
+        // Load comment counts for all messages
+        await loadCommentCounts(loadedMessages)
       }
 
       // Load classes
@@ -107,15 +162,101 @@ const Communication: React.FC = () => {
     }
   }
 
+  const loadCommentCounts = async (messagesToLoad: Message[]) => {
+    try {
+      const commentPromises = messagesToLoad.map(async (message) => {
+        try {
+          const res = await authenticatedFetch(`${baseUrl}/api/messages/${message.id}/comments`)
+          if (res.ok) {
+            const messageComments = await res.json()
+            return { messageId: message.id, comments: messageComments }
+          }
+        } catch (err) {
+          console.error(`Error loading comments for message ${message.id}:`, err)
+        }
+        return { messageId: message.id, comments: [] }
+      })
+
+      const commentResults = await Promise.all(commentPromises)
+      const commentsMap: { [messageId: string]: Comment[] } = {}
+      
+      commentResults.forEach(result => {
+        commentsMap[result.messageId] = result.comments
+      })
+      
+      setComments(commentsMap)
+    } catch (err) {
+      console.error('Error loading comment counts:', err)
+    }
+  }
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || [])
+    
+    // Validate file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024 // 5MB
+    const invalidFiles = files.filter(file => file.size > maxSize)
+    
+    if (invalidFiles.length > 0) {
+      setError(`Some files are too large. Maximum file size is 5MB. Invalid files: ${invalidFiles.map(f => f.name).join(', ')}`)
+      return
+    }
+    
+    // Limit total files to 5
+    const totalFiles = selectedFiles.length + files.length
+    if (totalFiles > 5) {
+      setError('Maximum 5 files allowed per message')
+      return
+    }
+    
+    setSelectedFiles(prev => [...prev, ...files])
+    // Clear the input so the same file can be selected again
+    event.target.value = ''
+  }
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const uploadFiles = async (): Promise<Attachment[]> => {
+    if (selectedFiles.length === 0) return []
+    
+    const formData = new FormData()
+    selectedFiles.forEach(file => {
+      formData.append('attachments', file)
+    })
+    
+    const uploadRes = await authenticatedFetch(`${baseUrl}/api/uploads/upload`, {
+      method: 'POST',
+      body: formData
+    })
+    
+    if (!uploadRes.ok) {
+      const errorData = await uploadRes.json()
+      throw new Error(errorData.error || 'Failed to upload files')
+    }
+    
+    const { attachments } = await uploadRes.json()
+    return attachments
+  }
+
   const sendMessage = async () => {
     try {
       setSendingMessage(true)
+      setUploadingFiles(true)
       setError(null)
+
+      // Upload files first if any are selected
+      let attachments: Attachment[] = []
+      if (selectedFiles.length > 0) {
+        attachments = await uploadFiles()
+      }
 
       let endpoint = ''
       let payload: any = {
         subject: subject.trim() || undefined,
-        message: messageText.trim()
+        message: messageText.trim(),
+        attachments
       }
 
       if (messageType === 'admin_to_class') {
@@ -151,6 +292,7 @@ const Communication: React.FC = () => {
       setSelectedClasses([])
       setSelectedChildren([])
       setRecipientMode('byClass')
+      setSelectedFiles([])
       setShowSendMessage(false)
 
       // Reload messages
@@ -160,6 +302,7 @@ const Communication: React.FC = () => {
       setError(err.message || 'Failed to send message')
     } finally {
       setSendingMessage(false)
+      setUploadingFiles(false)
     }
   }
 
@@ -215,6 +358,144 @@ const Communication: React.FC = () => {
     return user?.roles.includes('administrator') || 
            user?.roles.includes('class_lead') || 
            user?.roles.includes('parent')
+  }
+
+  const canDeleteMessage = (message: Message) => {
+    return user?.roles.includes('administrator') || message.senderId === user?.id
+  }
+
+  const canDeleteComment = (comment: Comment) => {
+    return user?.roles.includes('administrator') || comment.senderId === user?.id
+  }
+
+  const loadComments = async (messageId: string) => {
+    if (loadingComments.has(messageId)) return
+
+    try {
+      setLoadingComments(prev => new Set(prev).add(messageId))
+      const res = await authenticatedFetch(`${baseUrl}/api/messages/${messageId}/comments`)
+      if (res.ok) {
+        const messageComments = await res.json()
+        setComments(prev => ({
+          ...prev,
+          [messageId]: messageComments
+        }))
+      }
+    } catch (err) {
+      console.error('Error loading comments:', err)
+    } finally {
+      setLoadingComments(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(messageId)
+        return newSet
+      })
+    }
+  }
+
+  const toggleCommentsExpanded = async (messageId: string) => {
+    const isExpanded = expandedMessages.has(messageId)
+    
+    if (isExpanded) {
+      setExpandedMessages(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(messageId)
+        return newSet
+      })
+    } else {
+      setExpandedMessages(prev => new Set(prev).add(messageId))
+      // Comments are already loaded during initial page load, so no need to reload
+    }
+  }
+
+  const submitComment = async (messageId: string) => {
+    const commentText = newComments[messageId]?.trim()
+    if (!commentText || submittingComment.has(messageId)) return
+
+    try {
+      setSubmittingComment(prev => new Set(prev).add(messageId))
+      const res = await authenticatedFetch(`${baseUrl}/api/messages/${messageId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ comment: commentText })
+      })
+
+      if (res.ok) {
+        const newComment = await res.json()
+        setComments(prev => ({
+          ...prev,
+          [messageId]: [...(prev[messageId] || []), newComment]
+        }))
+        setNewComments(prev => ({
+          ...prev,
+          [messageId]: ''
+        }))
+      } else {
+        const errorData = await res.json()
+        setError(errorData.error || 'Failed to add comment')
+      }
+    } catch (err: any) {
+      console.error('Error submitting comment:', err)
+      setError(err.message || 'Failed to add comment')
+    } finally {
+      setSubmittingComment(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(messageId)
+        return newSet
+      })
+    }
+  }
+
+  const deleteComment = async (commentId: string, messageId: string) => {
+    if (!confirm('Are you sure you want to delete this comment?')) return
+
+    try {
+      const res = await authenticatedFetch(`${baseUrl}/api/messages/comments/${commentId}`, {
+        method: 'DELETE'
+      })
+
+      if (res.ok) {
+        setComments(prev => ({
+          ...prev,
+          [messageId]: prev[messageId]?.filter(c => c.id !== commentId) || []
+        }))
+      } else {
+        const errorData = await res.json()
+        setError(errorData.error || 'Failed to delete comment')
+      }
+    } catch (err: any) {
+      console.error('Error deleting comment:', err)
+      setError(err.message || 'Failed to delete comment')
+    }
+  }
+
+  const deleteMessage = async (messageId: string) => {
+    if (!confirm('Are you sure you want to delete this message? This will also delete all comments.')) return
+
+    try {
+      const res = await authenticatedFetch(`${baseUrl}/api/messages/${messageId}`, {
+        method: 'DELETE'
+      })
+
+      if (res.ok) {
+        setMessages(prev => prev.filter(m => m.id !== messageId))
+        setComments(prev => {
+          const newComments = { ...prev }
+          delete newComments[messageId]
+          return newComments
+        })
+        setExpandedMessages(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(messageId)
+          return newSet
+        })
+      } else {
+        const errorData = await res.json()
+        setError(errorData.error || 'Failed to delete message')
+      }
+    } catch (err: any) {
+      console.error('Error deleting message:', err)
+      setError(err.message || 'Failed to delete message')
+    }
   }
 
   const getAvailableMessageTypes = () => {
@@ -458,6 +739,60 @@ const Communication: React.FC = () => {
             />
           </div>
 
+          {/* File Attachments */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              <FormattedMessage id="communication.attachments" defaultMessage="Attachments" />
+              <span className="text-gray-500 ml-1">
+                (<FormattedMessage id="common.optional" defaultMessage="optional" />, max 5MB per file, 5 files total)
+              </span>
+            </label>
+            
+            {/* File Input */}
+            <div className="mb-3">
+              <input
+                type="file"
+                multiple
+                onChange={handleFileSelect}
+                className="block w-full text-sm text-gray-300
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-lg file:border-0
+                  file:text-sm file:font-medium
+                  file:bg-blue-600 file:text-white
+                  hover:file:bg-blue-700
+                  file:cursor-pointer cursor-pointer"
+                accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"
+              />
+            </div>
+
+            {/* Selected Files Preview */}
+            {selectedFiles.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm text-gray-400">Selected files:</p>
+                {selectedFiles.map((file, index) => (
+                  <div key={index} className="flex items-center justify-between bg-gray-700 rounded-lg p-2">
+                    <div className="flex items-center space-x-2">
+                      <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span className="text-white text-sm truncate">{file.name}</span>
+                      <span className="text-gray-400 text-xs">({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                    </div>
+                    <button
+                      onClick={() => removeFile(index)}
+                      className="text-red-400 hover:text-red-300 p-1"
+                      title="Remove file"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Send Button */}
           <div className="flex justify-end space-x-3">
             <button
@@ -475,14 +810,21 @@ const Communication: React.FC = () => {
                        (messageType === 'class_lead_to_parents' && 
                         ((recipientMode === 'byClass' && selectedClasses.length === 0) ||
                          (recipientMode === 'byChildren' && selectedChildren.length === 0))) ||
-                       sendingMessage}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                       sendingMessage || uploadingFiles}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
             >
-              {sendingMessage ? (
-                <FormattedMessage id="common.sending" defaultMessage="Sending..." />
-              ) : (
-                <FormattedMessage id="communication.sendMessage" defaultMessage="Send Message" />
+              {(sendingMessage || uploadingFiles) && (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
               )}
+              <span>
+                {uploadingFiles ? (
+                  <FormattedMessage id="communication.uploadingFiles" defaultMessage="Uploading files..." />
+                ) : sendingMessage ? (
+                  <FormattedMessage id="common.sending" defaultMessage="Sending..." />
+                ) : (
+                  <FormattedMessage id="communication.sendMessage" defaultMessage="Send Message" />
+                )}
+              </span>
             </button>
           </div>
         </div>
@@ -515,12 +857,19 @@ const Communication: React.FC = () => {
                 .map(c => c.name)
                 .join(', ')
 
+              const isHighlighted = highlightedMessageId === message.id
+              
               return (
                 <div
                   key={message.id}
+                  ref={(el) => messageRefs.current[message.id] = el}
                   className={`bg-gray-800 rounded-lg p-4 border-l-4 ${
-                    isUnread ? 'border-blue-500' : 'border-gray-600'
-                  } hover:bg-gray-750 transition-colors cursor-pointer`}
+                    isHighlighted 
+                      ? 'border-yellow-500 ring-2 ring-yellow-500/50 shadow-lg shadow-yellow-500/20' 
+                      : isUnread 
+                        ? 'border-blue-500' 
+                        : 'border-gray-600'
+                  } hover:bg-gray-750 transition-all duration-300 cursor-pointer`}
                   onClick={() => isUnread && markAsRead(message.id)}
                 >
                   <div className="flex items-start justify-between mb-2">
@@ -546,13 +895,150 @@ const Communication: React.FC = () => {
                         </div>
                       </div>
                     </div>
+                    
+                    {canDeleteMessage(message) && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          deleteMessage(message.id)
+                        }}
+                        className="text-red-400 hover:text-red-300 p-1"
+                        title="Delete message"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
 
                   {message.subject && (
                     <h4 className="font-medium text-white mb-2">{message.subject}</h4>
                   )}
 
-                  <p className="text-gray-300 whitespace-pre-wrap">{message.message}</p>
+                  <p className="text-gray-300 whitespace-pre-wrap mb-3">{message.message}</p>
+
+                  {/* Attachments */}
+                  {message.attachments && message.attachments.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-sm text-gray-400 mb-2">
+                        <FormattedMessage id="communication.attachments" defaultMessage="Attachments" /> ({message.attachments.length})
+                      </p>
+                      <div className="space-y-2">
+                        {message.attachments.map((attachment) => (
+                          <div key={attachment.id} className="flex items-center justify-between bg-gray-700 rounded-lg p-3">
+                            <div className="flex items-center space-x-3">
+                              <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              <div>
+                                <p className="text-white text-sm font-medium">{attachment.originalName}</p>
+                                <p className="text-gray-400 text-xs">
+                                  {(attachment.size / 1024 / 1024).toFixed(2)} MB • {attachment.mimetype}
+                                </p>
+                              </div>
+                            </div>
+                            <a
+                              href={`${baseUrl}/api/uploads/files/${attachment.filename}`}
+                              download={attachment.originalName}
+                              className="inline-flex items-center px-3 py-1 rounded bg-blue-600 text-white text-sm hover:bg-blue-700 transition-colors"
+                            >
+                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              <FormattedMessage id="common.download" defaultMessage="Download" />
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Comments Section */}
+                  <div className="border-t border-gray-700 pt-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleCommentsExpanded(message.id)
+                        }}
+                        className="flex items-center space-x-2 text-gray-400 hover:text-gray-300 transition-colors"
+                      >
+                        <svg className={`w-4 h-4 transition-transform ${expandedMessages.has(message.id) ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                        <span className="text-sm">
+                          {comments[message.id]?.length || 0} {(comments[message.id]?.length || 0) === 1 ? 'comment' : 'comments'}
+                        </span>
+                      </button>
+                      
+                      {loadingComments.has(message.id) && (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                      )}
+                    </div>
+
+                    {expandedMessages.has(message.id) && (
+                      <div className="space-y-3">
+                        {/* Existing Comments */}
+                        {comments[message.id]?.map(comment => (
+                          <div key={comment.id} className="bg-gray-700 rounded-lg p-3 ml-4">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-sm font-medium text-white">{comment.senderName}</span>
+                                <span className="text-xs text-gray-400">
+                                  {formatMessageDate(comment.createdAt)}
+                                </span>
+                              </div>
+                              
+                              {canDeleteComment(comment) && (
+                                <button
+                                  onClick={() => deleteComment(comment.id, message.id)}
+                                  className="text-red-400 hover:text-red-300 p-1"
+                                  title="Delete comment"
+                                >
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              )}
+                            </div>
+                            <p className="text-gray-300 text-sm whitespace-pre-wrap">{comment.comment}</p>
+                          </div>
+                        ))}
+
+                        {/* Add Comment Form */}
+                        <div className="ml-4">
+                          <div className="flex space-x-2">
+                            <textarea
+                              value={newComments[message.id] || ''}
+                              onChange={(e) => setNewComments(prev => ({
+                                ...prev,
+                                [message.id]: e.target.value
+                              }))}
+                              placeholder="Add a comment..."
+                              className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                              rows={2}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                submitComment(message.id)
+                              }}
+                              disabled={!newComments[message.id]?.trim() || submittingComment.has(message.id)}
+                              className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                            >
+                              {submittingComment.has(message.id) ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                              ) : (
+                                'Post'
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )
             })}

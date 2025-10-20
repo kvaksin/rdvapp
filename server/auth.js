@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs, { readFileSync, writeFileSync } from 'fs'
 import path from 'path'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
@@ -1490,12 +1490,29 @@ export const getMessagesForUser = (userId, userRoles, userClasses, limit = 20) =
     // Parents can see admin messages to their classes and their own messages
     if (userRoles.includes('parent')) {
       const parentClassIds = userClasses.map(uc => uc.classId)
+      
+      // Admin messages to classes the parent is in
       if (message.type === 'admin_to_class' && message.classIds.some(classId => parentClassIds.includes(classId))) {
         return true
       }
-      if (message.type === 'class_lead_to_parents' && message.classIds.some(classId => parentClassIds.includes(classId))) {
-        return true
+      
+      // Class lead messages to parents - only if specifically targeted
+      if (message.type === 'class_lead_to_parents') {
+        // If message has specific recipients, only show to those recipients
+        if (message.recipients && message.recipients.length > 0) {
+          return message.recipients.includes(userId)
+        }
+        // If message has childIds, only show to parents of those children
+        if (message.childIds && message.childIds.length > 0) {
+          const parentChildRelationships = getParentChildRelationships()
+          return message.childIds.some(childId => 
+            parentChildRelationships.some(rel => rel.parentId === userId && rel.childId === childId)
+          )
+        }
+        // If no specific targeting, show to all parents in the class
+        return message.classIds.some(classId => parentClassIds.includes(classId))
       }
+      
       // Parents can see their own messages
       if (message.senderId === userId) {
         return true
@@ -1577,4 +1594,94 @@ export const getUserManageableBookings = async (userId, allBookings) => {
     }
   }
   return results
+}
+
+// Comment management functions
+export const getComments = () => {
+  try {
+    const data = readFileSync('./data/comments.json', 'utf8')
+    return JSON.parse(data)
+  } catch (err) {
+    console.error('Error reading comments.json:', err)
+    return []
+  }
+}
+
+export const saveComments = (comments) => {
+  try {
+    writeFileSync('./data/comments.json', JSON.stringify(comments, null, 2))
+  } catch (err) {
+    console.error('Error writing comments.json:', err)
+  }
+}
+
+export const addComment = (commentData) => {
+  const comments = getComments()
+  const newComment = {
+    id: generateId(),
+    messageId: commentData.messageId,
+    senderId: commentData.senderId,
+    senderName: commentData.senderName,
+    senderRole: commentData.senderRole,
+    comment: commentData.comment,
+    createdAt: new Date().toISOString()
+  }
+  
+  comments.push(newComment)
+  saveComments(comments)
+  return newComment
+}
+
+export const getCommentsForMessage = (messageId) => {
+  const comments = getComments()
+  return comments
+    .filter(comment => comment.messageId === messageId)
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+}
+
+export const deleteComment = (commentId, userId) => {
+  const comments = getComments()
+  const commentIndex = comments.findIndex(c => c.id === commentId)
+  
+  if (commentIndex === -1) {
+    return null
+  }
+  
+  const comment = comments[commentIndex]
+  
+  // Only the comment author or an admin can delete the comment
+  if (comment.senderId !== userId && !hasRole(userId, 'administrator')) {
+    return null
+  }
+  
+  comments.splice(commentIndex, 1)
+  saveComments(comments)
+  return comment
+}
+
+export const deleteMessage = (messageId, userId) => {
+  const messages = getMessages()
+  const messageIndex = messages.findIndex(m => m.id === messageId)
+  
+  if (messageIndex === -1) {
+    return null
+  }
+  
+  const message = messages[messageIndex]
+  
+  // Only the message author or an admin can delete the message
+  if (message.senderId !== userId && !hasRole(userId, 'administrator')) {
+    return null
+  }
+  
+  // Also delete all comments for this message
+  const comments = getComments()
+  const updatedComments = comments.filter(c => c.messageId !== messageId)
+  saveComments(updatedComments)
+  
+  // Remove the message
+  messages.splice(messageIndex, 1)
+  saveMessages(messages)
+  
+  return message
 }
