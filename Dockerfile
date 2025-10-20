@@ -29,6 +29,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/server ./server
 COPY --from=builder /app/data ./data
+COPY --from=builder /app/openapi.yaml ./openapi.yaml
 
 # Expose port
 EXPOSE 4000

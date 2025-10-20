@@ -21,9 +21,35 @@ dotenv.config()
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// Load and parse OpenAPI spec
-const openApiYaml = fs.readFileSync(path.join(__dirname, '..', 'openapi.yaml'), 'utf8')
-const openApiSpec = YAML.parse(openApiYaml)
+// Load and parse OpenAPI spec with fallback paths
+let openApiSpec = {}
+const possiblePaths = [
+  path.join(__dirname, '..', 'openapi.yaml'),
+  path.join(process.cwd(), 'openapi.yaml'),
+  './openapi.yaml'
+]
+
+for (const openApiPath of possiblePaths) {
+  try {
+    if (fs.existsSync(openApiPath)) {
+      console.log(`Loading OpenAPI spec from: ${openApiPath}`)
+      const openApiYaml = fs.readFileSync(openApiPath, 'utf8')
+      openApiSpec = YAML.parse(openApiYaml)
+      break
+    }
+  } catch (error) {
+    console.warn(`Failed to load OpenAPI spec from ${openApiPath}:`, error.message)
+  }
+}
+
+if (!openApiSpec.info) {
+  console.warn('OpenAPI spec not found, API documentation will be unavailable')
+  openApiSpec = {
+    openapi: '3.0.0',
+    info: { title: 'RDV API', version: '1.0.0' },
+    paths: {}
+  }
+}
 
 // Configure Swagger UI options
 const swaggerUiOptions = {
