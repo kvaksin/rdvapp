@@ -14,6 +14,7 @@ import * as db from './db.js'
 import * as auth from './auth.js'
 import authRoutes from './authRoutes.js'
 import childrenRoutes from './childrenRoutes.js'
+import messageRoutes from './messageRoutes.js'
 
 // Load environment variables
 dotenv.config()
@@ -171,6 +172,9 @@ app.use('/auth', authRoutes)
 
 // Children management routes
 app.use('/api/children', childrenRoutes)
+
+// Message routes
+app.use('/api/messages', messageRoutes)
 
 // SPA routing - this should be the last middleware
 app.get('*', (req, res, next) => {
@@ -686,14 +690,13 @@ app.put('/api/bookings/:id', auth.authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Booking not found' })
     }
 
-    // Check access to both old and new slots
-    const oldSlot = await db.findSlot(booking.slotId)
-    const newSlot = await db.findSlot(slotId)
-    
-    if (oldSlot?.classId && !auth.hasAccessToClass(req.user.id, oldSlot.classId)) {
-      return res.status(403).json({ error: 'Access denied to original booking class' })
+    // Check if user can manage this specific booking
+    if (!(await auth.canManageBooking(req.user.id, booking))) {
+      return res.status(403).json({ error: 'You can only reschedule bookings for your own children' })
     }
-    
+
+    // Check access to new slot
+    const newSlot = await db.findSlot(slotId)
     if (newSlot?.classId && !auth.hasAccessToClass(req.user.id, newSlot.classId)) {
       return res.status(403).json({ error: 'Access denied to new slot class' })
     }
@@ -791,10 +794,9 @@ app.delete('/api/bookings/:id', auth.authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Booking not found' })
     }
 
-    // Check access to booking's slot class
-    const slot = await db.findSlot(booking.slotId)
-    if (slot?.classId && !auth.hasAccessToClass(req.user.id, slot.classId)) {
-      return res.status(403).json({ error: 'Access denied to this booking' })
+    // Check if user can manage this specific booking
+    if (!(await auth.canManageBooking(req.user.id, booking))) {
+      return res.status(403).json({ error: 'You can only cancel bookings for your own children' })
     }
 
     await db.updateBooking(id, { cancelled: true })
@@ -928,6 +930,28 @@ app.listen(port, () => {
   console.log('API server listening on', port)
   console.log('Environment:', process.env.NODE_ENV || 'development')
   console.log('Data directory:', path.join(__dirname, '..', 'data'))
+  
+  // Schedule message cleanup to run daily at 2 AM
+  const scheduleNextCleanup = () => {
+    const now = new Date()
+    const nextRun = new Date()
+    nextRun.setDate(now.getDate() + 1)
+    nextRun.setHours(2, 0, 0, 0)
+    
+    const timeUntilNext = nextRun.getTime() - now.getTime()
+    console.log('📧 Next message cleanup scheduled for:', nextRun.toLocaleString())
+    
+    setTimeout(() => {
+      auth.cleanupOldMessages()
+      scheduleNextCleanup() // Schedule next cleanup
+    }, timeUntilNext)
+  }
+  
+  // Run initial cleanup and schedule future cleanups
+  setTimeout(() => {
+    auth.cleanupOldMessages()
+    scheduleNextCleanup()
+  }, 5000) // Wait 5 seconds after server start
   
   // Initialize notification cleanup scheduler
   auth.scheduleNotificationCleanup()

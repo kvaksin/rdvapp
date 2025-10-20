@@ -13,7 +13,7 @@
       }
     ],
     "message": "New class_lead registration: m3c m3c (m3c@ex.com)",
-    "isRead": false,
+    "isRead": true,
     "createdAt": "2025-10-20T19:04:11.917Z",
     "status": "pending"
   },
@@ -42,7 +42,7 @@
       }
     ],
     "message": "New parent registration: K V (kv@ex.com)",
-    "isRead": false,
+    "isRead": true,
     "createdAt": "2025-10-20T19:10:12.902Z",
     "status": "pending"
   },
@@ -71,7 +71,7 @@
       }
     ],
     "message": "New parent registration: v l (vl@ex.com)",
-    "isRead": false,
+    "isRead": true,
     "createdAt": "2025-10-20T19:11:25.430Z",
     "status": "pending"
   },
@@ -84,5 +84,183 @@
     "isRead": true,
     "createdAt": "2025-10-20T19:11:35.705Z",
     "status": "sent"
+  },
+  {
+    "id": "1760994288623p0hbp5r4r",
+    "type": "new_message",
+    "recipientId": "1760987051915h0hmoo3i7",
+    "senderId": "admin-1",
+    "senderName": "Admin User",
+    "message": "New message from administrator: 2",
+    "messageId": "1760994288621h61ao1o6q",
+    "classNames": "m3c",
+    "isRead": true,
+    "createdAt": "2025-10-20T21:04:48.623Z",
+    "status": "pending"
+  },
+  {
+    "id": "1760994288623tg6n4ew4h",
+    "type": "new_message",
+    "recipientId": "17609874129012qwwngohj",
+    "senderId": "admin-1",
+    "senderName": "Admin User",
+    "message": "New message from administrator: 2",
+    "messageId": "1760994288621h61ao1o6q",
+    "classNames": "m3c",
+    "isRead": true,
+    "createdAt": "2025-10-20T21:04:48.623Z",
+    "status": "pending"
+  },
+  {
+    "id": "1760994288623h4e5f37kt",
+    "type": "new_message",
+    "recipientId": "1760987485428lsqelciy6",
+    "senderId": "admin-1",
+    "senderName": "Admin User",
+    "message": "New message from administrator: 2",
+    "messageId": "1760994288621h61ao1o6q",
+    "classNames": "m3c",
+    "isRead": false,
+    "createdAt": "2025-10-20T21:04:48.623Z",
+    "status": "pending"
+  },
+  {
+    "id": "176099539937880orw20n9",
+    "type": "user_approval_request",
+    "recipientId": "admin-1",
+    "senderId": "176099539937579fx059if",
+    "senderEmail": "val@ex.com",
+    "senderName": "Val Val",
+    "userRole": "parent",
+    "classAssignments": [
+      {
+        "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
+        "childName": "Sara Sara"
+      }
+    ],
+    "message": "New parent registration: Val Val (val@ex.com)",
+    "isRead": false,
+    "createdAt": "2025-10-20T21:23:19.378Z",
+    "status": "pending"
+  },
+  {
+    "id": "1760995399378k9nn3sy2g",
+    "type": "user_approval_request",
+    "recipientId": "1760987051915h0hmoo3i7",
+    "senderId": "176099539937579fx059if",
+    "senderEmail": "val@ex.com",
+    "senderName": "Val Val",
+    "userRole": "parent",
+    "classAssignments": [
+      {
+        "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
+        "childName": "Sara Sara"
+      }
+    ],
+    "message": "New parent registration: Val Val (val@ex.com)",
+    "isRead": true,
+    "createdAt": "2025-10-20T21:23:19.378Z",
+    "status": "pending"
+  },
+  {
+    "id": "176099542977053o2ql5nj",
+    "type": "user_approved",
+    "recipientId": "176099539937579fx059if",
+    "senderId": "1760987051915h0hmoo3i7",
+    "message": "Your account has been approved. You can now log in.",
+    "isRead": true,
+    "createdAt": "2025-10-20T21:23:49.770Z",
+    "status": "sent"
+  },
+  {
+    "id": "1760995663377ycf8y3n3e",
+    "type": "new_message",
+    "recipientId": "17609874129012qwwngohj",
+    "senderId": "1760987051915h0hmoo3i7",
+    "senderName": "m3c m3c",
+    "message": "New message from class lead: hk",
+    "messageId": "1760995663376yzdk2h6tj",
+    "classNames": "m3c",
+    "isRead": true,
+    "createdAt": "2025-10-20T21:27:43.377Z",
+    "status": "pending"
+  },
+  {
+    "id": "17609956633778fw5nbck6",
+    "type": "new_message",
+    "recipientId": "1760987485428lsqelciy6",
+    "senderId": "1760987051915h0hmoo3i7",
+    "senderName": "m3c m3c",
+    "message": "New message from class lead: hk",
+    "messageId": "1760995663376yzdk2h6tj",
+    "classNames": "m3c",
+    "isRead": false,
+    "createdAt": "2025-10-20T21:27:43.377Z",
+    "status": "pending"
+  },
+  {
+    "id": "1760995663377g2oxmxokm",
+    "type": "new_message",
+    "recipientId": "176099539937579fx059if",
+    "senderId": "1760987051915h0hmoo3i7",
+    "senderName": "m3c m3c",
+    "message": "New message from class lead: hk",
+    "messageId": "1760995663376yzdk2h6tj",
+    "classNames": "m3c",
+    "isRead": false,
+    "createdAt": "2025-10-20T21:27:43.377Z",
+    "status": "pending"
+  },
+  {
+    "id": "1760995707906oouw9f37v",
+    "type": "new_message",
+    "recipientId": "17609874129012qwwngohj",
+    "senderId": "1760987051915h0hmoo3i7",
+    "senderName": "m3c m3c",
+    "message": "New message from class lead: lora",
+    "messageId": "176099570790566dcbp0n2",
+    "classNames": "m3c",
+    "isRead": false,
+    "createdAt": "2025-10-20T21:28:27.906Z",
+    "status": "pending"
+  },
+  {
+    "id": "1760995707906dg24xnw5z",
+    "type": "new_message",
+    "recipientId": "1760987485428lsqelciy6",
+    "senderId": "1760987051915h0hmoo3i7",
+    "senderName": "m3c m3c",
+    "message": "New message from class lead: lora",
+    "messageId": "176099570790566dcbp0n2",
+    "classNames": "m3c",
+    "isRead": false,
+    "createdAt": "2025-10-20T21:28:27.906Z",
+    "status": "pending"
+  },
+  {
+    "id": "1760995743502dzjeb5dg3",
+    "type": "new_message",
+    "recipientId": "1760987051915h0hmoo3i7",
+    "senderId": "17609874129012qwwngohj",
+    "senderName": "K V",
+    "message": "New message from parent: h",
+    "messageId": "1760995743498drzjpnzdi",
+    "classNames": "m3c",
+    "isRead": false,
+    "createdAt": "2025-10-20T21:29:03.502Z",
+    "status": "pending"
+  },
+  {
+    "id": "1760995743502vj0za14xb",
+    "type": "new_message",
+    "recipientId": "admin-1",
+    "senderId": "17609874129012qwwngohj",
+    "senderName": "K V",
+    "message": "New message from parent: h",
+    "messageId": "1760995743498drzjpnzdi",
+    "classNames": "m3c",
+    "isRead": false,
+    "createdAt": "2025-10-20T21:29:03.502Z",
+    "status": "pending"
   }
 ]

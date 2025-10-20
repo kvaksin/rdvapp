@@ -14,6 +14,7 @@ const UserManagement = React.lazy(() => import('./pages/UserManagement'));
 const ChildrenManagement = React.lazy(() => import('./pages/ChildrenManagement'));
 const ParentProfile = React.lazy(() => import('./pages/ParentProfile'));
 const ClassRequest = React.lazy(() => import('./pages/ClassRequest'));
+const Communication = React.lazy(() => import('./pages/Communication'));
 const Home = React.lazy(() => import('./pages/Home'));
 const ClassSchedule = React.lazy(() => import('./pages/ClassSchedule'));
 const Login = React.lazy(() => import('./pages/Login'));
@@ -136,6 +137,12 @@ function Layout({ children }: { children: React.ReactNode }) {
       label: 'nav.childrenManagement', 
       defaultMessage: 'Children Management', 
       path: '/children-management', 
+      show: user?.roles && (user.roles.includes('administrator') || user.roles.includes('class_lead') || user.roles.includes('parent'))
+    },
+    { 
+      label: 'nav.communication', 
+      defaultMessage: 'Communication', 
+      path: '/communication', 
       show: user?.roles && (user.roles.includes('administrator') || user.roles.includes('class_lead') || user.roles.includes('parent'))
     },
     { 
@@ -434,6 +441,16 @@ const router = createBrowserRouter([
       <ProtectedRoute requiredRoles={['administrator', 'class_lead', 'parent']}>
         <ErrorBoundary>
           <ParentProfile />
+        </ErrorBoundary>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: '/communication',
+    element: (
+      <ProtectedRoute requiredRoles={['administrator', 'class_lead', 'parent']}>
+        <ErrorBoundary>
+          <Communication />
         </ErrorBoundary>
       </ProtectedRoute>
     )

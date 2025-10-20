@@ -62,5 +62,21 @@
     "rejectedBy": null,
     "rejectedAt": null,
     "rejectionReason": null
+  },
+  {
+    "id": "176099539937579fx059if",
+    "firstName": "Val",
+    "lastName": "Val",
+    "email": "val@ex.com",
+    "password": "$2b$12$nE9Ln/oOe4bkmRu6VwZVsul5.2af1nn8kgj3U53QDWOOVYA6Q/aKu",
+    "phone": null,
+    "createdAt": "2025-10-20T21:23:19.375Z",
+    "isActive": true,
+    "status": "approved",
+    "approvedBy": "1760987051915h0hmoo3i7",
+    "approvedAt": "2025-10-20T21:23:49.769Z",
+    "rejectedBy": null,
+    "rejectedAt": null,
+    "rejectionReason": null
   }
 ]

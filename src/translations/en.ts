@@ -11,6 +11,7 @@ export default {
   'nav.userApproval': 'User Approval',
   'nav.userManagement': 'User Management',
   'nav.childrenManagement': 'Children Management',
+  'nav.communication': 'Communication',
   'nav.classRequest': 'Request Class Assignment',
   
   'bookings.title': 'Appointments',
@@ -269,6 +270,8 @@ export default {
   'classRequest.submittedOn': 'Submitted on {date}',
   'common.optional': 'optional',
   'common.submitting': 'Submitting...',
+  'common.sending': 'Sending...',
+  'common.cancel': 'Cancel',
   
      
   // User Management (duplicate removed)
@@ -414,4 +417,30 @@ export default {
   'childSelection.noChildrenSelected': 'No children selected. Click \'Select Children\' to choose.',
   'common.confirm': 'Confirm',
   'profile.classRequest.success': 'Class assignment request submitted successfully!',
+
+  // Communication
+  'communication.title': 'Communication',
+  'communication.subtitle': 'Send and receive messages',
+  'communication.newMessage': 'New Message',
+  'communication.composeMessage': 'Compose Message',
+  'communication.messageType': 'Message Type',
+  'communication.sendToClass': 'Send to Class',
+  'communication.sendToParents': 'Send to Parents',
+  'communication.sendToClassLead': 'Send to Class Lead',
+  'communication.subject': 'Subject',
+  'communication.subjectPlaceholder': 'Enter message subject...',
+  'communication.message': 'Message',
+  'communication.messagePlaceholder': 'Enter your message...',
+  'communication.selectClasses': 'Select Classes',
+  'communication.selectRecipients': 'Select Recipients',
+  'communication.byClass': 'By Class',
+  'communication.byChildren': 'By Children',
+  'communication.selectChildren': 'Select Children',
+  'communication.sendMessage': 'Send Message',
+  'communication.recentMessages': 'Recent Messages',
+  'communication.noMessages': 'No messages yet',
+  'communication.adminMessage': 'Admin Message',
+  'communication.classLeadMessage': 'Class Lead Message',
+  'communication.parentMessage': 'Parent Message',
+  'communication.new': 'New',
 }

@@ -33,7 +33,7 @@
     "classId": "71779d11-0f9b-4dd7-bece-75560921b5b4",
     "createdAt": "2025-10-20T19:09:23.987Z",
     "removed": false,
-    "booked": false
+    "booked": true
   },
   {
     "id": "3d0243ff-0405-40c6-8366-322d1ac9ab4e",

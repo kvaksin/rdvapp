@@ -11,6 +11,49 @@ A **secure, comprehensive class-based appointment booking application** with adv
 
 ## 🚨 **Recent Enhancements**
 
+### ✅ **Comprehensive Communication System (v2.6.0)**
+**New Feature**: Enterprise-grade communication platform enabling seamless messaging between administrators, class leads, and parents with automatic data retention and smart notifications.
+
+**Communication Features**:
+- ✅ **Admin to Class Broadcasting**: Administrators can send messages to entire classes with checkbox selection for multiple classes
+- ✅ **Class Lead to Parent Messaging**: Class leads can message parents by selecting specific children or entire classes they manage
+- ✅ **Parent to Class Lead Communication**: Parents can send messages directly to class leads for their enrolled classes
+- ✅ **Role-Based Message Targeting**: Smart recipient selection based on user roles and class assignments
+- ✅ **Interactive Message Composition**: Modal-based composer with message type selection and recipient filtering
+- ✅ **Message Thread Display**: Chronological message display with sender identification and timestamps
+- ✅ **Real-Time Status Tracking**: Unread message indicators with automatic read status updates
+- ✅ **Automatic Data Retention**: Messages automatically deleted after 2 weeks with daily cleanup scheduling
+- ✅ **Integrated Notifications**: New messages trigger notification system with preview and sender details
+
+**User Interface Enhancements**:
+- ✅ **Communication Navigation**: New "Communication" page accessible to all authenticated users
+- ✅ **Message Type Selection**: Dynamic interface adapting to user role (admin/class_lead/parent options)
+- ✅ **Recipient Selection Modes**: Toggle between class-based and child-based targeting for flexible messaging
+- ✅ **Visual Message Threading**: Color-coded message types with emoji indicators and sender roles
+- ✅ **Subject Line Support**: Optional subject fields for better message organization
+- ✅ **Multi-Language Support**: Complete translation coverage for EN/FR/NL languages
+
+**Backend Architecture**:
+- ✅ **REST API Endpoints**: Complete messaging API with 6 dedicated endpoints for role-based communication
+- ✅ **Message Persistence**: Dedicated messages.json storage with structured data model
+- ✅ **Permission Validation**: Server-side role checking ensures users can only send/receive appropriate messages
+- ✅ **Automatic Cleanup System**: Daily scheduled cleanup removes messages older than 2 weeks
+- ✅ **Notification Integration**: Messages automatically trigger notification system with rich metadata
+
+**Security & Compliance**:
+- ✅ **Role-Based Access Control**: Messages filtered by user permissions and class assignments
+- ✅ **Data Privacy**: Automatic message deletion ensures compliance with data retention policies
+- ✅ **Input Validation**: Server-side validation of all message content and recipient selections
+- ✅ **Audit Trail**: All message activities logged for accountability and security monitoring
+
+**Benefits**:
+- **Streamlined Communication**: Eliminates need for external communication tools between school staff and parents
+- **Professional Messaging**: Structured communication with proper role identification and threading
+- **Automatic Organization**: Messages organized by type, date, and read status for easy management
+- **Privacy Compliance**: Automatic data retention ensures messages don't accumulate indefinitely
+- **Enhanced Workflow**: Integrated notifications direct users to relevant communication requiring attention
+- **Multi-Role Support**: Single interface supporting all communication patterns (admin↔class, class_lead↔parents, parent↔class_lead)
+
 ### ✅ **Enhanced Child Selection & Booking Policy (v2.5.0)**
 **New Features**: Advanced child selection system with modal interface, comprehensive booking restrictions, and enhanced user identification for streamlined registration and professional presentation.
 
@@ -987,6 +1030,150 @@ Response:
   }
 ]
 ```
+
+### Communication Management Endpoints
+
+#### Get User Messages
+```http
+GET /api/messages
+Authorization: Bearer jwt-token-here
+
+Response:
+[
+  {
+    "id": "message-id",
+    "senderId": "sender-user-id",
+    "senderName": "John Smith",
+    "senderRole": "administrator",
+    "type": "admin_to_class",
+    "subject": "Important Update",
+    "message": "Please note the schedule change for next week.",
+    "classIds": ["class-id-1", "class-id-2"],
+    "childIds": [],
+    "recipients": ["parent-id-1", "parent-id-2", "classlead-id"],
+    "createdAt": "2025-10-19T10:00:00Z",
+    "readBy": ["parent-id-1"]
+  }
+]
+```
+
+#### Send Admin to Class Message
+```http
+POST /api/messages/admin-to-class
+Authorization: Bearer jwt-token-here (Administrator only)
+Content-Type: application/json
+
+{
+  "subject": "Schedule Update",
+  "message": "The class schedule has been updated for next week.",
+  "classIds": ["class-id-1", "class-id-2"]
+}
+
+Response:
+{
+  "message": "Message sent successfully",
+  "messageId": "message-id",
+  "recipientCount": 15
+}
+```
+
+#### Send Class Lead to Parents Message
+```http
+POST /api/messages/class-lead-to-parents
+Authorization: Bearer jwt-token-here (Class Lead or Administrator)
+Content-Type: application/json
+
+{
+  "subject": "Homework Reminder",
+  "message": "Don't forget about tomorrow's assignment.",
+  "childIds": ["child-id-1", "child-id-2"]
+}
+# OR
+{
+  "subject": "Class Announcement",
+  "message": "Class will be held in Room 205 tomorrow.",
+  "classIds": ["class-id"]
+}
+
+Response:
+{
+  "message": "Message sent successfully",
+  "messageId": "message-id",
+  "recipientCount": 8
+}
+```
+
+#### Send Parent to Class Lead Message
+```http
+POST /api/messages/parent-to-class-lead
+Authorization: Bearer jwt-token-here (Parent only)
+Content-Type: application/json
+
+{
+  "subject": "Question about homework",
+  "message": "Could you clarify the math assignment?",
+  "classIds": ["class-id"]
+}
+
+Response:
+{
+  "message": "Message sent successfully",
+  "messageId": "message-id",
+  "recipientCount": 2
+}
+```
+
+#### Mark Message as Read
+```http
+PUT /api/messages/message-id/read
+Authorization: Bearer jwt-token-here
+
+Response:
+{
+  "message": "Message marked as read",
+  "messageId": "message-id"
+}
+```
+
+#### Get Children for Messaging
+```http
+GET /api/messages/children-for-messaging
+Authorization: Bearer jwt-token-here (Class Lead or Administrator)
+
+Response:
+[
+  {
+    "id": "child-id",
+    "firstName": "Emma",
+    "lastName": "Smith",
+    "classId": "class-id",
+    "className": "Mathematics",
+    "parents": [
+      {
+        "id": "parent-id",
+        "name": "Jane Smith",
+        "email": "jane@example.com"
+      }
+    ]
+  }
+]
+```
+
+**Communication Message Types:**
+- `admin_to_class` - Administrator broadcasting to classes (reaches parents and class leads)
+- `class_lead_to_parents` - Class lead messaging parents of specific children or entire classes
+- `parent_to_class_lead` - Parent messaging class leads for enrolled classes
+
+**Permission Rules:**
+- **Administrators**: Can send admin_to_class messages to any classes
+- **Class Leads**: Can send class_lead_to_parents messages for their assigned classes
+- **Parents**: Can send parent_to_class_lead messages for classes their children are enrolled in
+- **Message Access**: Users only see messages they are recipients of or have sent
+
+**Data Retention:**
+- **Automatic Cleanup**: Messages older than 2 weeks are automatically deleted
+- **Daily Cleanup Schedule**: Cleanup runs every day at 2:00 AM server time
+- **Performance Optimization**: Prevents message accumulation for optimal system performance
 
 #### Mark Notification as Read
 ```http

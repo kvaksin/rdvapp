@@ -3,7 +3,7 @@ import path from 'path'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { fileURLToPath } from 'url'
-import { getClasses } from './db.js'
+import { getClasses, getSlots } from './db.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -41,6 +41,9 @@ export const saveUserClasses = (userClasses) => writeJsonFile('userClasses.json'
 
 export const getNotifications = () => readJsonFile('notifications.json')
 export const saveNotifications = (notifications) => writeJsonFile('notifications.json', notifications)
+
+// Re-export getClasses from db.js for use in other modules
+export { getClasses } from './db.js'
 
 // User authentication functions
 export const createUser = async (userData) => {
@@ -284,7 +287,7 @@ export const getUserAccessibleClasses = (userId) => {
 }
 
 // Utility functions
-const generateId = () => {
+export const generateId = () => {
   return Date.now().toString() + Math.random().toString(36).substr(2, 9)
 }
 
@@ -1401,4 +1404,177 @@ export const bulkDeleteUsers = (userIds, currentUser) => {
     total: userIds.length,
     deletedUsers
   }
+}
+
+// Message management functions
+export const getMessages = () => {
+  try {
+    const messagesPath = path.join(dataDir, 'messages.json')
+    if (!fs.existsSync(messagesPath)) {
+      return []
+    }
+    const data = fs.readFileSync(messagesPath, 'utf8')
+    return JSON.parse(data)
+  } catch (error) {
+    console.error('Error reading messages:', error)
+    return []
+  }
+}
+
+export const saveMessages = (messages) => {
+  try {
+    const messagesPath = path.join(dataDir, 'messages.json')
+    fs.writeFileSync(messagesPath, JSON.stringify(messages, null, 2))
+  } catch (error) {
+    console.error('Error saving messages:', error)
+    throw error
+  }
+}
+
+export const addMessage = (messageData) => {
+  const messages = getMessages()
+  const newMessage = {
+    id: generateId(),
+    senderId: messageData.senderId,
+    senderName: messageData.senderName,
+    senderRole: messageData.senderRole,
+    type: messageData.type, // 'admin_to_class', 'class_lead_to_parents', 'parent_to_class_lead'
+    subject: messageData.subject || '',
+    message: messageData.message,
+    classIds: messageData.classIds || [], // Classes this message is sent to
+    childIds: messageData.childIds || [], // Specific children (for parent targeting)
+    recipients: messageData.recipients || [], // Specific user IDs to receive the message
+    createdAt: new Date().toISOString(),
+    readBy: [] // Users who have read this message
+  }
+  
+  messages.push(newMessage)
+  saveMessages(messages)
+  return newMessage
+}
+
+export const getMessagesForUser = (userId, userRoles, userClasses, limit = 20) => {
+  const messages = getMessages()
+  const twoWeeksAgo = new Date()
+  twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14)
+  
+  // Filter messages for the user based on their role and classes
+  const userMessages = messages.filter(message => {
+    // Only show messages from the last 2 weeks
+    if (new Date(message.createdAt) < twoWeeksAgo) {
+      return false
+    }
+    
+    // If user is explicitly a recipient
+    if (message.recipients.includes(userId)) {
+      return true
+    }
+    
+    // Admin can see all messages
+    if (userRoles.includes('administrator')) {
+      return true
+    }
+    
+    // Class lead can see messages for their classes
+    if (userRoles.includes('class_lead')) {
+      const leadClassIds = userClasses.map(uc => uc.classId)
+      if (message.classIds.some(classId => leadClassIds.includes(classId))) {
+        return true
+      }
+      // Class leads can see parent messages to their classes
+      if (message.type === 'parent_to_class_lead' && message.classIds.some(classId => leadClassIds.includes(classId))) {
+        return true
+      }
+    }
+    
+    // Parents can see admin messages to their classes and their own messages
+    if (userRoles.includes('parent')) {
+      const parentClassIds = userClasses.map(uc => uc.classId)
+      if (message.type === 'admin_to_class' && message.classIds.some(classId => parentClassIds.includes(classId))) {
+        return true
+      }
+      if (message.type === 'class_lead_to_parents' && message.classIds.some(classId => parentClassIds.includes(classId))) {
+        return true
+      }
+      // Parents can see their own messages
+      if (message.senderId === userId) {
+        return true
+      }
+    }
+    
+    return false
+  })
+  
+  // Sort by creation date (newest first) and limit
+  return userMessages
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, limit)
+}
+
+export const markMessageAsRead = (messageId, userId) => {
+  const messages = getMessages()
+  const message = messages.find(m => m.id === messageId)
+  
+  if (message && !message.readBy.includes(userId)) {
+    message.readBy.push(userId)
+    saveMessages(messages)
+  }
+  
+  return message
+}
+
+export const cleanupOldMessages = () => {
+  const messages = getMessages()
+  const twoWeeksAgo = new Date()
+  twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14)
+  
+  const validMessages = messages.filter(message => 
+    new Date(message.createdAt) >= twoWeeksAgo
+  )
+  
+  if (validMessages.length !== messages.length) {
+    saveMessages(validMessages)
+    console.log(`Cleaned up ${messages.length - validMessages.length} old messages`)
+  }
+  
+  return validMessages.length
+}
+
+// Check if a user can manage a specific booking (cancel/modify)
+export const canManageBooking = async (userId, booking) => {
+  // Administrators can manage all bookings
+  if (hasRole(userId, 'administrator')) {
+    return true
+  }
+
+  // Class leads can manage bookings in their classes
+  if (hasRole(userId, 'class_lead')) {
+    // Get the slot to check the class
+    const slots = await getSlots()
+    const slot = slots.find(s => s.id === booking.slotId)
+    if (slot && hasAccessToClass(userId, slot.classId)) {
+      return true
+    }
+  }
+
+  // Parents can only manage bookings for their own children
+  if (hasRole(userId, 'parent') && booking.childId) {
+    const parentChildRelationships = getParentChildRelationships()
+    return parentChildRelationships.some(rel => 
+      rel.parentId === userId && rel.childId === booking.childId
+    )
+  }
+
+  return false
+}
+
+// Get bookings that a user can manage (for UI purposes)
+export const getUserManageableBookings = async (userId, allBookings) => {
+  const results = []
+  for (const booking of allBookings) {
+    if (await canManageBooking(userId, booking)) {
+      results.push(booking)
+    }
+  }
+  return results
 }
