@@ -20,6 +20,7 @@ class ScheduleViewModel: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     private let apiService = APIService.shared
+    private let notificationService = NotificationService.shared
     
     init() {
         loadData()
@@ -105,6 +106,12 @@ class ScheduleViewModel: ObservableObject {
                     // Reload data to get updated state
                     self?.loadData()
                     self?.showingBookingDetail = false
+                    
+                    // Schedule notifications for new booking
+                    if let booking = response.booking {
+                        self?.notificationService.scheduleAppointmentConfirmation(for: booking)
+                        self?.notificationService.scheduleAppointmentReminder(for: booking)
+                    }
                 }
             )
             .store(in: &cancellables)
@@ -128,6 +135,13 @@ class ScheduleViewModel: ObservableObject {
                 receiveValue: { [weak self] response in
                     self?.loadData()
                     self?.showingBookingDetail = false
+                    
+                    // Schedule new notifications for rescheduled booking
+                    if let booking = response.booking {
+                        self?.notificationService.cancelAppointmentNotifications(for: booking.id)
+                        self?.notificationService.scheduleAppointmentConfirmation(for: booking)
+                        self?.notificationService.scheduleAppointmentReminder(for: booking)
+                    }
                 }
             )
             .store(in: &cancellables)

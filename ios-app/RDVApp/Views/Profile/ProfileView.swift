@@ -9,8 +9,10 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
+    @StateObject private var notificationService = NotificationService.shared
     @State private var showingLogoutAlert = false
     @State private var showingEditProfile = false
+    @State private var showingNotificationSettings = false
     
     var body: some View {
         NavigationView {
@@ -58,6 +60,24 @@ struct ProfileView: View {
                                 Label("Edit Profile", systemImage: "person.crop.circle")
                                     .foregroundColor(.primary)
                             }
+                            
+                            Button(action: { showingNotificationSettings = true }) {
+                                HStack {
+                                    Label("Notifications", systemImage: "bell")
+                                        .foregroundColor(.primary)
+                                    
+                                    Spacer()
+                                    
+                                    // Show notification status
+                                    if notificationService.isAuthorized {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(.green)
+                                    } else {
+                                        Image(systemName: "exclamationmark.triangle.fill")
+                                            .foregroundColor(.orange)
+                                    }
+                                }
+                            }
                         }
                         
                         // Support Section
@@ -100,6 +120,10 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showingEditProfile) {
             EditProfileView()
+                .environmentObject(authViewModel)
+        }
+        .sheet(isPresented: $showingNotificationSettings) {
+            NotificationSettingsView()
                 .environmentObject(authViewModel)
         }
     }

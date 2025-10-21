@@ -16,6 +16,7 @@ class AuthViewModel: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     private let apiService = APIService.shared
+    private let notificationService = NotificationService.shared
     
     init() {
         // Check if user is already authenticated
@@ -27,6 +28,16 @@ class AuthViewModel: ObservableObject {
                 self?.isAuthenticated = token != nil
                 if token == nil {
                     self?.user = nil
+                    self?.notificationService.clearAllNotifications()
+                }
+            }
+            .store(in: &cancellables)
+        
+        // Setup notification permissions request after login
+        $isAuthenticated
+            .sink { [weak self] isAuth in
+                if isAuth {
+                    self?.setupNotifications()
                 }
             }
             .store(in: &cancellables)
@@ -221,5 +232,50 @@ class AuthViewModel: ObservableObject {
     // MARK: - Clear Error
     func clearError() {
         errorMessage = nil
+    }
+    
+    // MARK: - Notification Setup
+    private func setupNotifications() {
+        // Request notification permissions after successful login
+        if !notificationService.isAuthorized {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                self?.notificationService.requestPermission()
+            }
+        }
+        
+        // Register device token if available
+        if let deviceToken = notificationService.deviceToken {
+            registerDeviceToken(deviceToken)
+        }
+        
+        // Listen for device token updates
+        notificationService.$deviceToken
+            .compactMap { $0 }
+            .sink { [weak self] token in
+                self?.registerDeviceToken(token)
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func registerDeviceToken(_ token: String) {
+        guard isAuthenticated else { return }
+        
+        apiService.updateDeviceToken(token)
+            .receive(on: DispatchQueue.main)
+            .sink(
+                receiveCompletion: { completion in
+                    if case .failure(let error) = completion {
+                        print("Failed to register device token: \(error.localizedDescription)")
+                    }
+                },
+                receiveValue: { _ in
+                    print("Device token registered successfully")
+                }
+            )
+            .store(in: &cancellables)
+    }
+    
+    func requestNotificationPermissions() {
+        notificationService.requestPermission()
     }
 }

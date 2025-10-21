@@ -393,6 +393,44 @@ class APIService: ObservableObject {
             responseType: User.self
         )
     }
+    
+    // MARK: - Push Notifications
+    func updateDeviceToken(_ token: String) -> AnyPublisher<MessageResponse, Error> {
+        let request = DeviceTokenRequest(deviceToken: token, platform: "ios")
+        
+        guard let body = try? JSONEncoder.apiEncoder.encode(request) else {
+            return Fail(error: APIError.encodingError)
+                .eraseToAnyPublisher()
+        }
+        
+        return performRequest(
+            endpoint: "auth/device-token",
+            method: .POST,
+            body: body,
+            responseType: MessageResponse.self
+        )
+    }
+    
+    func updateNotificationPreferences(_ preferences: NotificationPreferences) -> AnyPublisher<MessageResponse, Error> {
+        guard let body = try? JSONEncoder.apiEncoder.encode(preferences) else {
+            return Fail(error: APIError.encodingError)
+                .eraseToAnyPublisher()
+        }
+        
+        return performRequest(
+            endpoint: "auth/notification-preferences",
+            method: .PUT,
+            body: body,
+            responseType: MessageResponse.self
+        )
+    }
+    
+    func getNotificationPreferences() -> AnyPublisher<NotificationPreferences, Error> {
+        return performRequest(
+            endpoint: "auth/notification-preferences",
+            responseType: NotificationPreferences.self
+        )
+    }
 }
 
 // MARK: - HTTP Method

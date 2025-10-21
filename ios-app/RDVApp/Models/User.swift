@@ -106,6 +106,26 @@ struct UpdateProfileRequest: Codable {
     let phone: String?
 }
 
+// MARK: - Device Token Request
+struct DeviceTokenRequest: Codable {
+    let deviceToken: String
+    let platform: String
+    let timezone: String
+    let language: String
+    
+    init(deviceToken: String, platform: String) {
+        self.deviceToken = deviceToken
+        self.platform = platform
+        self.timezone = TimeZone.current.identifier
+        self.language = Locale.current.languageCode ?? "en"
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case deviceToken = "device_token"
+        case platform, timezone, language
+    }
+}
+
 // MARK: - Date Extensions
 extension Date {
     init(from decoder: Decoder) throws {

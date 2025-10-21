@@ -9,32 +9,34 @@ import SwiftUI
 
 struct TabBarView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
-    @State private var selectedTab: Tab = .schedule
+    @Binding var selectedTab: Int
     
-    enum Tab: String, CaseIterable {
-        case schedule = "Schedule"
-        case messages = "Messages"
-        case profile = "Profile"
+    enum Tab: Int, CaseIterable {
+        case schedule = 0
+        case messages = 1
+        case profile = 2
+        
+        var title: String {
+            switch self {
+            case .schedule: return "Schedule"
+            case .messages: return "Messages"
+            case .profile: return "Profile"
+            }
+        }
         
         var iconName: String {
             switch self {
-            case .schedule:
-                return "calendar"
-            case .messages:
-                return "envelope"
-            case .profile:
-                return "person"
+            case .schedule: return "calendar"
+            case .messages: return "envelope"
+            case .profile: return "person"
             }
         }
         
         var selectedIconName: String {
             switch self {
-            case .schedule:
-                return "calendar.circle.fill"
-            case .messages:
-                return "envelope.fill"
-            case .profile:
-                return "person.fill"
+            case .schedule: return "calendar.circle.fill"
+            case .messages: return "envelope.fill"
+            case .profile: return "person.fill"
             }
         }
     }
@@ -43,30 +45,31 @@ struct TabBarView: View {
         TabView(selection: $selectedTab) {
             ScheduleView()
                 .tabItem {
-                    Image(systemName: selectedTab == .schedule ? Tab.schedule.selectedIconName : Tab.schedule.iconName)
-                    Text(Tab.schedule.rawValue)
+                    Image(systemName: selectedTab == Tab.schedule.rawValue ? Tab.schedule.selectedIconName : Tab.schedule.iconName)
+                    Text(Tab.schedule.title)
                 }
-                .tag(Tab.schedule)
+                .tag(Tab.schedule.rawValue)
                 .environmentObject(authViewModel)
             
             MessagesView()
                 .tabItem {
-                    Image(systemName: selectedTab == .messages ? Tab.messages.selectedIconName : Tab.messages.iconName)
-                    Text(Tab.messages.rawValue)
+                    Image(systemName: selectedTab == Tab.messages.rawValue ? Tab.messages.selectedIconName : Tab.messages.iconName)
+                    Text(Tab.messages.title)
                 }
-                .tag(Tab.messages)
+                .tag(Tab.messages.rawValue)
                 .environmentObject(authViewModel)
             
             ProfileView()
                 .tabItem {
-                    Image(systemName: selectedTab == .profile ? Tab.profile.selectedIconName : Tab.profile.iconName)
-                    Text(Tab.profile.rawValue)
+                    Image(systemName: selectedTab == Tab.profile.rawValue ? Tab.profile.selectedIconName : Tab.profile.iconName)
+                    Text(Tab.profile.title)
                 }
-                .tag(Tab.profile)
+                .tag(Tab.profile.rawValue)
                 .environmentObject(authViewModel)
         }
         .accentColor(.purple)
     }
+}
 }
 
 #Preview {

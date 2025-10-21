@@ -6,10 +6,12 @@
 //
 
 import SwiftUI
+import Combine
 
 struct MessagesView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @StateObject private var messagesViewModel = MessagesViewModel()
+    @StateObject private var notificationService = NotificationService.shared
     @State private var showingComposer = false
     @State private var selectedMessageType: MessageType?
     
@@ -54,6 +56,17 @@ struct MessagesView: View {
         }
         .onAppear {
             messagesViewModel.loadMessages()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .messageReceived)) { notification in
+            if let messageId = notification.userInfo?["messageId"] as? String {
+                // Reload messages when notification received
+                messagesViewModel.loadMessages()
+                
+                // Mark message as read when viewed
+                if let message = messagesViewModel.messages.first(where: { $0.id == messageId }) {
+                    markMessageAsRead(message)
+                }
+            }
         }
     }
     
@@ -168,6 +181,16 @@ struct MessagesView: View {
     private var filteredMessages: [Message] {
         messagesViewModel.messages.filtered(by: selectedMessageType)
     }
+    
+    // MARK: - Helper Methods
+    private func markMessageAsRead(_ message: Message) {
+        // Cancel any pending notifications for this message
+        notificationService.cancelMessageNotifications(for: message.id)
+        
+        // Update message read status via API
+        // This would typically be handled by the MessagesViewModel
+        messagesViewModel.markMessageAsRead(message)
+    }
 }
 
 // MARK: - Filter Chip
@@ -280,6 +303,7 @@ class MessagesViewModel: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     private let apiService = APIService.shared
+    private let notificationService = NotificationService.shared
     
     func loadMessages() {
         isLoading = true
@@ -300,6 +324,43 @@ class MessagesViewModel: ObservableObject {
             )
             .store(in: &cancellables)
     }
+    
+    func markMessageAsRead(_ message: Message) {
+        // Update local state
+        if let index = messages.firstIndex(where: { $0.id == message.id }) {
+            messages[index].isUnread = false
+        }
+        
+        // Update on server
+        apiService.markMessageAsRead(messageId: message.id)
+            .receive(on: DispatchQueue.main)
+            .sink(
+                receiveCompletion: { completion in
+                    if case .failure(let error) = completion {
+                        print("Failed to mark message as read: \(error)")
+                    }
+                },
+                receiveValue: { _ in
+                    // Success - local state already updated
+                }
+            )
+            .store(in: &cancellables)
+    }
+    
+    func scheduleMessageNotification(for message: Message) {
+        // Schedule notification for new message
+        notificationService.scheduleMessageNotification(
+            messageId: message.id,
+            title: "New Message from \(message.senderName)",
+            body: message.subject?.isEmpty == false ? message.subject! : String(message.message.prefix(100)),
+            userInfo: ["messageId": message.id, "type": "message"]
+        )
+    }
+}
+
+// MARK: - Notification Extensions
+extension Notification.Name {
+    static let messageReceived = Notification.Name("messageReceived")
 }
 
 #Preview {
