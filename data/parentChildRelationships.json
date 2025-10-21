@@ -1,0 +1,23 @@
+[
+  {
+    "id": "1760987412904a36dvlt18",
+    "parentId": "17609874129012qwwngohj",
+    "childId": "1760987412903jgn9r0hvq",
+    "relationship": "parent",
+    "createdAt": "2025-10-20T19:10:12.904Z"
+  },
+  {
+    "id": "17609874854315utcj07ku",
+    "parentId": "1760987485428lsqelciy6",
+    "childId": "1760987412903jgn9r0hvq",
+    "relationship": "parent",
+    "createdAt": "2025-10-20T19:11:25.431Z"
+  },
+  {
+    "id": "1760995399380va1uk7nx0",
+    "parentId": "176099539937579fx059if",
+    "childId": "1760995399380nqxzap4o7",
+    "relationship": "parent",
+    "createdAt": "2025-10-20T21:23:19.380Z"
+  }
+]

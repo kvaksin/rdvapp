@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Register Redirect</title>
+</head>
+<body>
+    <h1>Register Page Test</h1>
+    <p>This page tests if the register page redirects to login.</p>
+    
+    <h2>Current localStorage:</h2>
+    <div id="localStorage-content"></div>
+    
+    <h2>Actions:</h2>
+    <button onclick="clearAuth()">Clear Authentication</button>
+    <button onclick="goToRegister()">Go to Register</button>
+    <button onclick="goToLogin()">Go to Login</button>
+    
+    <script>
+        function displayLocalStorage() {
+            const content = document.getElementById('localStorage-content');
+            const authToken = localStorage.getItem('auth_token');
+            const authUser = localStorage.getItem('auth_user');
+            
+            content.innerHTML = `
+                <p><strong>auth_token:</strong> ${authToken ? 'EXISTS' : 'NOT FOUND'}</p>
+                <p><strong>auth_user:</strong> ${authUser ? 'EXISTS' : 'NOT FOUND'}</p>
+                ${authToken ? `<p><strong>Token preview:</strong> ${authToken.substring(0, 50)}...</p>` : ''}
+                ${authUser ? `<p><strong>User preview:</strong> ${authUser.substring(0, 100)}...</p>` : ''}
+            `;
+        }
+        
+        function clearAuth() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_user');
+            alert('Authentication cleared!');
+            displayLocalStorage();
+        }
+        
+        function goToRegister() {
+            window.location.href = '/register';
+        }
+        
+        function goToLogin() {
+            window.location.href = '/login';
+        }
+        
+        // Display localStorage content on page load
+        displayLocalStorage();
+    </script>
+</body>
+</html>
