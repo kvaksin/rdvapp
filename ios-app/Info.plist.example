@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Existing keys will be here -->
+    
+    <!-- Network Security Settings -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+        <!-- For development only - remove for production -->
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>localhost</key>
+            <dict>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <true/>
+            </dict>
+        </dict>
+    </dict>
+    
+    <!-- Camera Access for Profile Photos -->
+    <key>NSCameraUsageDescription</key>
+    <string>This app needs access to camera to take profile photos</string>
+    
+    <!-- Photo Library Access -->
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>This app needs access to photo library to select profile photos</string>
+    
+    <!-- File Access for Attachments -->
+    <key>NSDocumentsFolderUsageDescription</key>
+    <string>This app needs access to documents to attach files to messages</string>
+    
+    <!-- Notification Settings -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>remote-notification</string>
+    </array>
+</dict>
+</plist>
