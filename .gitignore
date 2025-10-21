@@ -2,3 +2,5 @@ node_modules
 dist
 dist-config
 *.tsbuildinfo
+uploads/
+data/

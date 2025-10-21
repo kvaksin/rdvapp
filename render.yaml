@@ -4,10 +4,11 @@ services:
     env: node
     plan: free
     region: frankfurt
-    branch: authentication
+    branch: communication
     buildCommand: |
       npm ci --include=dev
       mkdir -p data
+      mkdir -p uploads
       ls -la openapi.yaml || echo "Warning: openapi.yaml not found"
       npm run build
       echo "Build completed successfully"
@@ -37,12 +38,18 @@ services:
         value: "24"
       - key: MAX_BOOKING_DAYS_AHEAD
         value: "30"
+      - key: MAX_FILE_SIZE
+        value: "5242880"
+      - key: MAX_FILES_PER_MESSAGE
+        value: "5"
+      - key: UPLOAD_DIR
+        value: uploads
     healthCheckPath: /api/health
     autoDeploy: true
     disk:
       name: rdvapp-persistent-data
-      mountPath: /opt/render/project/src/data
-      sizeGB: 2
+      mountPath: /opt/render/project/src
+      sizeGB: 3
     headers:
       - path: /*
         name: X-Frame-Options
